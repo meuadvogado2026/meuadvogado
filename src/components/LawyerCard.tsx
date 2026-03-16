@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { MapPin, Star, ShieldCheck, User, Navigation } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { WhatsAppButton } from "./WhatsAppButton";
