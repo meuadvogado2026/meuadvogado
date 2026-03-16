@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,9 +6,14 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Scale, User, Briefcase, MapPin } from "lucide-react";
 import { toast } from "sonner";
+import { BRAZIL_STATES, CITIES_BY_STATE } from "@/data/locations";
 
 export const Signup = () => {
   const navigate = useNavigate();
+
+  // Estados para controlar os selects dependentes no formulário
+  const [clientState, setClientState] = useState("");
+  const [lawyerState, setLawyerState] = useState("");
 
   const handleRegister = (role: string) => (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,21 +72,40 @@ export const Signup = () => {
                       <MapPin className="w-4 h-4 text-blue-600"/>
                       <span className="font-bold text-slate-800 text-sm">Seu Endereço</span>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div className="sm:col-span-1">
+                    <div className="grid grid-cols-1 sm:grid-cols-6 gap-4">
+                      <div className="sm:col-span-2">
                         <Label className="text-slate-700 font-bold">CEP</Label>
                         <Input required className="mt-1 h-12 rounded-xl bg-white border-slate-200" placeholder="00000-000" maxLength={9} />
                       </div>
-                      <div className="sm:col-span-1">
+                      <div className="sm:col-span-2">
                         <Label className="text-slate-700 font-bold">Estado (UF)</Label>
-                        <Input required className="mt-1 h-12 rounded-xl bg-white border-slate-200 uppercase" placeholder="SP" maxLength={2} />
+                        <select 
+                          required 
+                          value={clientState}
+                          onChange={(e) => setClientState(e.target.value)}
+                          className="mt-1 flex h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none"
+                        >
+                          <option value="" disabled>Selecione</option>
+                          {BRAZIL_STATES.map(state => (
+                            <option key={state.uf} value={state.uf}>{state.uf} - {state.name}</option>
+                          ))}
+                        </select>
                       </div>
-                      <div className="sm:col-span-1">
+                      <div className="sm:col-span-2">
                         <Label className="text-slate-700 font-bold">Cidade</Label>
-                        <Input required className="mt-1 h-12 rounded-xl bg-white border-slate-200" />
+                        <select 
+                          required 
+                          disabled={!clientState}
+                          className="mt-1 flex h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
+                        >
+                          <option value="" disabled selected>Selecione</option>
+                          {clientState && CITIES_BY_STATE[clientState]?.map(city => (
+                            <option key={city} value={city}>{city}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
-                    <p className="text-xs text-slate-500 font-medium mt-2">Usaremos seu CEP para encontrar advogados próximos a você.</p>
+                    <p className="text-xs text-slate-500 font-medium mt-2">Usaremos sua localização para encontrar advogados próximos.</p>
                   </div>
 
                   <div>
@@ -114,8 +138,16 @@ export const Signup = () => {
                     <Input required className="mt-1 h-12 rounded-xl bg-slate-50" placeholder="123456" />
                   </div>
                   <div>
-                    <Label className="text-slate-700 font-bold">Estado OAB</Label>
-                    <Input required className="mt-1 h-12 rounded-xl bg-slate-50 uppercase" placeholder="SP" maxLength={2} />
+                    <Label className="text-slate-700 font-bold">Estado OAB (UF)</Label>
+                    <select 
+                      required 
+                      className="mt-1 flex h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none"
+                    >
+                      <option value="" disabled selected>UF</option>
+                      {BRAZIL_STATES.map(state => (
+                        <option key={state.uf} value={state.uf}>{state.uf}</option>
+                      ))}
+                    </select>
                   </div>
                   
                   <div className="sm:col-span-2 p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-4 mt-2">
@@ -126,14 +158,37 @@ export const Signup = () => {
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div className="sm:col-span-1">
+                    <div className="grid grid-cols-1 sm:grid-cols-6 gap-4">
+                      <div className="sm:col-span-2">
                         <Label className="text-slate-700 font-bold">CEP</Label>
                         <Input required className="mt-1 h-12 rounded-xl bg-white border-slate-200" placeholder="00000-000" maxLength={9} />
                       </div>
                       <div className="sm:col-span-2">
+                        <Label className="text-slate-700 font-bold">Estado (UF)</Label>
+                        <select 
+                          required 
+                          value={lawyerState}
+                          onChange={(e) => setLawyerState(e.target.value)}
+                          className="mt-1 flex h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none"
+                        >
+                          <option value="" disabled>Selecione</option>
+                          {BRAZIL_STATES.map(state => (
+                            <option key={state.uf} value={state.uf}>{state.uf}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="sm:col-span-2">
                         <Label className="text-slate-700 font-bold">Cidade</Label>
-                        <Input required className="mt-1 h-12 rounded-xl bg-white border-slate-200" />
+                        <select 
+                          required 
+                          disabled={!lawyerState}
+                          className="mt-1 flex h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
+                        >
+                          <option value="" disabled selected>Selecione</option>
+                          {lawyerState && CITIES_BY_STATE[lawyerState]?.map(city => (
+                            <option key={city} value={city}>{city}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
                     

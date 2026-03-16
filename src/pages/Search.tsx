@@ -6,6 +6,7 @@ import { mockLawyers, specialties } from "@/data/mock";
 import { LawyerCard } from "@/components/LawyerCard";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { toast } from "sonner";
+import { BRAZIL_STATES, CITIES_BY_STATE } from "@/data/locations";
 
 export const Search = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -14,7 +15,7 @@ export const Search = () => {
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedState, setSelectedState] = useState("");
   const [selectedType, setSelectedType] = useState("all");
-  const [sortBy, setSortBy] = useState("recommended"); // "recommended", "distance"
+  const [sortBy, setSortBy] = useState("recommended");
 
   // Simulação de busca de localização do dispositivo
   const handleUseLocation = () => {
@@ -32,7 +33,7 @@ export const Search = () => {
     .filter(lawyer => {
       const matchesSearch = lawyer.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesSpecialty = selectedSpecialty === "all" || lawyer.specialty === selectedSpecialty;
-      const matchesCity = selectedCity === "" || lawyer.city.toLowerCase().includes(selectedCity.toLowerCase());
+      const matchesCity = selectedCity === "" || lawyer.city.toLowerCase() === selectedCity.toLowerCase();
       const matchesState = selectedState === "" || lawyer.state.toLowerCase() === selectedState.toLowerCase();
       
       let matchesType = true;
@@ -43,12 +44,11 @@ export const Search = () => {
     })
     .sort((a, b) => {
       if (sortBy === "distance") {
-        // Se ambos têm distância, ordena pela menor. Se um não tem, joga pro final.
         if (a.distance !== undefined && b.distance !== undefined) return a.distance - b.distance;
         if (a.distance !== undefined) return -1;
         if (b.distance !== undefined) return 1;
       }
-      return b.rating - a.rating; // default: recomendados / maior rating
+      return b.rating - a.rating;
     });
 
   const clearFilters = () => {
@@ -96,19 +96,31 @@ export const Search = () => {
           />
           
           <div className="grid grid-cols-3 gap-2">
-            <Input 
-              placeholder="UF" 
+            <select 
               value={selectedState}
-              onChange={(e) => setSelectedState(e.target.value)}
-              className="h-11 rounded-xl bg-slate-50 border-slate-200 col-span-1"
-              maxLength={2}
-            />
-            <Input 
-              placeholder="Cidade" 
+              onChange={(e) => {
+                setSelectedState(e.target.value);
+                setSelectedCity(""); // Reseta a cidade ao mudar o estado
+              }}
+              className="h-11 rounded-xl bg-slate-50 border-slate-200 col-span-1 px-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none"
+            >
+              <option value="">UF</option>
+              {BRAZIL_STATES.map(state => (
+                <option key={state.uf} value={state.uf}>{state.uf}</option>
+              ))}
+            </select>
+            
+            <select 
               value={selectedCity}
               onChange={(e) => setSelectedCity(e.target.value)}
-              className="h-11 rounded-xl bg-slate-50 border-slate-200 col-span-2"
-            />
+              disabled={!selectedState}
+              className="h-11 rounded-xl bg-slate-50 border-slate-200 col-span-2 px-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none disabled:opacity-50"
+            >
+              <option value="">Cidade</option>
+              {selectedState && CITIES_BY_STATE[selectedState]?.map(city => (
+                <option key={city} value={city}>{city}</option>
+              ))}
+            </select>
           </div>
         </div>
       </div>
@@ -246,10 +258,10 @@ export const Search = () => {
               {filteredLawyers.length === 0 && (
                 <div className="text-center py-20 bg-white rounded-3xl border border-slate-200">
                   <Navigation className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                  <h3 className="text-2xl font-black text-[#0F172A] mb-2">Nenhum profissional na região</h3>
-                  <p className="text-slate-500 max-w-md mx-auto mb-6">Não encontramos advogados presenciais próximos. Que tal buscar por especialistas que atendem online?</p>
-                  <Button onClick={() => setSelectedType('Online')} className="rounded-xl font-bold bg-[#1E3A5F] hover:bg-[#0F172A] h-12 px-6">
-                    Mostrar Advogados Online
+                  <h3 className="text-2xl font-black text-[#0F172A] mb-2">Nenhum profissional encontrado</h3>
+                  <p className="text-slate-500 max-w-md mx-auto mb-6">Tente remover alguns filtros ou buscar em outras regiões para encontrar especialistas.</p>
+                  <Button onClick={clearFilters} className="rounded-xl font-bold bg-[#1E3A5F] hover:bg-[#0F172A] h-12 px-6">
+                    Limpar Filtros e Tentar Novamente
                   </Button>
                 </div>
               )}

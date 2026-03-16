@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Save, User, MapPin } from "lucide-react";
 import { toast } from "sonner";
+import { BRAZIL_STATES, CITIES_BY_STATE } from "@/data/locations";
 
 export const ClientProfile = () => {
   const [profile, setProfile] = useState({
@@ -17,9 +18,13 @@ export const ClientProfile = () => {
     password: ""
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setProfile(prev => ({ ...prev, [name]: value }));
+    setProfile(prev => {
+      // Se mudar o estado, reseta a cidade
+      if (name === 'state') return { ...prev, state: value, city: '' };
+      return { ...prev, [name]: value };
+    });
   };
 
   const handleSave = () => {
@@ -92,8 +97,8 @@ export const ClientProfile = () => {
             <h3 className="text-sm font-black uppercase tracking-wider text-slate-500 mb-4 flex items-center gap-2">
               <MapPin className="w-4 h-4 text-primary" /> Localização
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-2 md:col-span-1">
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
+              <div className="space-y-2 md:col-span-2">
                 <Label className="font-bold text-slate-700">CEP</Label>
                 <Input 
                   name="cep" 
@@ -103,27 +108,41 @@ export const ClientProfile = () => {
                   className="h-12 rounded-xl bg-slate-50 border-slate-200" 
                 />
               </div>
-              <div className="space-y-2 md:col-span-1">
+              <div className="space-y-2 md:col-span-2">
                 <Label className="font-bold text-slate-700">Estado (UF)</Label>
-                <Input 
-                  name="state" 
+                <select 
+                  name="state"
                   value={profile.state} 
-                  onChange={handleChange} 
-                  maxLength={2} 
-                  className="h-12 rounded-xl bg-slate-50 border-slate-200 uppercase" 
-                />
+                  onChange={handleChange}
+                  className="flex h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none"
+                >
+                  <option value="" disabled>Selecione</option>
+                  {BRAZIL_STATES.map(state => (
+                    <option key={state.uf} value={state.uf}>{state.uf}</option>
+                  ))}
+                </select>
               </div>
-              <div className="space-y-2 md:col-span-1">
+              <div className="space-y-2 md:col-span-2">
                 <Label className="font-bold text-slate-700">Cidade</Label>
-                <Input 
-                  name="city" 
+                <select 
+                  name="city"
                   value={profile.city} 
-                  onChange={handleChange} 
-                  className="h-12 rounded-xl bg-slate-50 border-slate-200" 
-                />
+                  onChange={handleChange}
+                  disabled={!profile.state}
+                  className="flex h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none disabled:opacity-50"
+                >
+                  <option value="" disabled>Selecione</option>
+                  {profile.state && CITIES_BY_STATE[profile.state]?.map(city => (
+                    <option key={city} value={city}>{city}</option>
+                  ))}
+                  {/* Fallback para caso o mock original tenha uma cidade que não está na lista */}
+                  {profile.city && !CITIES_BY_STATE[profile.state]?.includes(profile.city) && (
+                     <option value={profile.city}>{profile.city}</option>
+                  )}
+                </select>
               </div>
             </div>
-            <p className="text-sm font-medium text-slate-500 mt-3">Usamos seu CEP para recomendar advogados que atendem perto de você.</p>
+            <p className="text-sm font-medium text-slate-500 mt-3">Usamos seu CEP e localização para recomendar advogados que atendem perto de você.</p>
           </div>
 
           <div className="w-full h-px bg-slate-100" />
