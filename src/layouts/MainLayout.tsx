@@ -1,12 +1,18 @@
 import React from 'react';
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { MobileNav } from "@/components/MobileNav";
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetTrigger, 
+  SheetHeader, 
+  SheetTitle,
+  SheetClose
+} from "@/components/ui/sheet";
 
 export const MainLayout = () => {
-  const location = useLocation();
-
   return (
     <div className="min-h-screen flex flex-col font-sans">
       <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
@@ -25,9 +31,39 @@ export const MainLayout = () => {
             </Link>
           </nav>
           
-          <Button variant="ghost" size="icon" className="md:hidden">
-            <Menu className="h-6 w-6" />
-          </Button>
+          <div className="md:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="Abrir menu">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="flex flex-col border-slate-200 w-[300px]">
+                <SheetHeader className="text-left mb-6 mt-4">
+                  <SheetTitle className="flex items-center gap-2.5 font-bold text-xl text-slate-900">
+                    <img src="/logo.png" alt="Meu Advogado" className="h-6 w-6 object-contain" />
+                    Meu Advogado
+                  </SheetTitle>
+                </SheetHeader>
+                <nav className="flex flex-col gap-3">
+                  <SheetClose asChild>
+                    <Link to="/login" className="w-full">
+                      <Button variant="outline" className="w-full justify-start h-12 text-base font-bold rounded-xl border-slate-200">
+                        Entrar
+                      </Button>
+                    </Link>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <Link to="/cadastro" className="w-full">
+                      <Button className="w-full justify-start h-12 text-base font-bold rounded-xl bg-[#0F172A] text-white hover:bg-slate-800">
+                        Cadastre-se grátis
+                      </Button>
+                    </Link>
+                  </SheetClose>
+                </nav>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </header>
 
