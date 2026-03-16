@@ -15,6 +15,7 @@ import { LawyerProfile } from "./pages/LawyerProfile";
 import { Login } from "./pages/auth/Login";
 import { Signup } from "./pages/auth/Signup";
 import { ClientDashboard } from "./pages/dashboards/ClientDashboard";
+import { ClientProfile } from "./pages/dashboards/ClientProfile";
 import { LawyerDashboard } from "./pages/dashboards/LawyerDashboard";
 import { LawyerProfileEdit } from "./pages/dashboards/LawyerProfileEdit";
 import { LawyerSettings } from "./pages/dashboards/LawyerSettings";
@@ -44,6 +45,7 @@ const App = () => (
           {/* Dashboard Routes */}
           <Route element={<DashboardLayout role="client" />}>
             <Route path="/painel/cliente" element={<ClientDashboard />} />
+            <Route path="/painel/cliente/perfil" element={<ClientProfile />} />
             <Route path="/painel/cliente/*" element={<ClientDashboard />} />
           </Route>
           

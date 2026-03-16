@@ -1,126 +1,186 @@
 import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search as SearchIcon, MapPin, Briefcase } from "lucide-react";
+import { Search as SearchIcon, MapPin, Briefcase, SlidersHorizontal, X } from "lucide-react";
 import { mockLawyers, specialties } from "@/data/mock";
 import { LawyerCard } from "@/components/LawyerCard";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 
 export const Search = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState("all");
+  const [selectedCity, setSelectedCity] = useState("");
+  const [selectedState, setSelectedState] = useState("");
+  const [selectedType, setSelectedType] = useState("all");
 
   const filteredLawyers = mockLawyers.filter(lawyer => {
-    const matchesSearch = lawyer.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          lawyer.city.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = lawyer.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSpecialty = selectedSpecialty === "all" || lawyer.specialty === selectedSpecialty;
-    return matchesSearch && matchesSpecialty;
+    const matchesCity = selectedCity === "" || lawyer.city.toLowerCase().includes(selectedCity.toLowerCase());
+    const matchesState = selectedState === "" || lawyer.state.toLowerCase() === selectedState.toLowerCase();
+    
+    // Simplificando o match de tipo para o mock
+    let matchesType = true;
+    if (selectedType !== "all") {
+      if (selectedType === "Online" && !lawyer.type.includes("Online") && !lawyer.type.includes("Híbrido")) matchesType = false;
+      if (selectedType === "Presencial" && !lawyer.type.includes("Presencial") && !lawyer.type.includes("Híbrido")) matchesType = false;
+    }
+
+    return matchesSearch && matchesSpecialty && matchesCity && matchesState && matchesType;
   });
 
-  return (
-    <div className="min-h-screen bg-slate-50 py-8">
-      <div className="container mx-auto px-4 max-w-6xl">
-        {/* Header Search Area */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-8">
-          <h1 className="text-2xl font-bold text-slate-900 mb-6">Encontre o seu advogado</h1>
-          
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-            <div className="md:col-span-5 relative">
-              <SearchIcon className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
-              <Input 
-                placeholder="Nome, cidade ou palavra-chave..." 
-                className="pl-10 h-12 text-base bg-slate-50 border-slate-200"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+  const clearFilters = () => {
+    setSearchTerm("");
+    setSelectedSpecialty("all");
+    setSelectedCity("");
+    setSelectedState("");
+    setSelectedType("all");
+  };
+
+  const FilterSidebar = () => (
+    <div className="space-y-8">
+      <div>
+        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Especialidade</h3>
+        <select 
+          value={selectedSpecialty} 
+          onChange={(e) => setSelectedSpecialty(e.target.value)}
+          className="w-full h-11 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm focus:ring-2 focus:ring-primary focus:outline-none"
+        >
+          <option value="all">Todas as áreas</option>
+          {specialties.map(spec => (
+            <option key={spec} value={spec}>{spec}</option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+          Localização
+        </h3>
+        <div className="space-y-3">
+          <Input 
+            placeholder="Digite o Estado (Ex: SP)" 
+            value={selectedState}
+            onChange={(e) => setSelectedState(e.target.value)}
+            className="h-11 rounded-xl bg-slate-50"
+            maxLength={2}
+          />
+          <Input 
+            placeholder="Digite a Cidade" 
+            value={selectedCity}
+            onChange={(e) => setSelectedCity(e.target.value)}
+            className="h-11 rounded-xl bg-slate-50"
+          />
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Atendimento</h3>
+        <div className="space-y-2">
+          {['all', 'Online', 'Presencial'].map(type => (
+            <label key={type} className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-slate-50 transition-colors">
+              <input 
+                type="radio" 
+                name="attendanceType" 
+                value={type}
+                checked={selectedType === type}
+                onChange={() => setSelectedType(type)}
+                className="w-4 h-4 text-primary focus:ring-primary border-slate-300" 
               />
-            </div>
-            
-            <div className="md:col-span-4 relative">
-              <Briefcase className="absolute left-3 top-3 h-5 w-5 text-slate-400 z-10" />
-              <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
-                <SelectTrigger className="pl-10 h-12 text-base bg-slate-50 border-slate-200">
-                  <SelectValue placeholder="Especialidade" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as áreas</SelectItem>
-                  {specialties.map(spec => (
-                    <SelectItem key={spec} value={spec}>{spec}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="md:col-span-3">
-              <Button className="w-full h-12 text-base font-medium">
-                Buscar
-              </Button>
-            </div>
+              <span className="text-sm font-medium text-slate-700">
+                {type === 'all' ? 'Qualquer formato' : type}
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <Button variant="outline" onClick={clearFilters} className="w-full h-11 rounded-xl border-slate-200 text-slate-500 font-bold hover:bg-slate-50">
+        <X className="w-4 h-4 mr-2" /> Limpar Filtros
+      </Button>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-slate-50/50 py-8">
+      <div className="container mx-auto px-4 max-w-7xl">
+        
+        {/* Header Search Area */}
+        <div className="bg-white p-4 md:p-6 rounded-3xl shadow-sm border border-slate-200/60 mb-8 flex flex-col md:flex-row gap-4 items-center">
+          <div className="relative flex-1 w-full">
+            <SearchIcon className="absolute left-4 top-3.5 h-5 w-5 text-slate-400" />
+            <Input 
+              placeholder="Buscar por nome do advogado..." 
+              className="pl-12 h-12 md:h-14 text-base rounded-2xl bg-slate-50 border-slate-100 shadow-inner focus-visible:ring-primary/20"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
+          
+          {/* Mobile Filter Trigger */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button className="w-full md:hidden h-12 rounded-2xl bg-slate-900 text-white font-bold">
+                <SlidersHorizontal className="w-5 h-5 mr-2" /> Filtros Avançados
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="h-[85vh] rounded-t-[2rem]">
+              <SheetHeader className="mb-6">
+                <SheetTitle className="text-2xl font-black text-slate-900">Filtros</SheetTitle>
+              </SheetHeader>
+              <div className="overflow-y-auto h-full pb-20 px-1">
+                <FilterSidebar />
+                <SheetClose asChild>
+                  <Button className="w-full h-14 mt-8 rounded-2xl bg-primary text-white font-bold text-lg">
+                    Aplicar Filtros
+                  </Button>
+                </SheetClose>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
 
         {/* Results layout */}
         <div className="flex flex-col md:flex-row gap-8">
-          {/* Sidebar Filters (Static for MVP) */}
-          <aside className="w-full md:w-64 shrink-0 space-y-6">
-            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-              <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                <MapPin className="w-4 h-4" /> Localização
-              </h3>
-              <div className="space-y-3">
-                {['São Paulo, SP', 'Rio de Janeiro, RJ', 'Belo Horizonte, MG'].map(loc => (
-                  <label key={loc} className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" className="rounded border-slate-300 text-primary focus:ring-primary" />
-                    <span className="text-sm text-slate-600">{loc}</span>
-                  </label>
-                ))}
+          
+          {/* Sidebar Filters (Desktop) */}
+          <aside className="hidden md:block w-72 shrink-0">
+            <div className="bg-white p-6 rounded-3xl border border-slate-200/60 shadow-sm sticky top-24">
+              <div className="flex items-center gap-2 mb-8">
+                <SlidersHorizontal className="w-5 h-5 text-primary" />
+                <h2 className="text-lg font-black text-slate-900">Filtros</h2>
               </div>
-            </div>
-
-            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-              <h3 className="font-semibold text-slate-900 mb-4">Atendimento</h3>
-              <div className="space-y-3">
-                {['Online', 'Presencial', 'Híbrido'].map(type => (
-                  <label key={type} className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" className="rounded border-slate-300 text-primary focus:ring-primary" />
-                    <span className="text-sm text-slate-600">{type}</span>
-                  </label>
-                ))}
-              </div>
+              <FilterSidebar />
             </div>
           </aside>
 
           {/* List */}
-          <div className="flex-1 space-y-6">
-            <div className="flex justify-between items-center mb-2">
-              <h2 className="text-slate-600 font-medium">
-                Encontramos <strong className="text-slate-900">{filteredLawyers.length}</strong> advogados
+          <div className="flex-1">
+            <div className="mb-6">
+              <h2 className="text-lg font-medium text-slate-600">
+                Encontramos <span className="font-black text-slate-900">{filteredLawyers.length}</span> advogados
               </h2>
-              <Select defaultValue="recommended">
-                <SelectTrigger className="w-[180px] bg-white">
-                  <SelectValue placeholder="Ordenar por" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="recommended">Recomendados</SelectItem>
-                  <SelectItem value="rating">Melhor Avaliação</SelectItem>
-                  <SelectItem value="reviews">Mais Avaliados</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
               {filteredLawyers.map(lawyer => (
                 <LawyerCard key={lawyer.id} lawyer={lawyer} />
               ))}
+              
               {filteredLawyers.length === 0 && (
-                <div className="text-center py-20 bg-white rounded-xl border border-dashed border-slate-300">
+                <div className="text-center py-24 bg-white rounded-3xl border border-dashed border-slate-300">
                   <SearchIcon className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-slate-900">Nenhum advogado encontrado</h3>
-                  <p className="text-slate-500">Tente ajustar seus filtros de busca.</p>
+                  <h3 className="text-xl font-black text-slate-900 mb-2">Nenhum profissional encontrado</h3>
+                  <p className="text-slate-500 max-w-md mx-auto">Tente ajustar seus filtros de busca ou procurar por outros termos.</p>
+                  <Button variant="outline" onClick={clearFilters} className="mt-6 rounded-xl font-bold">
+                    Limpar Filtros
+                  </Button>
                 </div>
               )}
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );

@@ -22,7 +22,8 @@ import {
   MessageSquareQuote,
   Phone,
   Mail,
-  Share2
+  Share2,
+  Info
 } from "lucide-react";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 
@@ -97,11 +98,17 @@ export const LawyerProfile = () => {
               {/* Avatar */}
               <div className="relative shrink-0 mx-auto lg:mx-0">
                 <div className="p-2 bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50">
-                  <img 
-                    src={lawyer.image} 
-                    alt={lawyer.name} 
-                    className="w-36 h-36 md:w-48 md:h-48 rounded-[2rem] object-cover bg-slate-100"
-                  />
+                  {lawyer.image ? (
+                    <img 
+                      src={lawyer.image} 
+                      alt={lawyer.name} 
+                      className="w-36 h-36 md:w-48 md:h-48 rounded-[2rem] object-cover bg-slate-100"
+                    />
+                  ) : (
+                    <div className="w-36 h-36 md:w-48 md:h-48 rounded-[2rem] bg-slate-100 flex items-center justify-center text-slate-400">
+                      <User className="w-20 h-20" />
+                    </div>
+                  )}
                 </div>
                 {lawyer.verified && (
                   <div className="absolute -bottom-3 -right-3 bg-blue-600 text-white p-2.5 rounded-2xl shadow-lg border-4 border-white flex items-center justify-center">
@@ -138,7 +145,7 @@ export const LawyerProfile = () => {
                 {/* Ações e Redes (Lado Direito) */}
                 <div className="w-full lg:w-auto shrink-0 flex flex-col items-center lg:items-end gap-4">
                   <WhatsAppButton 
-                    className="h-14 w-full md:w-auto md:px-10 text-lg shadow-xl shadow-green-600/20 rounded-2xl transition-transform hover:scale-105"
+                    className="h-14 w-full md:w-auto md:px-10 text-lg shadow-xl shadow-green-600/20 rounded-2xl transition-transform hover:scale-105 font-black"
                     message={`Olá Dr(a) ${lawyer.name}, encontrei seu perfil no Meu Advogado e gostaria de uma orientação.`} 
                   />
                   
@@ -199,7 +206,7 @@ export const LawyerProfile = () => {
                   </div>
                   Áreas de Atuação
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {[lawyer.specialty, ...(lawyer.secondarySpecialties || [])].map((spec, index) => (
                     <div key={index} className="flex items-center gap-4 bg-slate-50 border border-slate-100 p-4 rounded-2xl hover:border-slate-200 transition-colors">
                       <div className="w-12 h-12 shrink-0 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center">
@@ -212,50 +219,31 @@ export const LawyerProfile = () => {
               </CardContent>
             </Card>
 
+            {/* Nova seção de Avaliações Simplificada */}
             <Card className="border-0 shadow-sm rounded-3xl border border-slate-200/50 bg-white">
               <CardContent className="p-8 md:p-10">
-                <div className="flex justify-between items-center mb-8">
-                  <h2 className="text-2xl font-black text-slate-900 flex items-center gap-3">
-                    <div className="p-2.5 bg-amber-50 text-amber-500 rounded-xl">
-                      <MessageSquareQuote className="w-6 h-6" />
-                    </div>
-                    Avaliações de Clientes
-                  </h2>
-                  <div className="flex items-center gap-2 text-amber-600 font-bold bg-amber-50 px-4 py-2 rounded-xl">
-                    <Star className="w-5 h-5 fill-amber-500 text-amber-500" /> 
-                    {lawyer.rating}
-                  </div>
-                </div>
-
-                <div className="space-y-6">
-                  {lawyer.reviewsList && lawyer.reviewsList.length > 0 ? (
-                    lawyer.reviewsList.map((review: any) => (
-                      <div key={review.id} className="p-6 bg-slate-50 border border-slate-100 rounded-3xl flex gap-6 items-start hover:shadow-md transition-shadow">
-                        <div className="w-12 h-12 bg-slate-200 rounded-full flex items-center justify-center font-bold text-slate-500 text-lg shrink-0 border-2 border-white shadow-sm">
-                          {review.name.charAt(0)}
-                        </div>
-                        <div className="flex-1 space-y-2">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="font-bold text-slate-900">{review.name}</p>
-                              <div className="flex text-amber-400 mt-1">
-                                {[...Array(5)].map((_, i) => (
-                                  <Star key={i} className={`w-4 h-4 ${i < review.rating ? 'fill-amber-400' : 'fill-slate-200'}`} />
-                                ))}
-                              </div>
-                            </div>
-                            <span className="text-xs text-slate-400 font-medium">{review.date}</span>
-                          </div>
-                          <p className="text-slate-600 italic">"{review.text}"</p>
-                        </div>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+                  <div>
+                    <h2 className="text-2xl font-black text-slate-900 flex items-center gap-3 mb-2">
+                      <div className="p-2.5 bg-amber-50 text-amber-500 rounded-xl">
+                        <Star className="w-6 h-6 fill-amber-500" />
                       </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-3xl border border-slate-100 border-dashed">
-                      <MessageSquareQuote className="w-12 h-12 mx-auto text-slate-300 mb-4" />
-                      <p>Ainda não há avaliações para este profissional.</p>
+                      Avaliações da Comunidade
+                    </h2>
+                    <p className="text-slate-500 text-sm flex items-center gap-2">
+                      <Info className="w-4 h-4" /> Somente clientes que entraram em contato podem avaliar.
+                    </p>
+                  </div>
+                  
+                  <div className="flex flex-col items-center bg-amber-50 px-8 py-6 rounded-3xl border border-amber-100/50">
+                    <div className="text-5xl font-black text-amber-600 mb-2">{lawyer.rating}</div>
+                    <div className="flex gap-1 text-amber-400 mb-2">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className={`w-5 h-5 ${i < Math.round(lawyer.rating) ? 'fill-amber-500 text-amber-500' : 'fill-slate-200 text-slate-200'}`} />
+                      ))}
                     </div>
-                  )}
+                    <span className="font-bold text-slate-600 text-sm">{lawyer.reviews} avaliações recebidas</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -276,7 +264,7 @@ export const LawyerProfile = () => {
                         <Phone className="w-5 h-5" />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Telefone Principal</p>
+                        <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Telefone / WhatsApp</p>
                         <p className="font-bold text-slate-800 text-lg">{lawyer.phone}</p>
                       </div>
                     </div>
@@ -302,18 +290,18 @@ export const LawyerProfile = () => {
                     </div>
 
                     <div className="pt-8 mt-2 border-t border-slate-100">
-                      <Button className="w-full bg-slate-900 hover:bg-primary text-white h-14 rounded-2xl font-bold shadow-lg shadow-slate-900/20 transition-all group overflow-hidden relative">
-                        <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <MessageSquareQuote className="w-5 h-5 mr-3" />
-                        Solicitar Orçamento
-                      </Button>
+                      <WhatsAppButton 
+                        fullWidth
+                        className="h-14 text-base rounded-2xl shadow-lg shadow-green-600/20"
+                        message={`Olá Dr(a) ${lawyer.name}, encontrei seu perfil no Meu Advogado e gostaria de uma orientação.`} 
+                      />
                     </div>
 
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Botão extra de compartilhar, visível se a tela for pequena ou p/ ação secundária */}
+              {/* Botão extra de compartilhar */}
               <div className="flex gap-4">
                 <Button variant="outline" className="flex-1 bg-white border-slate-200 shadow-sm h-14 rounded-2xl text-slate-700 font-bold hover:bg-slate-50 transition-colors">
                   <Share2 className="w-5 h-5 mr-2 text-slate-400" /> Compartilhar Perfil
