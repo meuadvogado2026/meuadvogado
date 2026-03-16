@@ -35,45 +35,28 @@ export const MainLayout = () => {
         <Outlet />
       </main>
 
-      <footer className="bg-slate-900 text-slate-300 py-12 border-t border-slate-800 hidden md:block">
-        <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="col-span-1 md:col-span-1">
-            <Link to="/" className="flex items-center gap-2.5 mb-4">
-              <div className="bg-white p-1 rounded-lg">
-                <img src="/logo.png" alt="Meu Advogado" className="h-5 w-5 object-contain" />
-              </div>
-              <span className="font-bold text-lg text-white">Meu Advogado</span>
-            </Link>
-            <p className="text-sm text-slate-400">
-              Conectando pessoas que precisam de justiça aos melhores profissionais do mercado.
-            </p>
+      <footer className="bg-[#0F172A] text-slate-400 py-8 border-t border-slate-800 hidden md:block">
+        <div className="container mx-auto px-4 max-w-5xl flex flex-col md:flex-row justify-between items-center gap-6">
+          
+          {/* Logo e Nome */}
+          <Link to="/" className="flex items-center gap-2.5">
+            <div className="bg-white p-1 rounded-lg">
+              <img src="/logo.png" alt="Meu Advogado" className="h-5 w-5 object-contain" />
+            </div>
+            <span className="font-bold text-lg text-white">Meu Advogado</span>
+          </Link>
+
+          {/* Links Essenciais */}
+          <div className="flex flex-wrap justify-center gap-6 text-sm font-medium">
+            <Link to="/" className="hover:text-white transition-colors">Sobre Nós</Link>
+            <Link to="/" className="hover:text-white transition-colors">Termos de Uso</Link>
+            <Link to="/" className="hover:text-white transition-colors">Privacidade</Link>
           </div>
-          <div>
-            <h4 className="font-semibold text-white mb-4">Para Clientes</h4>
-            <ul className="space-y-2 text-sm">
-              <li><Link to="/cadastro" className="hover:text-white transition-colors">Criar Conta</Link></li>
-              <li><Link to="/login" className="hover:text-white transition-colors">Entrar na Plataforma</Link></li>
-              <li><Link to="/" className="hover:text-white transition-colors">Como funciona</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold text-white mb-4">Para Advogados</h4>
-            <ul className="space-y-2 text-sm">
-              <li><Link to="/cadastro" className="hover:text-white transition-colors">Criar Conta Profissional</Link></li>
-              <li><Link to="/login" className="hover:text-white transition-colors">Painel do Advogado</Link></li>
-              <li><Link to="/" className="hover:text-white transition-colors">Planos</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold text-white mb-4">Institucional</h4>
-            <ul className="space-y-2 text-sm">
-              <li><Link to="/" className="hover:text-white transition-colors">Sobre Nós</Link></li>
-              <li><Link to="/" className="hover:text-white transition-colors">Termos de Uso</Link></li>
-              <li><Link to="/" className="hover:text-white transition-colors">Privacidade</Link></li>
-            </ul>
-          </div>
+
         </div>
-        <div className="container mx-auto px-4 mt-12 pt-8 border-t border-slate-800 text-sm text-center text-slate-500">
+        
+        {/* Direitos Autorais */}
+        <div className="container mx-auto px-4 max-w-5xl mt-8 pt-6 border-t border-slate-800/50 text-xs text-center text-slate-500">
           © {new Date().getFullYear()} Meu Advogado. Todos os direitos reservados.
         </div>
       </footer>
