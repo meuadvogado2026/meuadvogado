@@ -16,7 +16,8 @@ import {
   MessageCircle,
   User,
   Star,
-  Upload
+  Upload,
+  Building2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,9 +48,9 @@ export const LawyerProfileEdit = () => {
     instagram: "@carloseduardo.adv",
     linkedin: "linkedin.com/in/carloseduardoadv",
     facebook: "",
-    youtube: "",
+    youtube: "youtube.com/@carloseduardoadv",
     website: "www.carloseduardo.adv.br",
-    officeLink: "",
+    officeLink: "Escritório Silva & Associados",
     customLink: "linktr.ee/carloseduardo",
     avatar: "https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&q=80&w=400&h=400",
     cover: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=1200&h=400"
@@ -63,7 +64,6 @@ export const LawyerProfileEdit = () => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'cover' | 'avatar') => {
     const file = e.target.files?.[0];
     if (file) {
-      // Mock de upload local com FileReader para preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setProfile(prev => ({ ...prev, [field]: reader.result as string }));
@@ -266,10 +266,11 @@ export const LawyerProfileEdit = () => {
             <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4 rounded-t-3xl">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Globe className="w-5 h-5 text-primary" />
-                Contatos e Redes
+                Contatos e Redes Sociais
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
+              
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2"><MessageCircle className="w-4 h-4 text-green-600"/> WhatsApp</Label>
@@ -284,7 +285,16 @@ export const LawyerProfileEdit = () => {
                   <Input name="email" value={profile.email} onChange={handleChange} className="h-11 rounded-xl bg-slate-50" />
                 </div>
               </div>
-              <hr className="border-slate-100" />
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                  <div className="w-full border-t border-slate-200" />
+                </div>
+                <div className="relative flex justify-center">
+                  <span className="bg-white px-3 text-sm text-slate-400 font-medium">Links Públicos</span>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2"><Instagram className="w-4 h-4 text-pink-600"/> Instagram</Label>
@@ -307,10 +317,15 @@ export const LawyerProfileEdit = () => {
                   <Input name="website" value={profile.website} onChange={handleChange} placeholder="www.seusite.com.br" className="h-11 rounded-xl bg-slate-50" />
                 </div>
                 <div className="space-y-2">
+                  <Label className="flex items-center gap-2"><Building2 className="w-4 h-4 text-indigo-600"/> Link do Escritório</Label>
+                  <Input name="officeLink" value={profile.officeLink} onChange={handleChange} placeholder="Site ou Google Maps" className="h-11 rounded-xl bg-slate-50" />
+                </div>
+                <div className="space-y-2 md:col-span-2">
                   <Label className="flex items-center gap-2"><LinkIcon className="w-4 h-4 text-slate-600"/> Link Personalizado</Label>
-                  <Input name="customLink" value={profile.customLink} onChange={handleChange} placeholder="Linktree, etc" className="h-11 rounded-xl bg-slate-50" />
+                  <Input name="customLink" value={profile.customLink} onChange={handleChange} placeholder="Ex: linktr.ee/seunome" className="h-11 rounded-xl bg-slate-50" />
                 </div>
               </div>
+
             </CardContent>
           </Card>
         </div>
@@ -318,7 +333,7 @@ export const LawyerProfileEdit = () => {
         {/* Preview Sidebar (Direita - Sticky) */}
         <div className="lg:col-span-4 hidden lg:block">
           <div className="sticky top-28 space-y-4">
-            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Preview do Perfil Público</h3>
+            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Preview do Perfil</h3>
             
             <Card className="overflow-hidden border-slate-200/60 shadow-xl shadow-slate-200/50 rounded-3xl">
               <div className="h-32 relative">
@@ -367,7 +382,18 @@ export const LawyerProfileEdit = () => {
                   ))}
                 </div>
 
-                <div className="mt-6">
+                {/* Preview Redes Sociais */}
+                <div className="mt-4 flex flex-wrap gap-2 justify-center py-2 bg-slate-50 rounded-xl border border-slate-100">
+                  {profile.instagram && <Instagram className="w-4 h-4 text-slate-400 hover:text-pink-600 transition-colors cursor-pointer" />}
+                  {profile.linkedin && <Linkedin className="w-4 h-4 text-slate-400 hover:text-blue-600 transition-colors cursor-pointer" />}
+                  {profile.facebook && <Facebook className="w-4 h-4 text-slate-400 hover:text-blue-500 transition-colors cursor-pointer" />}
+                  {profile.youtube && <Youtube className="w-4 h-4 text-slate-400 hover:text-red-600 transition-colors cursor-pointer" />}
+                  {profile.website && <Globe className="w-4 h-4 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer" />}
+                  {profile.officeLink && <Building2 className="w-4 h-4 text-slate-400 hover:text-indigo-600 transition-colors cursor-pointer" />}
+                  {profile.customLink && <LinkIcon className="w-4 h-4 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer" />}
+                </div>
+
+                <div className="mt-4">
                   <Button className="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl h-11 pointer-events-none shadow-md shadow-green-600/20">
                     <MessageCircle className="w-4 h-4 mr-2" />
                     Falar no WhatsApp

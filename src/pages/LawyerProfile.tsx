@@ -2,14 +2,49 @@ import React from 'react';
 import { useParams, Link } from "react-router-dom";
 import { mockLawyers } from "@/data/mock";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Star, ShieldCheck, Award, Briefcase, Share2, ArrowLeft } from "lucide-react";
+import { 
+  MapPin, 
+  Star, 
+  ShieldCheck, 
+  Briefcase, 
+  Share2, 
+  ArrowLeft,
+  User,
+  Instagram,
+  Linkedin,
+  Facebook,
+  Youtube,
+  Globe,
+  Link as LinkIcon,
+  Building2,
+  ExternalLink
+} from "lucide-react";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 
 export const LawyerProfile = () => {
   const { id } = useParams();
   const lawyer = mockLawyers.find(l => l.id === id) || mockLawyers[0];
+
+  // Função auxiliar para renderizar item de rede social apenas se existir
+  const SocialLink = ({ icon: Icon, label, value, colorClass }: any) => {
+    if (!value) return null;
+    return (
+      <a href="#" className="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-100 transition-colors group">
+        <div className="flex items-center gap-3">
+          <div className={`p-2 rounded-lg bg-white shadow-sm border border-slate-100 ${colorClass}`}>
+            <Icon className="w-4 h-4" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{label}</span>
+            <span className="text-sm font-medium text-slate-900 truncate max-w-[160px] group-hover:text-primary transition-colors">{value}</span>
+          </div>
+        </div>
+        <ExternalLink className="w-4 h-4 text-slate-300 group-hover:text-primary transition-colors" />
+      </a>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
@@ -26,7 +61,6 @@ export const LawyerProfile = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-slate-900 to-primary/80" />
         )}
         
-        {/* Gradiente sobre a capa para legibilidade do botão voltar */}
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-black/30"></div>
         
         <div className="absolute top-0 left-0 w-full z-10">
@@ -82,7 +116,7 @@ export const LawyerProfile = () => {
                   </div>
                 </div>
 
-                {/* Botão de Contato Primário (Desktop focado no lado direito) */}
+                {/* Botão de Contato Primário (Desktop) */}
                 <div className="w-full md:w-auto shrink-0 md:self-end">
                   <WhatsAppButton 
                     fullWidth 
@@ -103,7 +137,7 @@ export const LawyerProfile = () => {
               <span className="hidden sm:inline text-slate-300">•</span>
               <div className="flex flex-wrap gap-2">
                 <Badge variant="secondary" className="px-3 py-1 bg-slate-100 font-medium text-slate-700 border-0">{lawyer.specialty}</Badge>
-                {lawyer.secondarySpecialties.map(spec => (
+                {lawyer.secondarySpecialties?.map(spec => (
                   <Badge key={spec} variant="outline" className="px-3 py-1 border-slate-200 text-slate-600">{spec}</Badge>
                 ))}
               </div>
@@ -132,6 +166,7 @@ export const LawyerProfile = () => {
 
           <div className="lg:col-span-1">
             <div className="sticky top-24 space-y-6">
+              
               <Card className="border-0 shadow-sm rounded-3xl border border-slate-200/50 overflow-hidden">
                 <div className="h-1.5 w-full bg-primary" />
                 <CardContent className="p-6 text-center">
@@ -149,6 +184,26 @@ export const LawyerProfile = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Redes Sociais Dinâmicas */}
+              {lawyer.showSocials && lawyer.socials && Object.values(lawyer.socials).some(val => val !== "") && (
+                <Card className="border-0 shadow-sm rounded-3xl border border-slate-200/50">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-base font-bold flex items-center gap-2 text-slate-900">
+                      <Globe className="w-4 h-4 text-primary" /> Links e Redes Sociais
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0 space-y-2">
+                    <SocialLink icon={Instagram} label="Instagram" value={lawyer.socials.instagram} colorClass="text-pink-600" />
+                    <SocialLink icon={Linkedin} label="LinkedIn" value={lawyer.socials.linkedin} colorClass="text-blue-600" />
+                    <SocialLink icon={Facebook} label="Facebook" value={lawyer.socials.facebook} colorClass="text-blue-500" />
+                    <SocialLink icon={Youtube} label="YouTube" value={lawyer.socials.youtube} colorClass="text-red-600" />
+                    <SocialLink icon={Building2} label="Escritório" value={lawyer.socials.officeLink} colorClass="text-indigo-600" />
+                    <SocialLink icon={Globe} label="Site Próprio" value={lawyer.socials.website} colorClass="text-slate-700" />
+                    <SocialLink icon={LinkIcon} label="Outro Link" value={lawyer.socials.customLink} colorClass="text-slate-500" />
+                  </CardContent>
+                </Card>
+              )}
 
               <Button variant="outline" className="w-full bg-white border-slate-200 shadow-sm h-12 rounded-xl text-slate-700 font-medium hover:bg-slate-50">
                 <Share2 className="w-4 h-4 mr-2 text-slate-400" /> Compartilhar Perfil
