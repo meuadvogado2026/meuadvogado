@@ -21,7 +21,9 @@ export const mockLawyers = [
     state: "SP",
     cep: "01310-100",
     region: "Bela Vista",
-    distance: 2.5, // Distância mockada em km
+    distance: 2.5, // Distância mockada original
+    lat: -23.561684, // Coordenadas reais (Av. Paulista)
+    lng: -46.655981,
     rating: 4.9,
     reviews: 124,
     verified: true,
@@ -50,6 +52,8 @@ export const mockLawyers = [
     cep: "04538-132",
     region: "Itaim Bibi",
     distance: 6.8,
+    lat: -23.585551,
+    lng: -46.678434,
     rating: 5.0,
     reviews: 89,
     verified: true,
@@ -75,6 +79,8 @@ export const mockLawyers = [
     cep: "30140-071",
     region: "Savassi",
     distance: 450.2,
+    lat: -19.932857,
+    lng: -43.938183,
     rating: 4.8,
     reviews: 210,
     verified: true,
@@ -100,6 +106,8 @@ export const mockLawyers = [
     cep: "80020-310",
     region: "Centro Histórico",
     distance: 320.5,
+    lat: -25.428954,
+    lng: -49.267137,
     rating: 4.7,
     reviews: 56,
     verified: false,

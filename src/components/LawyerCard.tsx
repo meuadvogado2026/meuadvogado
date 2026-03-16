@@ -51,11 +51,11 @@ export const LawyerCard = ({ lawyer }: LawyerCardProps) => {
             </div>
           )}
           
-          {/* Badge de Distância (se houver) */}
+          {/* Badge de Distância Inteligente */}
           {lawyer.distance !== undefined && (
             <div className="absolute bottom-3 left-3 bg-[#0F172A]/90 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
               <Navigation className="w-3.5 h-3.5 text-blue-400" />
-              {lawyer.distance < 10 ? `A ${lawyer.distance}km de você` : 'Fora da sua região'}
+              {lawyer.distance < 1 ? 'Muito próximo' : `A ${lawyer.distance.toFixed(1)} km de você`}
             </div>
           )}
         </div>
@@ -68,7 +68,7 @@ export const LawyerCard = ({ lawyer }: LawyerCardProps) => {
               </Link>
               <div className="flex flex-wrap items-center gap-2 mt-1.5">
                 <Badge variant="secondary" className="bg-blue-50 text-blue-700 font-bold border-blue-100">{lawyer.specialty}</Badge>
-                {/* Proteção adicionada aqui com ?.includes */}
+                {/* Proteção para modalidade */}
                 {lawyer.type?.includes("Online") && (
                   <Badge variant="outline" className="border-green-200 text-green-700 bg-green-50 font-semibold text-[10px]">Atende Online</Badge>
                 )}
