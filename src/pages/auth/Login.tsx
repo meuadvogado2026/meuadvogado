@@ -52,8 +52,8 @@ export const Login = () => {
           {/* Logo Circular (Modal) */}
           <div className="absolute -top-12 left-1/2 -translate-x-1/2">
             <Link to="/">
-              <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-xl border-[6px] border-[#0F172A] hover:scale-105 transition-transform duration-300">
-                <img src="/logo.png" alt="Meu Advogado" className="h-10 w-10 object-contain" />
+              <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-xl border-[6px] border-[#0F172A] hover:scale-105 transition-transform duration-300 overflow-hidden">
+                <img src="/logo.png" alt="Meu Advogado" className="h-16 w-16 object-contain" />
               </div>
             </Link>
           </div>
@@ -85,12 +85,7 @@ export const Login = () => {
             </div>
 
             <div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-slate-700 font-bold">Senha</Label>
-                <a href="#" className="text-sm font-bold text-primary hover:text-blue-800 transition-colors">
-                  Esqueceu a senha?
-                </a>
-              </div>
+              <Label htmlFor="password" className="text-slate-700 font-bold">Senha</Label>
               <div className="mt-1">
                 <Input 
                   id="password" 
@@ -101,6 +96,11 @@ export const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
+              </div>
+              <div className="mt-2 text-right">
+                <a href="#" className="text-sm font-bold text-primary hover:text-blue-800 transition-colors">
+                  Esqueceu a senha?
+                </a>
               </div>
             </div>
 
