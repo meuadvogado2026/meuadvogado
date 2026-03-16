@@ -6,7 +6,7 @@ import { mockLawyers, specialties } from "@/data/mock";
 import { LawyerCard } from "@/components/LawyerCard";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { toast } from "sonner";
-import { BRAZIL_STATES, CITIES_BY_STATE } from "@/data/locations";
+import { estados, cidadesPorEstado } from "@/data/locations";
 
 export const Search = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -105,8 +105,8 @@ export const Search = () => {
               className="h-11 rounded-xl bg-slate-50 border-slate-200 col-span-1 px-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none"
             >
               <option value="">UF</option>
-              {BRAZIL_STATES.map(state => (
-                <option key={state.uf} value={state.uf}>{state.uf}</option>
+              {estados.map(estado => (
+                <option key={estado.sigla} value={estado.sigla}>{estado.sigla}</option>
               ))}
             </select>
             
@@ -117,7 +117,7 @@ export const Search = () => {
               className="h-11 rounded-xl bg-slate-50 border-slate-200 col-span-2 px-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none disabled:opacity-50"
             >
               <option value="">Cidade</option>
-              {selectedState && CITIES_BY_STATE[selectedState]?.map(city => (
+              {selectedState && cidadesPorEstado[selectedState]?.map(city => (
                 <option key={city} value={city}>{city}</option>
               ))}
             </select>

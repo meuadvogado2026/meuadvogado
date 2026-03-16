@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Scale, User, Briefcase, MapPin } from "lucide-react";
 import { toast } from "sonner";
-import { BRAZIL_STATES, CITIES_BY_STATE } from "@/data/locations";
+import { estados, cidadesPorEstado } from "@/data/locations";
 
 export const Signup = () => {
   const navigate = useNavigate();
@@ -82,12 +82,14 @@ export const Signup = () => {
                         <select 
                           required 
                           value={clientState}
-                          onChange={(e) => setClientState(e.target.value)}
+                          onChange={(e) => {
+                            setClientState(e.target.value);
+                          }}
                           className="mt-1 flex h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none"
                         >
                           <option value="" disabled>Selecione</option>
-                          {BRAZIL_STATES.map(state => (
-                            <option key={state.uf} value={state.uf}>{state.uf} - {state.name}</option>
+                          {estados.map(estado => (
+                            <option key={estado.sigla} value={estado.sigla}>{estado.sigla}</option>
                           ))}
                         </select>
                       </div>
@@ -99,7 +101,7 @@ export const Signup = () => {
                           className="mt-1 flex h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
                         >
                           <option value="" disabled selected>Selecione</option>
-                          {clientState && CITIES_BY_STATE[clientState]?.map(city => (
+                          {clientState && cidadesPorEstado[clientState]?.map(city => (
                             <option key={city} value={city}>{city}</option>
                           ))}
                         </select>
@@ -144,8 +146,8 @@ export const Signup = () => {
                       className="mt-1 flex h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none"
                     >
                       <option value="" disabled selected>UF</option>
-                      {BRAZIL_STATES.map(state => (
-                        <option key={state.uf} value={state.uf}>{state.uf}</option>
+                      {estados.map(estado => (
+                        <option key={estado.sigla} value={estado.sigla}>{estado.sigla}</option>
                       ))}
                     </select>
                   </div>
@@ -172,8 +174,8 @@ export const Signup = () => {
                           className="mt-1 flex h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none"
                         >
                           <option value="" disabled>Selecione</option>
-                          {BRAZIL_STATES.map(state => (
-                            <option key={state.uf} value={state.uf}>{state.uf}</option>
+                          {estados.map(estado => (
+                            <option key={estado.sigla} value={estado.sigla}>{estado.sigla}</option>
                           ))}
                         </select>
                       </div>
@@ -185,7 +187,7 @@ export const Signup = () => {
                           className="mt-1 flex h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
                         >
                           <option value="" disabled selected>Selecione</option>
-                          {lawyerState && CITIES_BY_STATE[lawyerState]?.map(city => (
+                          {lawyerState && cidadesPorEstado[lawyerState]?.map(city => (
                             <option key={city} value={city}>{city}</option>
                           ))}
                         </select>

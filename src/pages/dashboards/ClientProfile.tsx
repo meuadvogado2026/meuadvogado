@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Save, User, MapPin } from "lucide-react";
 import { toast } from "sonner";
-import { BRAZIL_STATES, CITIES_BY_STATE } from "@/data/locations";
+import { estados, cidadesPorEstado } from "@/data/locations";
 
 export const ClientProfile = () => {
   const [profile, setProfile] = useState({
@@ -117,8 +117,8 @@ export const ClientProfile = () => {
                   className="flex h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none"
                 >
                   <option value="" disabled>Selecione</option>
-                  {BRAZIL_STATES.map(state => (
-                    <option key={state.uf} value={state.uf}>{state.uf}</option>
+                  {estados.map(estado => (
+                    <option key={estado.sigla} value={estado.sigla}>{estado.sigla}</option>
                   ))}
                 </select>
               </div>
@@ -132,11 +132,10 @@ export const ClientProfile = () => {
                   className="flex h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none disabled:opacity-50"
                 >
                   <option value="" disabled>Selecione</option>
-                  {profile.state && CITIES_BY_STATE[profile.state]?.map(city => (
+                  {profile.state && cidadesPorEstado[profile.state]?.map(city => (
                     <option key={city} value={city}>{city}</option>
                   ))}
-                  {/* Fallback para caso o mock original tenha uma cidade que não está na lista */}
-                  {profile.city && !CITIES_BY_STATE[profile.state]?.includes(profile.city) && (
+                  {profile.city && !cidadesPorEstado[profile.state]?.includes(profile.city) && (
                      <option value={profile.city}>{profile.city}</option>
                   )}
                 </select>
