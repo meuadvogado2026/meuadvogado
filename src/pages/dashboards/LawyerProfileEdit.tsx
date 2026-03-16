@@ -34,6 +34,7 @@ export const LawyerProfileEdit = () => {
     title: "Especialista em Direito do Trabalho e Previdenciário",
     oab: "123456",
     oabState: "SP",
+    cep: "01310-100",
     city: "São Paulo",
     state: "SP",
     attendanceType: "Híbrido (Online e Presencial)",
@@ -88,9 +89,9 @@ export const LawyerProfileEdit = () => {
       <div className="sticky top-0 z-30 bg-slate-50/80 backdrop-blur-md py-4 border-b border-slate-200/60 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 -mx-4 px-4 md:-mx-8 md:px-8">
         <div>
           <h1 className="text-2xl font-black text-slate-950">Editar Perfil</h1>
-          <p className="text-sm text-slate-500">Personalize como os clientes veem você na plataforma.</p>
+          <p className="text-sm text-slate-500 font-medium">Personalize como os clientes veem você na plataforma.</p>
         </div>
-        <Button onClick={handleSave} className="bg-primary text-white hover:bg-blue-900 shadow-lg shadow-primary/20 rounded-xl px-6 h-11">
+        <Button onClick={handleSave} className="bg-primary text-white hover:bg-blue-900 shadow-lg shadow-primary/20 rounded-xl px-6 h-11 font-bold">
           <Save className="w-4 h-4 mr-2" />
           Salvar Alterações
         </Button>
@@ -122,7 +123,7 @@ export const LawyerProfileEdit = () => {
                   onChange={(e) => handleImageUpload(e, 'cover')}
                 />
                 <label htmlFor="cover-upload" className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer backdrop-blur-sm">
-                  <div className="flex items-center gap-2 bg-white text-slate-900 px-5 py-2.5 rounded-full font-medium text-sm shadow-xl hover:bg-slate-50 transition-colors">
+                  <div className="flex items-center gap-2 bg-white text-slate-900 px-5 py-2.5 rounded-full font-bold text-sm shadow-xl hover:bg-slate-50 transition-colors">
                     <Upload className="w-4 h-4" /> Alterar imagem de capa
                   </div>
                 </label>
@@ -148,55 +149,64 @@ export const LawyerProfileEdit = () => {
                   </label>
                 </div>
                 <div className="flex-1 space-y-1 mb-2">
-                  <h3 className="font-semibold text-slate-900 text-lg">Sua Foto</h3>
-                  <p className="text-sm text-slate-500">Transmita confiança. Use fundo neutro e iluminação clara.</p>
+                  <h3 className="font-black text-slate-900 text-lg">Sua Foto</h3>
+                  <p className="text-sm font-medium text-slate-500">Transmita confiança. Use fundo neutro e iluminação clara.</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* 2. Informações Principais */}
+          {/* 2. Informações Principais e Localização */}
           <Card className="border-slate-200/60 shadow-sm rounded-3xl">
             <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4 rounded-t-3xl">
               <CardTitle className="text-lg flex items-center gap-2">
                 <User className="w-5 h-5 text-primary" />
-                Informações Principais
+                Identificação e Local de Atendimento
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6 space-y-4">
+            <CardContent className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2 md:col-span-2">
-                  <Label>Nome Completo (Como na OAB)</Label>
+                  <Label className="font-bold text-slate-700">Nome Completo (Como na OAB)</Label>
                   <Input name="name" value={profile.name} onChange={handleChange} className="h-11 rounded-xl bg-slate-50" />
                 </div>
                 <div className="space-y-2">
-                  <Label>Número da OAB</Label>
+                  <Label className="font-bold text-slate-700">Número da OAB</Label>
                   <Input name="oab" value={profile.oab} onChange={handleChange} className="h-11 rounded-xl bg-slate-50" />
                 </div>
                 <div className="space-y-2">
-                  <Label>Estado OAB</Label>
+                  <Label className="font-bold text-slate-700">Estado OAB</Label>
                   <Input name="oabState" value={profile.oabState} onChange={handleChange} maxLength={2} className="h-11 rounded-xl bg-slate-50 uppercase" />
                 </div>
+              </div>
+
+              <div className="w-full h-px bg-slate-100" />
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label>Cidade</Label>
-                  <Input name="city" value={profile.city} onChange={handleChange} className="h-11 rounded-xl bg-slate-50" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Estado</Label>
-                  <Input name="state" value={profile.state} onChange={handleChange} maxLength={2} className="h-11 rounded-xl bg-slate-50 uppercase" />
+                  <Label className="font-bold text-slate-700">CEP do Escritório</Label>
+                  <Input name="cep" value={profile.cep} onChange={handleChange} maxLength={9} className="h-11 rounded-xl bg-slate-50" />
                 </div>
                 <div className="space-y-2 md:col-span-2">
-                  <Label>Formato de Atendimento</Label>
+                  <Label className="font-bold text-slate-700">Formato de Atendimento</Label>
                   <select 
                     name="attendanceType" 
                     value={profile.attendanceType} 
                     onChange={handleChange}
-                    className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                    className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                   >
-                    <option value="Online">Apenas Online</option>
-                    <option value="Presencial">Apenas Presencial</option>
+                    <option value="Online">Apenas Online (Em todo Brasil)</option>
+                    <option value="Presencial">Apenas Presencial (Na minha região)</option>
                     <option value="Híbrido (Online e Presencial)">Híbrido (Online e Presencial)</option>
                   </select>
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label className="font-bold text-slate-700">Cidade</Label>
+                  <Input name="city" value={profile.city} onChange={handleChange} className="h-11 rounded-xl bg-slate-50" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-bold text-slate-700">Estado (UF)</Label>
+                  <Input name="state" value={profile.state} onChange={handleChange} maxLength={2} className="h-11 rounded-xl bg-slate-50 uppercase" />
                 </div>
               </div>
             </CardContent>
@@ -213,24 +223,24 @@ export const LawyerProfileEdit = () => {
             <CardContent className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2 md:col-span-2">
-                  <Label>Título Profissional</Label>
+                  <Label className="font-bold text-slate-700">Título Profissional</Label>
                   <Input name="title" value={profile.title} onChange={handleChange} placeholder="Ex: Especialista em Direito Digital" className="h-11 rounded-xl bg-slate-50" />
-                  <p className="text-xs text-slate-500">Aparece logo abaixo do seu nome.</p>
+                  <p className="text-xs font-medium text-slate-500">Aparece logo abaixo do seu nome.</p>
                 </div>
                 <div className="space-y-2">
-                  <Label>Anos de Experiência</Label>
+                  <Label className="font-bold text-slate-700">Anos de Experiência</Label>
                   <Input name="experienceYears" type="number" value={profile.experienceYears} onChange={handleChange} className="h-11 rounded-xl bg-slate-50" />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Especialidade Principal</Label>
+                  <Label className="font-bold text-slate-700">Especialidade Principal</Label>
                   <select 
                     name="mainSpecialty" 
                     value={profile.mainSpecialty} 
                     onChange={handleChange}
-                    className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   >
                     {specialties.map(spec => (
                       <option key={spec} value={spec}>{spec}</option>
@@ -238,25 +248,24 @@ export const LawyerProfileEdit = () => {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Especialidades Secundárias</Label>
+                  <Label className="font-bold text-slate-700">Especialidades Secundárias</Label>
                   <Input name="secondarySpecialties" value={profile.secondarySpecialties} onChange={handleChange} placeholder="Ex: Família, Sucessões" className="h-11 rounded-xl bg-slate-50" />
-                  <p className="text-xs text-slate-500">Separe por vírgulas.</p>
+                  <p className="text-xs font-medium text-slate-500">Separe por vírgulas.</p>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label>Resumo (Mini Bio)</Label>
+                <Label className="font-bold text-slate-700">Resumo (Mini Bio)</Label>
                 <Textarea name="miniBio" value={profile.miniBio} onChange={handleChange} maxLength={160} className="rounded-xl bg-slate-50 resize-none h-20" />
-                <div className="flex justify-between text-xs text-slate-500">
+                <div className="flex justify-between text-xs font-medium text-slate-500">
                   <span>Aparece nos resultados de busca. Seja direto.</span>
                   <span>{profile.miniBio.length}/160</span>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label>Biografia Completa</Label>
+                <Label className="font-bold text-slate-700">Biografia Completa</Label>
                 <Textarea name="fullBio" value={profile.fullBio} onChange={handleChange} className="rounded-xl bg-slate-50 min-h-[160px]" />
-                <p className="text-xs text-slate-500">Conte sua trajetória, formação e diferenciais do seu atendimento.</p>
               </div>
             </CardContent>
           </Card>
@@ -273,15 +282,15 @@ export const LawyerProfileEdit = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label className="flex items-center gap-2"><MessageCircle className="w-4 h-4 text-green-600"/> WhatsApp</Label>
+                  <Label className="flex items-center gap-2 font-bold text-slate-700"><MessageCircle className="w-4 h-4 text-green-600"/> WhatsApp</Label>
                   <Input name="whatsapp" value={profile.whatsapp} onChange={handleChange} className="h-11 rounded-xl bg-slate-50" />
                 </div>
                 <div className="space-y-2">
-                  <Label className="flex items-center gap-2"><Phone className="w-4 h-4 text-slate-500"/> Telefone</Label>
+                  <Label className="flex items-center gap-2 font-bold text-slate-700"><Phone className="w-4 h-4 text-slate-500"/> Telefone</Label>
                   <Input name="phone" value={profile.phone} onChange={handleChange} className="h-11 rounded-xl bg-slate-50" />
                 </div>
                 <div className="space-y-2">
-                  <Label className="flex items-center gap-2"><Mail className="w-4 h-4 text-slate-500"/> E-mail</Label>
+                  <Label className="flex items-center gap-2 font-bold text-slate-700"><Mail className="w-4 h-4 text-slate-500"/> E-mail</Label>
                   <Input name="email" value={profile.email} onChange={handleChange} className="h-11 rounded-xl bg-slate-50" />
                 </div>
               </div>
@@ -291,38 +300,26 @@ export const LawyerProfileEdit = () => {
                   <div className="w-full border-t border-slate-200" />
                 </div>
                 <div className="relative flex justify-center">
-                  <span className="bg-white px-3 text-sm text-slate-400 font-medium">Links Públicos</span>
+                  <span className="bg-white px-3 text-sm text-slate-400 font-bold uppercase tracking-wider">Links Públicos</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="flex items-center gap-2"><Instagram className="w-4 h-4 text-pink-600"/> Instagram</Label>
+                  <Label className="flex items-center gap-2 font-bold text-slate-700"><Instagram className="w-4 h-4 text-pink-600"/> Instagram</Label>
                   <Input name="instagram" value={profile.instagram} onChange={handleChange} placeholder="@seuusuario" className="h-11 rounded-xl bg-slate-50" />
                 </div>
                 <div className="space-y-2">
-                  <Label className="flex items-center gap-2"><Linkedin className="w-4 h-4 text-blue-600"/> LinkedIn</Label>
+                  <Label className="flex items-center gap-2 font-bold text-slate-700"><Linkedin className="w-4 h-4 text-blue-600"/> LinkedIn</Label>
                   <Input name="linkedin" value={profile.linkedin} onChange={handleChange} placeholder="URL do perfil" className="h-11 rounded-xl bg-slate-50" />
                 </div>
                 <div className="space-y-2">
-                  <Label className="flex items-center gap-2"><Facebook className="w-4 h-4 text-blue-500"/> Facebook</Label>
-                  <Input name="facebook" value={profile.facebook} onChange={handleChange} placeholder="URL da página" className="h-11 rounded-xl bg-slate-50" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2"><Youtube className="w-4 h-4 text-red-600"/> YouTube</Label>
-                  <Input name="youtube" value={profile.youtube} onChange={handleChange} placeholder="URL do canal" className="h-11 rounded-xl bg-slate-50" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2"><Globe className="w-4 h-4 text-slate-600"/> Site Próprio</Label>
+                  <Label className="flex items-center gap-2 font-bold text-slate-700"><Globe className="w-4 h-4 text-slate-600"/> Site Próprio</Label>
                   <Input name="website" value={profile.website} onChange={handleChange} placeholder="www.seusite.com.br" className="h-11 rounded-xl bg-slate-50" />
                 </div>
                 <div className="space-y-2">
-                  <Label className="flex items-center gap-2"><Building2 className="w-4 h-4 text-indigo-600"/> Link do Escritório</Label>
+                  <Label className="flex items-center gap-2 font-bold text-slate-700"><Building2 className="w-4 h-4 text-indigo-600"/> Link do Escritório</Label>
                   <Input name="officeLink" value={profile.officeLink} onChange={handleChange} placeholder="Site ou Google Maps" className="h-11 rounded-xl bg-slate-50" />
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <Label className="flex items-center gap-2"><LinkIcon className="w-4 h-4 text-slate-600"/> Link Personalizado</Label>
-                  <Input name="customLink" value={profile.customLink} onChange={handleChange} placeholder="Ex: linktr.ee/seunome" className="h-11 rounded-xl bg-slate-50" />
                 </div>
               </div>
 
@@ -333,13 +330,13 @@ export const LawyerProfileEdit = () => {
         {/* Preview Sidebar (Direita - Sticky) */}
         <div className="lg:col-span-4 hidden lg:block">
           <div className="sticky top-28 space-y-4">
-            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Preview do Perfil</h3>
+            <h3 className="text-sm font-black text-slate-400 uppercase tracking-wider mb-2">Preview do Perfil</h3>
             
             <Card className="overflow-hidden border-slate-200/60 shadow-xl shadow-slate-200/50 rounded-3xl">
               <div className="h-32 relative">
                 <img src={profile.cover} alt="Cover Preview" className="w-full h-full object-cover" />
-                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-slate-900 text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wide shadow-sm flex items-center gap-1">
-                  <Globe className="w-3 h-3" /> Visão do Cliente
+                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-slate-900 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-wide shadow-sm flex items-center gap-1.5">
+                  <Globe className="w-3.5 h-3.5" /> Visão Pública
                 </div>
               </div>
               
@@ -350,51 +347,37 @@ export const LawyerProfileEdit = () => {
                     alt="Avatar Preview" 
                     className="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-md bg-white relative z-10"
                   />
-                  <Badge className="bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 flex gap-1 h-6 mb-2">
+                  <Badge className="bg-blue-50 text-blue-700 font-bold border border-blue-200 flex gap-1 h-6 mb-2">
                     <ShieldCheck className="w-3.5 h-3.5" /> Verificado
                   </Badge>
                 </div>
                 
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900 leading-tight">{profile.name || "Seu Nome"}</h3>
-                  <p className="text-xs font-medium text-primary mt-1 line-clamp-1">{profile.title || "Seu Título Profissional"}</p>
+                  <h3 className="text-xl font-black text-[#0F172A] leading-tight">{profile.name || "Seu Nome"}</h3>
+                  <p className="text-xs font-bold text-primary mt-1 line-clamp-1">{profile.title || "Seu Título Profissional"}</p>
                   
-                  <div className="flex flex-wrap gap-2 text-xs text-slate-500 mt-3">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5" /> {profile.city || "Cidade"}, {profile.state || "UF"}
+                  <div className="flex flex-wrap gap-2 text-xs font-medium text-slate-500 mt-3">
+                    <div className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-md">
+                      <MapPin className="w-3.5 h-3.5" /> {profile.city || "Cidade"}
                     </div>
-                    <div className="flex items-center gap-1 font-medium text-amber-600">
+                    <div className="flex items-center gap-1 font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-md">
                       <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" /> 4.9 (124)
                     </div>
                   </div>
                 </div>
 
                 <div className="mt-4 pt-4 border-t border-slate-100">
-                  <p className="text-sm text-slate-600 line-clamp-3 leading-relaxed">
+                  <p className="text-sm font-medium text-slate-600 line-clamp-3 leading-relaxed">
                     {profile.miniBio || "Seu resumo profissional aparecerá aqui para os clientes."}
                   </p>
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-1.5">
-                  <Badge variant="secondary" className="bg-slate-100 text-slate-700 font-medium text-[10px] hover:bg-slate-200">{profile.mainSpecialty || "Área Principal"}</Badge>
-                  {profile.secondarySpecialties.split(',').map((spec, i) => spec.trim() && (
-                    <Badge key={i} variant="outline" className="text-slate-500 text-[10px] border-slate-200">{spec.trim()}</Badge>
-                  ))}
-                </div>
-
-                {/* Preview Redes Sociais */}
-                <div className="mt-4 flex flex-wrap gap-2 justify-center py-2 bg-slate-50 rounded-xl border border-slate-100">
-                  {profile.instagram && <Instagram className="w-4 h-4 text-slate-400 hover:text-pink-600 transition-colors cursor-pointer" />}
-                  {profile.linkedin && <Linkedin className="w-4 h-4 text-slate-400 hover:text-blue-600 transition-colors cursor-pointer" />}
-                  {profile.facebook && <Facebook className="w-4 h-4 text-slate-400 hover:text-blue-500 transition-colors cursor-pointer" />}
-                  {profile.youtube && <Youtube className="w-4 h-4 text-slate-400 hover:text-red-600 transition-colors cursor-pointer" />}
-                  {profile.website && <Globe className="w-4 h-4 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer" />}
-                  {profile.officeLink && <Building2 className="w-4 h-4 text-slate-400 hover:text-indigo-600 transition-colors cursor-pointer" />}
-                  {profile.customLink && <LinkIcon className="w-4 h-4 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer" />}
+                  <Badge variant="secondary" className="bg-slate-100 text-slate-700 font-bold text-[10px]">{profile.mainSpecialty || "Área Principal"}</Badge>
                 </div>
 
                 <div className="mt-4">
-                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl h-11 pointer-events-none shadow-md shadow-green-600/20">
+                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl h-11 pointer-events-none shadow-md shadow-green-600/20">
                     <MessageCircle className="w-4 h-4 mr-2" />
                     Falar no WhatsApp
                   </Button>
@@ -403,7 +386,7 @@ export const LawyerProfileEdit = () => {
             </Card>
             
             <p className="text-xs text-center text-slate-400 font-medium">
-              O preview é atualizado em tempo real conforme você digita.
+              O preview é atualizado em tempo real.
             </p>
           </div>
         </div>
