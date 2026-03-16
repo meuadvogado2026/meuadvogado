@@ -28,7 +28,7 @@ const initialApprovals = [
     secondarySpecialties: ["Previdenciário", "Civil"],
     city: "São Paulo",
     date: "16/03/2024",
-    status: "Aguardando",
+    status: "Aguardando aprovação",
     bio: "Especialista em direito do trabalho com foco em defesa do trabalhador bancário e financiário. Atuação ética e transparente buscando a melhor resolução para os clientes.",
     phone: "(11) 3333-4444",
     whatsapp: "(11) 98888-7777"
@@ -42,7 +42,7 @@ const initialApprovals = [
     secondarySpecialties: ["Sucessões"],
     city: "Rio de Janeiro",
     date: "15/03/2024",
-    status: "Aguardando",
+    status: "Aguardando aprovação",
     bio: "Atendimento humanizado em causas familiares, divórcios e pensão alimentícia. Foco em acordos e mediação de conflitos.",
     phone: "(21) 2222-1111",
     whatsapp: "(21) 97777-6666"
@@ -84,20 +84,20 @@ export const AdminApprovals = () => {
     setApprovals(prev => prev.map(app => app.id === id ? { ...app, status: newStatus } : app));
     
     if (newStatus === 'Aprovado') {
-      toast.success("Cadastro aprovado com sucesso!", { description: "O perfil do advogado agora está visível na plataforma." });
+      toast.success("Cadastro aprovado!", { description: "O advogado agora está visível na plataforma." });
     } else {
-      toast.error("Cadastro rejeitado.", { description: "O advogado será notificado sobre a rejeição." });
+      toast.error("Cadastro rejeitado.", { description: "O advogado será notificado sobre a recusa." });
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch(status) {
-      case 'Aguardando':
-        return <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200"><ShieldAlert className="w-3 h-3 mr-1"/> Aguardando</Badge>;
+      case 'Aguardando aprovação':
+        return <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300 font-semibold px-3 py-1"><ShieldAlert className="w-3.5 h-3.5 mr-1.5"/> Aguardando</Badge>;
       case 'Aprovado':
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200"><CheckCircle className="w-3 h-3 mr-1"/> Aprovado</Badge>;
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 font-semibold px-3 py-1"><CheckCircle className="w-3.5 h-3.5 mr-1.5"/> Aprovado</Badge>;
       case 'Rejeitado':
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200"><XCircle className="w-3 h-3 mr-1"/> Rejeitado</Badge>;
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 font-semibold px-3 py-1"><XCircle className="w-3.5 h-3.5 mr-1.5"/> Rejeitado</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }
@@ -109,139 +109,156 @@ export const AdminApprovals = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-            <ShieldAlert className="w-8 h-8 text-primary" />
-            Aprovações de OAB
+          <h1 className="text-3xl font-black text-[#0F172A] tracking-tight flex items-center gap-3">
+            <ShieldAlert className="w-8 h-8 text-[#1E3A5F]" />
+            Aprovações de Cadastro
           </h1>
-          <p className="text-slate-500 mt-1">Gerencie a entrada de novos advogados validando suas credenciais.</p>
+          <p className="text-slate-500 mt-1">Gerencie e valide a entrada de novos advogados na plataforma.</p>
         </div>
       </div>
 
       {/* Tabela de Aprovações */}
-      <Card className="border-slate-200/60 shadow-sm rounded-3xl overflow-hidden">
-        <CardHeader className="border-b border-slate-100 bg-white pb-5">
-          <CardTitle className="text-xl font-black text-slate-900">Cadastros Recentes</CardTitle>
-          <CardDescription className="text-sm font-medium">Fila de verificação de perfis de advogados.</CardDescription>
+      <Card className="border-slate-200 shadow-sm rounded-2xl overflow-hidden bg-white">
+        <CardHeader className="border-b border-slate-100 bg-slate-50/50 pb-5">
+          <CardTitle className="text-xl font-bold text-[#0F172A]">Fila de Verificação</CardTitle>
+          <CardDescription className="text-sm">Analise os dados da OAB e libere o acesso dos profissionais.</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
-            <TableHeader className="bg-slate-50">
-              <TableRow className="hover:bg-slate-50 border-b-slate-200">
-                <TableHead className="font-bold text-slate-600 h-12 px-6">Nome / OAB</TableHead>
-                <TableHead className="font-bold text-slate-600 h-12">Especialidade</TableHead>
-                <TableHead className="font-bold text-slate-600 h-12">Local</TableHead>
-                <TableHead className="font-bold text-slate-600 h-12">Data</TableHead>
-                <TableHead className="font-bold text-slate-600 h-12">Status</TableHead>
-                <TableHead className="font-bold text-slate-600 h-12 text-right px-6">Ações</TableHead>
+            <TableHeader className="bg-slate-100/50">
+              <TableRow className="hover:bg-transparent border-b-slate-200">
+                <TableHead className="font-bold text-slate-700 h-14 px-6">Nome do Advogado</TableHead>
+                <TableHead className="font-bold text-slate-700 h-14">Nº OAB</TableHead>
+                <TableHead className="font-bold text-slate-700 h-14 text-center">Estado</TableHead>
+                <TableHead className="font-bold text-slate-700 h-14">Especialidade</TableHead>
+                <TableHead className="font-bold text-slate-700 h-14">Cidade</TableHead>
+                <TableHead className="font-bold text-slate-700 h-14">Data do Cadastro</TableHead>
+                <TableHead className="font-bold text-slate-700 h-14">Status</TableHead>
+                <TableHead className="font-bold text-slate-700 h-14 text-right px-6">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {approvals.map((lawyer) => (
-                <TableRow key={lawyer.id} className="border-b-slate-100 hover:bg-slate-50/80 transition-colors">
+                <TableRow key={lawyer.id} className="border-b-slate-100 hover:bg-slate-50 transition-colors">
                   
-                  {/* Nome e OAB */}
-                  <TableCell className="px-6 py-4">
-                    <p className="font-black text-slate-900">{lawyer.name}</p>
-                    <p className="text-xs font-bold text-slate-500 flex items-center gap-1 mt-0.5">
-                      <Scale className="w-3 h-3" /> OAB {lawyer.oabState} {lawyer.oab}
-                    </p>
+                  <TableCell className="px-6 py-4 font-bold text-[#0F172A]">
+                    {lawyer.name}
                   </TableCell>
                   
-                  {/* Especialidade */}
-                  <TableCell>
-                    <Badge variant="secondary" className="bg-slate-100 text-slate-700 font-medium">
-                      {lawyer.mainSpecialty}
-                    </Badge>
+                  <TableCell className="font-medium text-slate-600">
+                    {lawyer.oab}
                   </TableCell>
                   
-                  {/* Local */}
-                  <TableCell>
-                    <div className="flex items-center text-sm font-medium text-slate-600">
-                      <MapPin className="w-4 h-4 mr-1 text-slate-400" /> {lawyer.city} - {lawyer.oabState}
-                    </div>
+                  <TableCell className="text-center">
+                    <span className="bg-slate-100 text-slate-700 font-bold px-2 py-1 rounded-md text-xs">
+                      {lawyer.oabState}
+                    </span>
                   </TableCell>
                   
-                  {/* Data */}
-                  <TableCell className="text-sm font-medium text-slate-500">
+                  <TableCell className="text-slate-600 font-medium">
+                    {lawyer.mainSpecialty}
+                  </TableCell>
+                  
+                  <TableCell className="text-slate-600 font-medium">
+                    {lawyer.city}
+                  </TableCell>
+                  
+                  <TableCell className="text-slate-500 text-sm">
                     {lawyer.date}
                   </TableCell>
                   
-                  {/* Status */}
                   <TableCell>
                     {getStatusBadge(lawyer.status)}
                   </TableCell>
                   
-                  {/* Ações */}
                   <TableCell className="text-right px-6">
                     <div className="flex items-center justify-end gap-2">
                       
                       {/* Modal de Ver Perfil */}
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-9 w-9 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl" title="Ver Perfil">
-                            <Eye className="w-4 h-4" />
+                          <Button variant="outline" size="sm" className="h-9 font-semibold text-[#1E3A5F] border-slate-200 hover:bg-slate-100 hover:text-[#0F172A] rounded-lg">
+                            <Eye className="w-4 h-4 mr-2" /> Ver Perfil
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-2xl rounded-[2rem] p-0 overflow-hidden border-0">
+                        <DialogContent className="sm:max-w-2xl rounded-2xl p-0 overflow-hidden border-0 shadow-2xl">
+                          {/* Modal Header Premium em Azul Marinho */}
                           <div className="bg-[#0F172A] p-8 text-white relative">
-                            <Scale className="w-32 h-32 absolute right-0 top-0 opacity-5 -mt-4 -mr-4 pointer-events-none" />
+                            <Scale className="w-32 h-32 absolute right-0 top-0 opacity-10 pointer-events-none -mt-4 -mr-4" />
                             <DialogHeader>
                               <DialogTitle className="text-2xl font-black text-white">{lawyer.name}</DialogTitle>
                             </DialogHeader>
-                            <div className="flex items-center gap-4 mt-2">
-                              <Badge className="bg-white/20 hover:bg-white/20 text-white border-0">
+                            <div className="flex flex-wrap items-center gap-4 mt-3">
+                              <span className="bg-[#1E3A5F] text-blue-100 px-3 py-1 rounded-md font-bold text-sm border border-[#2A4B7C]">
                                 OAB {lawyer.oabState} {lawyer.oab}
-                              </Badge>
-                              <span className="text-slate-300 text-sm font-medium flex items-center gap-1">
-                                <MapPin className="w-4 h-4" /> {lawyer.city}, {lawyer.oabState}
+                              </span>
+                              <span className="text-slate-300 text-sm font-medium flex items-center gap-1.5">
+                                <MapPin className="w-4 h-4" /> {lawyer.city}
                               </span>
                             </div>
                           </div>
                           
+                          {/* Modal Content */}
                           <div className="p-8 space-y-6 bg-white">
                             <div>
-                              <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Especialidades</h4>
+                              <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                <Briefcase className="w-4 h-4 text-[#1E3A5F]" /> Especialidades
+                              </h4>
                               <div className="flex flex-wrap gap-2">
-                                <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-100">{lawyer.mainSpecialty}</Badge>
+                                <Badge className="bg-[#1E3A5F] text-white hover:bg-[#0F172A] px-3 py-1">
+                                  {lawyer.mainSpecialty}
+                                </Badge>
                                 {lawyer.secondarySpecialties.map(spec => (
-                                  <Badge key={spec} variant="outline" className="text-slate-600 border-slate-200">{spec}</Badge>
+                                  <Badge key={spec} variant="outline" className="text-slate-600 border-slate-300 px-3 py-1">
+                                    {spec}
+                                 </Badge>
                                 ))}
                               </div>
                             </div>
                             
                             <div>
-                              <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Biografia</h4>
-                              <p className="text-slate-700 leading-relaxed font-medium bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                              <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Biografia</h4>
+                              <p className="text-slate-700 leading-relaxed font-medium bg-slate-50 p-5 rounded-xl border border-slate-100">
                                 {lawyer.bio}
                               </p>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 mb-1"><Phone className="w-3 h-3"/> Telefone</h4>
-                                <p className="font-bold text-slate-800">{lawyer.phone}</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center gap-3">
+                                <div className="p-2 bg-white rounded-lg border border-slate-100 shadow-sm">
+                                  <Phone className="w-4 h-4 text-slate-600"/>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Telefone</p>
+                                  <p className="font-bold text-[#0F172A]">{lawyer.phone}</p>
+                                </div>
                               </div>
-                              <div className="bg-green-50/50 p-4 rounded-2xl border border-green-100/50">
-                                <h4 className="text-xs font-bold text-green-600/70 uppercase tracking-wider flex items-center gap-1 mb-1"><MessageCircle className="w-3 h-3"/> WhatsApp</h4>
-                                <p className="font-bold text-green-800">{lawyer.whatsapp}</p>
+                              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center gap-3">
+                                <div className="p-2 bg-[#25D366]/10 rounded-lg border border-[#25D366]/20 shadow-sm">
+                                  <MessageCircle className="w-4 h-4 text-[#25D366]"/>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">WhatsApp</p>
+                                  <p className="font-bold text-[#0F172A]">{lawyer.whatsapp}</p>
+                                </div>
                               </div>
                             </div>
 
-                            {/* Botões de Aprovação dentro do modal caso esteja aguardando */}
-                            {lawyer.status === 'Aguardando' && (
-                              <div className="pt-6 border-t border-slate-100 flex gap-3">
+                            {/* Modal Actions (Only show if pending) */}
+                            {lawyer.status === 'Aguardando aprovação' && (
+                              <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row gap-3">
                                 <Button 
                                   onClick={() => handleAction(lawyer.id, 'Aprovado')} 
-                                  className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold h-12 rounded-xl"
+                                  className="flex-1 bg-[#1E3A5F] hover:bg-[#0F172A] text-white font-bold h-12 rounded-xl shadow-md"
                                 >
-                                  <CheckCircle className="w-5 h-5 mr-2" /> Aprovar Cadastro
+                                  <CheckCircle className="w-5 h-5 mr-2" /> Aprovar Advogado
                                 </Button>
                                 <Button 
                                   onClick={() => handleAction(lawyer.id, 'Rejeitado')} 
                                   variant="outline"
-                                  className="flex-1 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 font-bold h-12 rounded-xl"
+                                  className="flex-1 border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-red-600 font-bold h-12 rounded-xl"
                                 >
-                                  <XCircle className="w-5 h-5 mr-2" /> Rejeitar
+                                  <XCircle className="w-5 h-5 mr-2" /> Rejeitar Cadastro
                                 </Button>
                               </div>
                             )}
@@ -249,29 +266,6 @@ export const AdminApprovals = () => {
                         </DialogContent>
                       </Dialog>
 
-                      {/* Botões Rápidos (Aprovar / Rejeitar) */}
-                      {lawyer.status === 'Aguardando' && (
-                        <>
-                          <Button 
-                            onClick={() => handleAction(lawyer.id, 'Aprovado')}
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-9 w-9 text-green-600 hover:bg-green-50 rounded-xl" 
-                            title="Aprovar"
-                          >
-                            <CheckCircle className="w-4 h-4" />
-                          </Button>
-                          <Button 
-                            onClick={() => handleAction(lawyer.id, 'Rejeitado')}
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-9 w-9 text-red-600 hover:bg-red-50 rounded-xl" 
-                            title="Rejeitar"
-                          >
-                            <XCircle className="w-4 h-4" />
-                          </Button>
-                        </>
-                      )}
                     </div>
                   </TableCell>
                 </TableRow>
