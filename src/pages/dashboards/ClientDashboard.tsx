@@ -45,7 +45,7 @@ export const ClientDashboard = () => {
               Olá, João!
             </h1>
             <p className="text-lg text-slate-300 font-medium">
-              Encontre o especialista ideal para o seu caso. Acesse os melhores profissionais com rapidez, transparência e segurança.
+              Encontre o especialista ideal para o seu caso.
             </p>
           </div>
           <Link to="/painel/cliente/buscar" className="w-full md:w-auto shrink-0">
