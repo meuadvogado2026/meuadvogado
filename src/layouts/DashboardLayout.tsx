@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Scale, LogOut, LayoutDashboard, User, Search, Settings, PieChart, Users, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MobileNav } from "@/components/MobileNav";
 
 export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' }) => {
   const location = useLocation();
@@ -38,7 +39,7 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
   const links = getLinks();
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans">
+    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans pb-20 md:pb-0">
       {/* Sidebar Desktop */}
       <aside className="hidden md:flex flex-col w-64 bg-slate-900 text-white min-h-screen">
         <div className="h-16 flex items-center px-6 border-b border-slate-800">
@@ -84,18 +85,21 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
         {/* Mobile Header */}
-        <header className="md:hidden h-16 bg-white border-b flex items-center px-4 justify-between">
+        <header className="md:hidden h-16 bg-white border-b flex items-center px-4 justify-between sticky top-0 z-40">
           <div className="flex items-center gap-2">
             <Scale className="h-6 w-6 text-primary" />
-            <span className="font-bold">Painel</span>
+            <span className="font-bold">Meu Advogado</span>
           </div>
-          <Button variant="ghost" size="sm" onClick={handleLogout}>Sair</Button>
+          <Button variant="ghost" size="sm" onClick={handleLogout} className="text-slate-500">Sair</Button>
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
           <Outlet />
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileNav role={role} />
     </div>
   );
 };

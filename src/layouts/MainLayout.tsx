@@ -2,10 +2,10 @@ import React from 'react';
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Scale, Menu } from "lucide-react";
+import { MobileNav } from "@/components/MobileNav";
 
 export const MainLayout = () => {
   const location = useLocation();
-  const isHome = location.pathname === '/';
 
   return (
     <div className="min-h-screen flex flex-col font-sans">
@@ -34,17 +34,18 @@ export const MainLayout = () => {
             </Link>
           </nav>
           
+          {/* Mobile menu trigger is less necessary now with BottomNav, but keeping for accessibility/settings */}
           <Button variant="ghost" size="icon" className="md:hidden">
             <Menu className="h-6 w-6" />
           </Button>
         </div>
       </header>
 
-      <main className="flex-1">
+      <main className="flex-1 pb-20 md:pb-0">
         <Outlet />
       </main>
 
-      <footer className="bg-slate-900 text-slate-300 py-12 border-t border-slate-800">
+      <footer className="bg-slate-900 text-slate-300 py-12 border-t border-slate-800 hidden md:block">
         <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-1">
             <Link to="/" className="flex items-center gap-2 mb-4">
@@ -86,6 +87,9 @@ export const MainLayout = () => {
           © {new Date().getFullYear()} Meu Advogado. Todos os direitos reservados.
         </div>
       </footer>
+
+      {/* Mobile Navigation Menu */}
+      <MobileNav role="public" />
     </div>
   );
 };
