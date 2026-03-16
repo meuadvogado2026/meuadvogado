@@ -2,25 +2,24 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import {
-  Search,
   Scale,
   ShieldCheck,
   MapPin,
   MessageCircle,
   Star,
-  ArrowRight,
   CheckCircle2,
   Briefcase,
   Users,
   Sparkles,
   Clock3,
-  BadgeCheck,
   ChevronRight,
   Building2,
   FileText,
   PhoneCall,
+  UserPlus,
+  LogIn
 } from "lucide-react";
-import { specialties, mockTestimonials } from "@/data/mock";
+import { mockTestimonials } from "@/data/mock";
 
 export const Landing = () => {
   return (
@@ -57,20 +56,20 @@ export const Landing = () => {
             </p>
 
             <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-              <Link to="/buscar">
+              <Link to="/cadastro">
                 <Button className="h-14 rounded-2xl bg-[#0F2747] px-8 text-base font-semibold text-white shadow-lg shadow-[#0F2747]/20 hover:bg-[#16345C]">
-                  <Search className="mr-2 h-5 w-5" />
-                  Encontrar advogado
+                  <UserPlus className="mr-2 h-5 w-5" />
+                  Criar conta grátis
                 </Button>
               </Link>
 
-              <Link to="/cadastro">
+              <Link to="/login">
                 <Button
                   variant="outline"
                   className="h-14 rounded-2xl border-slate-300 bg-white px-8 text-base font-semibold text-slate-800 hover:bg-slate-50"
                 >
-                  <Scale className="mr-2 h-5 w-5" />
-                  Sou advogado
+                  <LogIn className="mr-2 h-5 w-5" />
+                  Acessar plataforma
                 </Button>
               </Link>
             </div>
@@ -89,10 +88,10 @@ export const Landing = () => {
               <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="mb-2 flex items-center gap-2 text-[#0F2747]">
                   <MapPin className="h-5 w-5" />
-                  <span className="text-sm font-semibold">Busca por região</span>
+                  <span className="text-sm font-semibold">Sem barreiras</span>
                 </div>
                 <p className="text-sm text-slate-600">
-                  Atendimento próximo ou online.
+                  Atendimento próximo ou 100% online.
                 </p>
               </div>
 
@@ -109,15 +108,15 @@ export const Landing = () => {
           </div>
 
           {/* right */}
-          <div className="relative">
+          <div className="relative mt-8 lg:mt-0">
             <div className="absolute -inset-6 rounded-[36px] bg-gradient-to-br from-[#0F2747]/10 via-slate-300/20 to-transparent blur-2xl" />
 
             <div className="relative rounded-[32px] border border-slate-200 bg-white p-4 shadow-2xl shadow-slate-300/40">
               {/* top bar */}
-              <div className="mb-4 flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <div className="mb-2 flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
                 <div>
                   <p className="text-sm font-semibold text-slate-900">Meu Advogado</p>
-                  <p className="text-xs text-slate-500">Busca jurídica simples e confiável</p>
+                  <p className="text-xs text-slate-500">Conexão jurídica simples e confiável</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="h-3 w-3 rounded-full bg-slate-300" />
@@ -126,42 +125,8 @@ export const Landing = () => {
                 </div>
               </div>
 
-              {/* app mock */}
-              <div className="rounded-[28px] bg-gradient-to-br from-[#0F2747] via-[#17365F] to-[#1F2937] p-6 text-white">
-                <div className="mb-5 flex items-center gap-2 text-slate-200">
-                  <BadgeCheck className="h-5 w-5" />
-                  <span className="text-sm font-medium">Busca inteligente</span>
-                </div>
-
-                <h3 className="text-2xl font-bold leading-tight">
-                  Encontre um advogado por especialidade, cidade e tipo de atendimento.
-                </h3>
-
-                <div className="mt-6 grid gap-3">
-                  <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur">
-                    <p className="text-xs uppercase tracking-wide text-slate-300">Especialidade</p>
-                    <p className="mt-1 text-sm font-semibold text-white">Direito Trabalhista</p>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur">
-                    <p className="text-xs uppercase tracking-wide text-slate-300">Localização</p>
-                    <p className="mt-1 text-sm font-semibold text-white">Goiânia - GO</p>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur">
-                    <p className="text-xs uppercase tracking-wide text-slate-300">Atendimento</p>
-                    <p className="mt-1 text-sm font-semibold text-white">Online ou Presencial</p>
-                  </div>
-                </div>
-
-                <Button className="mt-6 h-12 w-full rounded-2xl bg-white font-semibold text-[#0F2747] hover:bg-slate-100">
-                  <Search className="mr-2 h-4 w-4" />
-                  Buscar agora
-                </Button>
-              </div>
-
-              {/* lower cards */}
-              <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              {/* lower cards mock */}
+              <div className="grid gap-4 sm:grid-cols-2 mt-4">
                 <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
                   <div className="mb-3 flex items-center justify-between">
                     <div>
@@ -185,7 +150,7 @@ export const Landing = () => {
                     <span className="ml-2 text-sm font-medium text-slate-600">5.0</span>
                   </div>
 
-                  <Button className="h-11 w-full rounded-2xl bg-green-600 text-white hover:bg-green-700">
+                  <Button className="h-11 w-full rounded-2xl bg-green-600 text-white hover:bg-green-700 pointer-events-none">
                     <MessageCircle className="mr-2 h-4 w-4" />
                     Falar no WhatsApp
                   </Button>
@@ -262,11 +227,11 @@ export const Landing = () => {
 
           <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-4">
             <div className="rounded-2xl bg-[#0F2747]/10 p-3 text-[#0F2747]">
-              <Search className="h-5 w-5" />
+              <Users className="h-5 w-5" />
             </div>
             <div>
-              <p className="font-semibold text-slate-900">Busca por especialidade</p>
-              <p className="text-sm text-slate-500">Resultados mais relevantes para cada caso.</p>
+              <p className="font-semibold text-slate-900">Conexão Direta</p>
+              <p className="text-sm text-slate-500">Nossa plataforma conecta você ao profissional ideal.</p>
             </div>
           </div>
 
@@ -278,44 +243,6 @@ export const Landing = () => {
               <p className="font-semibold text-slate-900">Contato no WhatsApp</p>
               <p className="text-sm text-slate-500">Conexão rápida e prática com o advogado.</p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* SPECIALTIES */}
-      <section className="py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-14 max-w-3xl">
-            <span className="mb-4 inline-flex rounded-full bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm">
-              Especialidades jurídicas
-            </span>
-            <h2 className="text-3xl font-black tracking-tight text-slate-950 sm:text-5xl">
-              Encontre o especialista certo para o seu momento.
-            </h2>
-            <p className="mt-4 text-lg leading-8 text-slate-600">
-              Navegue pelas áreas mais buscadas e encontre profissionais preparados para
-              atender seu caso com clareza e confiança.
-            </p>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {specialties.map((spec) => (
-              <Link key={spec} to={`/buscar?especialidade=${encodeURIComponent(spec)}`}>
-                <div className="group rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#1E3A5F]/20 hover:shadow-xl">
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0F2747]/10 text-[#0F2747] transition group-hover:bg-[#0F2747] group-hover:text-white">
-                    <Scale className="h-5 w-5" />
-                  </div>
-                  <h3 className="text-lg font-bold text-slate-900">{spec}</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-500">
-                    Profissionais com atuação específica nessa área do direito.
-                  </p>
-                  <div className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#0F2747]">
-                    Ver advogados
-                    <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-                  </div>
-                </div>
-              </Link>
-            ))}
           </div>
         </div>
       </section>
@@ -338,21 +265,21 @@ export const Landing = () => {
               <div className="mb-6 inline-flex rounded-2xl bg-white/10 p-3 text-white">
                 <Users className="h-6 w-6" />
               </div>
-              <h3 className="text-2xl font-bold">Para quem procura um advogado</h3>
+              <h3 className="text-2xl font-bold">Para quem precisa de um advogado</h3>
 
               <div className="mt-8 space-y-6">
                 {[
                   {
-                    title: "Pesquise pelo seu problema",
-                    desc: "Use filtros por área jurídica, cidade e formato de atendimento.",
+                    title: "Conecte-se com o especialista",
+                    desc: "Nossa plataforma apresenta os advogados com clareza e transparência.",
                   },
                   {
                     title: "Compare perfis com confiança",
-                    desc: "Veja biografia, especialidades, região e avaliações de clientes.",
+                    desc: "Veja biografia, especialidades, região e avaliações de clientes reais.",
                   },
                   {
                     title: "Entre em contato no WhatsApp",
-                    desc: "Converse direto com o advogado e avance no atendimento.",
+                    desc: "Converse direto com o advogado e avance no atendimento com rapidez.",
                   },
                 ].map((item, index) => (
                   <div key={item.title} className="flex gap-4">
@@ -417,14 +344,14 @@ export const Landing = () => {
             </h2>
             <p className="mt-5 text-lg leading-8 text-slate-600">
               Chega de plataformas confusas ou perfis sem credibilidade. O Meu Advogado foi
-              pensado para transmitir confiança, facilitar a busca e aproximar cliente e profissional.
+              pensado para transmitir confiança, facilitar a conexão e aproximar cliente e profissional.
             </p>
 
             <div className="mt-8 grid gap-4">
               {[
                 "Design claro e profissional",
                 "Perfis organizados e fáceis de entender",
-                "Busca por especialidade e localização",
+                "Foco em transparência e validação",
                 "Contato rápido pelo WhatsApp",
                 "Experiência pensada para conversão",
               ].map((item) => (
@@ -477,12 +404,6 @@ export const Landing = () => {
                       <span className="text-sm">Contato rápido pelo WhatsApp</span>
                     </div>
                   </div>
-
-                  <Link to="/buscar">
-                    <Button className="h-12 w-full rounded-2xl bg-white text-[#0F2747] hover:bg-slate-100">
-                      Explorar perfis
-                    </Button>
-                  </Link>
                 </div>
               </div>
             </div>
@@ -515,7 +436,7 @@ export const Landing = () => {
                 </div>
 
                 <p className="text-base leading-7 text-slate-600">
-                  “{testimonial.content || testimonial.text || "Excelente experiência, encontrei um profissional com rapidez e segurança."}”
+                  “{testimonial.content || testimonial.text || "Excelente experiência, conectei-me a um profissional com rapidez e segurança."}”
                 </p>
 
                 <div className="mt-6 border-t border-slate-200 pt-4">
@@ -545,29 +466,29 @@ export const Landing = () => {
           </div>
 
           <h2 className="text-3xl font-black tracking-tight text-white sm:text-5xl">
-            O caminho mais moderno para encontrar
-            <span className="block text-slate-300">o advogado certo.</span>
+            A forma mais moderna de apresentar 
+            <span className="block text-slate-300">serviços jurídicos.</span>
           </h2>
 
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-slate-200">
             Comece agora e descubra uma nova forma de conectar clientes e advogados
-            com mais clareza, confiança e agilidade.
+            com clareza, confiança e agilidade.
           </p>
 
           <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row">
-            <Link to="/buscar">
+            <Link to="/cadastro">
               <Button className="h-14 rounded-2xl bg-white px-8 text-base font-semibold text-[#0F2747] hover:bg-slate-100">
-                Encontrar advogado
+                Cadastre-se grátis
                 <ChevronRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
 
-            <Link to="/cadastro">
+            <Link to="/login">
               <Button
                 variant="outline"
                 className="h-14 rounded-2xl border-white/30 bg-white/10 px-8 text-base font-semibold text-white hover:bg-white/20"
               >
-                Cadastrar como advogado
+                Acessar plataforma
               </Button>
             </Link>
           </div>

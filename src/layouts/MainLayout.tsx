@@ -18,23 +18,15 @@ export const MainLayout = () => {
             <span className="font-bold text-xl tracking-tight text-slate-900">Meu Advogado</span>
           </Link>
           
-          <nav className="hidden md:flex items-center gap-6">
-            <Link to="/buscar" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">
-              Encontrar Advogado
-            </Link>
-            <Link to="/cadastro" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">
-              Sou Advogado
-            </Link>
-            <div className="h-4 w-px bg-slate-200"></div>
+          <nav className="hidden md:flex items-center gap-4">
             <Link to="/login">
-              <Button variant="ghost" className="font-medium">Entrar</Button>
+              <Button variant="ghost" className="font-medium text-slate-600 hover:text-primary">Entrar</Button>
             </Link>
             <Link to="/cadastro">
-              <Button className="font-medium shadow-sm">Cadastre-se</Button>
+              <Button className="font-medium shadow-sm rounded-xl">Cadastre-se grátis</Button>
             </Link>
           </nav>
           
-          {/* Mobile menu trigger is less necessary now with BottomNav, but keeping for accessibility/settings */}
           <Button variant="ghost" size="icon" className="md:hidden">
             <Menu className="h-6 w-6" />
           </Button>
@@ -61,15 +53,15 @@ export const MainLayout = () => {
           <div>
             <h4 className="font-semibold text-white mb-4">Para Clientes</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/buscar" className="hover:text-white transition-colors">Encontrar Advogados</Link></li>
               <li><Link to="/cadastro" className="hover:text-white transition-colors">Criar Conta</Link></li>
+              <li><Link to="/login" className="hover:text-white transition-colors">Entrar na Plataforma</Link></li>
               <li><Link to="/" className="hover:text-white transition-colors">Como funciona</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="font-semibold text-white mb-4">Para Advogados</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/cadastro" className="hover:text-white transition-colors">Cadastre seu Perfil</Link></li>
+              <li><Link to="/cadastro" className="hover:text-white transition-colors">Criar Conta Profissional</Link></li>
               <li><Link to="/login" className="hover:text-white transition-colors">Painel do Advogado</Link></li>
               <li><Link to="/" className="hover:text-white transition-colors">Planos</Link></li>
             </ul>
