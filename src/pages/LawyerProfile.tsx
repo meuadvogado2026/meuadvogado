@@ -91,95 +91,89 @@ export const LawyerProfile = () => {
         </div>
       </div>
 
-      {/* CONTEÚDO PRINCIPAL SOBREPOSTO */}
-      <div className="container mx-auto px-4 max-w-5xl relative z-20 -mt-12 md:-mt-16">
-        
-        {/* BLOCO PRINCIPAL DO TOPO */}
-        <Card className="border-0 shadow-lg shadow-slate-200/50 rounded-3xl mb-6 bg-white/95 backdrop-blur-xl">
-          <CardContent className="p-5 md:p-6">
-            
-            <div className="flex flex-col sm:flex-row gap-5 md:gap-6 items-center sm:items-start text-center sm:text-left">
-              
-              {/* Avatar destacado */}
-              <div className="relative shrink-0 -mt-16 md:-mt-20 z-10">
-                {lawyer.image ? (
-                  <img 
-                    src={lawyer.image} 
-                    alt={lawyer.name} 
-                    className="w-28 h-28 md:w-36 md:h-36 rounded-[1.5rem] object-cover bg-slate-100 border-[4px] border-white shadow-md"
-                  />
-                ) : (
-                  <div className="w-28 h-28 md:w-36 md:h-36 rounded-[1.5rem] bg-slate-100 flex items-center justify-center text-slate-400 border-[4px] border-white shadow-md">
-                    <User className="w-12 h-12" />
-                  </div>
-                )}
-                {lawyer.verified && (
-                  <div className="absolute -bottom-2 -right-2 bg-blue-600 text-white p-2 rounded-xl shadow-sm border-[3px] border-white flex items-center justify-center">
-                    <ShieldCheck className="w-4 h-4 md:w-5 md:h-5" />
-                  </div>
-                )}
+      {/* TOPO DO PERFIL: Avatar sobreposto e Informações (Sem Card) */}
+      <div className="container mx-auto px-4 max-w-5xl mb-8">
+        <div className="flex flex-col sm:flex-row gap-5 md:gap-6 items-center sm:items-start text-center sm:text-left">
+          
+          {/* Avatar destacado diretamente sobre a capa */}
+          <div className="relative shrink-0 -mt-16 md:-mt-20 z-10">
+            {lawyer.image ? (
+              <img 
+                src={lawyer.image} 
+                alt={lawyer.name} 
+                className="w-32 h-32 md:w-40 md:h-40 rounded-[1.5rem] object-cover bg-slate-100 border-[4px] border-white shadow-md"
+              />
+            ) : (
+              <div className="w-32 h-32 md:w-40 md:h-40 rounded-[1.5rem] bg-slate-100 flex items-center justify-center text-slate-400 border-[4px] border-white shadow-md">
+                <User className="w-12 h-12 md:w-16 md:h-16" />
               </div>
+            )}
+            {lawyer.verified && (
+              <div className="absolute -bottom-1 -right-1 bg-blue-600 text-white p-2 rounded-xl shadow-sm border-[3px] border-white flex items-center justify-center">
+                <ShieldCheck className="w-4 h-4 md:w-5 md:h-5" />
+              </div>
+            )}
+          </div>
 
-              {/* Informações Compactadas */}
-              <div className="flex-1 w-full pt-2">
-                <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5">
-                  
-                  <div className="space-y-1.5">
-                    <h1 className="text-2xl md:text-3xl font-black text-[#0F172A] tracking-tight leading-tight">{lawyer.name}</h1>
-                    <p className="text-sm md:text-base font-bold text-primary">{lawyer.title || lawyer.specialty}</p>
-                    
-                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs md:text-sm font-medium text-slate-600 pt-1.5">
-                      <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-md text-slate-700 border border-slate-200/60">
-                        <Scale className="w-3.5 h-3.5 text-primary" /> OAB {lawyer.oab}
-                      </div>
-                      <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/60 px-2.5 py-1 rounded-md">
-                        <MapPin className="w-3.5 h-3.5 text-slate-400" /> {lawyer.city}, {lawyer.state}
-                      </div>
-                      <div className="flex items-center gap-1.5 text-amber-700 bg-amber-50 border border-amber-100/50 px-2.5 py-1 rounded-md">
-                        <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" /> 
-                        <span className="font-bold">{lawyer.rating}</span> 
-                        <span className="text-amber-700/60 font-medium">({lawyer.reviews})</span>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap justify-center sm:justify-start gap-1.5 pt-2.5">
-                      <Badge className="px-3 py-1 bg-[#1E3A5F] hover:bg-[#0F172A] text-white font-bold border-0 text-[10px] md:text-xs rounded-md">
-                        {lawyer.specialty}
-                      </Badge>
-                      {lawyer.secondarySpecialties?.map(spec => (
-                        <Badge key={spec} variant="outline" className="px-3 py-1 border-slate-200 text-slate-600 font-medium rounded-md text-[10px] md:text-xs">
-                          {spec}
-                        </Badge>
-                      ))}
-                      {lawyer.type?.includes("Online") && (
-                        <Badge variant="outline" className="px-3 py-1 border-green-200 text-green-700 bg-green-50 font-bold rounded-md text-[10px] md:text-xs">
-                          Atende Online
-                        </Badge>
-                      )}
-                    </div>
+          {/* Informações Livres */}
+          <div className="flex-1 w-full sm:pt-3">
+            <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5">
+              
+              <div className="space-y-1.5">
+                <h1 className="text-2xl md:text-3xl font-black text-[#0F172A] tracking-tight leading-tight">{lawyer.name}</h1>
+                <p className="text-sm md:text-base font-bold text-primary">{lawyer.title || lawyer.specialty}</p>
+                
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs md:text-sm font-medium text-slate-600 pt-1.5">
+                  <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-md text-slate-700 border border-slate-200/60 shadow-sm">
+                    <Scale className="w-3.5 h-3.5 text-primary" /> OAB {lawyer.oab}
                   </div>
-
-                  {/* Ações Primárias (Direita) */}
-                  <div className="w-full lg:w-auto shrink-0 flex flex-col items-center sm:items-start lg:items-end gap-3 mt-1 lg:mt-0">
-                    <WhatsAppButton 
-                      className="w-full sm:w-auto lg:w-auto h-11 md:h-12 px-6 text-sm shadow-md shadow-green-600/20 rounded-xl font-bold"
-                      message={`Olá Dr(a) ${lawyer.name}, encontrei seu perfil no Meu Advogado e gostaria de uma orientação.`} 
-                    />
-                    
-                    {lawyer.showSocials && lawyer.socials && (
-                      <div className="flex flex-wrap justify-center sm:justify-start lg:justify-end gap-1.5">
-                        {Object.entries(lawyer.socials).map(([key, value]) => renderSocialIcon(key, value as string))}
-                      </div>
-                    )}
+                  <div className="flex items-center gap-1.5 bg-white border border-slate-200/60 px-2.5 py-1 rounded-md shadow-sm">
+                    <MapPin className="w-3.5 h-3.5 text-slate-400" /> {lawyer.city}, {lawyer.state}
+                  </div>
+                  <div className="flex items-center gap-1.5 text-amber-700 bg-amber-50 border border-amber-100/50 px-2.5 py-1 rounded-md shadow-sm">
+                    <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" /> 
+                    <span className="font-bold">{lawyer.rating}</span> 
+                    <span className="text-amber-700/60 font-medium">({lawyer.reviews})</span>
                   </div>
                 </div>
+
+                <div className="flex flex-wrap justify-center sm:justify-start gap-1.5 pt-2.5">
+                  <Badge className="px-3 py-1 bg-[#1E3A5F] hover:bg-[#0F172A] text-white font-bold border-0 text-[10px] md:text-xs rounded-md shadow-sm">
+                    {lawyer.specialty}
+                  </Badge>
+                  {lawyer.secondarySpecialties?.map(spec => (
+                    <Badge key={spec} variant="outline" className="px-3 py-1 bg-white border-slate-200 text-slate-600 font-medium rounded-md text-[10px] md:text-xs shadow-sm">
+                      {spec}
+                    </Badge>
+                  ))}
+                  {lawyer.type?.includes("Online") && (
+                    <Badge variant="outline" className="px-3 py-1 bg-green-50 border-green-200 text-green-700 font-bold rounded-md text-[10px] md:text-xs shadow-sm">
+                      Atende Online
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              {/* Ações Primárias (Direita) */}
+              <div className="w-full lg:w-auto shrink-0 flex flex-col items-center sm:items-start lg:items-end gap-3 mt-1 lg:mt-0">
+                <WhatsAppButton 
+                  className="w-full sm:w-auto lg:w-auto h-11 md:h-12 px-6 text-sm shadow-md shadow-green-600/20 rounded-xl font-bold"
+                  message={`Olá Dr(a) ${lawyer.name}, encontrei seu perfil no Meu Advogado e gostaria de uma orientação.`} 
+                />
+                
+                {lawyer.showSocials && lawyer.socials && (
+                  <div className="flex flex-wrap justify-center sm:justify-start lg:justify-end gap-1.5">
+                    {Object.entries(lawyer.socials).map(([key, value]) => renderSocialIcon(key, value as string))}
+                  </div>
+                )}
               </div>
             </div>
+          </div>
+        </div>
+      </div>
 
-          </CardContent>
-        </Card>
-
-        {/* CORPO DO PERFIL - Grid mais compacto */}
+      {/* CORPO DO PERFIL - Grid mais compacto */}
+      <div className="container mx-auto px-4 max-w-5xl">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           <div className="lg:col-span-2 space-y-5">
