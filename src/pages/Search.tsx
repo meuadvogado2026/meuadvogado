@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search as SearchIcon, MapPin, SlidersHorizontal, X, Navigation, LocateFixed } from "lucide-react";
+import { Search as SearchIcon, MapPin, SlidersHorizontal, X, Navigation, LocateFixed, Loader2 } from "lucide-react";
 import { mockLawyers, specialties } from "@/data/mock";
 import { LawyerCard } from "@/components/LawyerCard";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
@@ -16,8 +16,8 @@ export const Search = () => {
   const [selectedState, setSelectedState] = useState("");
   const [selectedType, setSelectedType] = useState("all");
   const [sortBy, setSortBy] = useState("recommended");
+  const [isFetchingCep, setIsFetchingCep] = useState(false);
 
-  // Simulação de busca de localização do dispositivo
   const handleUseLocation = () => {
     toast.loading("Buscando sua localização...", { id: "loc" });
     setTimeout(() => {
@@ -27,6 +27,47 @@ export const Search = () => {
       setSelectedState("SP");
       setSortBy("distance");
     }, 1200);
+  };
+
+  const applyCepMask = (value: string) => {
+    return value
+      .replace(/\D/g, '')
+      .replace(/(\d{5})(\d)/, '$1-$2')
+      .slice(0, 9);
+  };
+
+  const fetchViaCep = async (cep: string) => {
+    const cleanCep = cep.replace(/\D/g, '');
+    if (cleanCep.length !== 8) return;
+
+    setIsFetchingCep(true);
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const data = await response.json();
+
+      if (data.erro) {
+        toast.error("CEP não encontrado", { description: "Verifique o número e tente novamente." });
+        return;
+      }
+
+      setSelectedState(data.uf);
+      setSelectedCity(data.localidade);
+      setSortBy("distance"); // Prioriza mais próximos
+      toast.success("Região identificada!", { description: `Buscando advogados em ${data.localidade} - ${data.uf}` });
+    } catch (error) {
+      toast.error("Erro na busca do CEP", { description: "Tente selecionar o estado e cidade manualmente." });
+    } finally {
+      setIsFetchingCep(false);
+    }
+  };
+
+  const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const maskedCep = applyCepMask(e.target.value);
+    setCepParam(maskedCep);
+
+    if (maskedCep.length === 9) {
+      fetchViaCep(maskedCep);
+    }
   };
 
   const filteredLawyers = mockLawyers
@@ -84,16 +125,20 @@ export const Search = () => {
             <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-slate-400 font-bold">Ou informe</span></div>
           </div>
 
-          <Input 
-            placeholder="Digite seu CEP" 
-            value={cepParam}
-            onChange={(e) => {
-              setCepParam(e.target.value);
-              if(e.target.value.length >= 8) setSortBy("distance");
-            }}
-            maxLength={9}
-            className="h-11 rounded-xl bg-slate-50 border-slate-200"
-          />
+          <div className="relative">
+            <Input 
+              placeholder="Digite seu CEP" 
+              value={cepParam}
+              onChange={handleCepChange}
+              maxLength={9}
+              className="h-11 rounded-xl bg-slate-50 border-slate-200 pr-10"
+            />
+            {isFetchingCep && (
+              <div className="absolute right-3 top-3.5">
+                <Loader2 className="w-4 h-4 animate-spin text-[#1E3A5F]" />
+              </div>
+            )}
+          </div>
           
           <div className="grid grid-cols-3 gap-2">
             <select 
@@ -120,6 +165,9 @@ export const Search = () => {
               {selectedState && cidadesPorEstado[selectedState]?.map(city => (
                 <option key={city} value={city}>{city}</option>
               ))}
+              {selectedCity && (!selectedState || !cidadesPorEstado[selectedState]?.includes(selectedCity)) && (
+                <option value={selectedCity}>{selectedCity}</option>
+              )}
             </select>
           </div>
         </div>

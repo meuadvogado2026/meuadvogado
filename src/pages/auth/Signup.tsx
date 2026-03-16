@@ -4,16 +4,77 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Scale, User, Briefcase, MapPin } from "lucide-react";
+import { Scale, User, Briefcase, MapPin, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { estados, cidadesPorEstado } from "@/data/locations";
 
 export const Signup = () => {
   const navigate = useNavigate();
 
-  // Estados para controlar os selects dependentes no formulário
+  // Estados para Cliente
+  const [clientCep, setClientCep] = useState("");
   const [clientState, setClientState] = useState("");
+  const [clientCity, setClientCity] = useState("");
+  const [isFetchingClientCep, setIsFetchingClientCep] = useState(false);
+
+  // Estados para Advogado
+  const [lawyerCep, setLawyerCep] = useState("");
   const [lawyerState, setLawyerState] = useState("");
+  const [lawyerCity, setLawyerCity] = useState("");
+  const [isFetchingLawyerCep, setIsFetchingLawyerCep] = useState(false);
+
+  const applyCepMask = (value: string) => {
+    return value
+      .replace(/\D/g, '')
+      .replace(/(\d{5})(\d)/, '$1-$2')
+      .slice(0, 9);
+  };
+
+  const fetchCep = async (cep: string, type: 'client' | 'lawyer') => {
+    const cleanCep = cep.replace(/\D/g, '');
+    if (cleanCep.length !== 8) return;
+
+    if (type === 'client') setIsFetchingClientCep(true);
+    else setIsFetchingLawyerCep(true);
+
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const data = await response.json();
+
+      if (data.erro) {
+        toast.error("CEP não encontrado", { description: "Verifique o CEP digitado e tente novamente." });
+        return;
+      }
+
+      if (type === 'client') {
+        setClientState(data.uf);
+        setClientCity(data.localidade);
+      } else {
+        setLawyerState(data.uf);
+        setLawyerCity(data.localidade);
+      }
+      
+      toast.success("Endereço preenchido!", { description: `${data.localidade} - ${data.uf}` });
+    } catch (error) {
+      toast.error("Erro ao buscar CEP", { description: "Tente preencher os dados manualmente." });
+    } finally {
+      if (type === 'client') setIsFetchingClientCep(false);
+      else setIsFetchingLawyerCep(false);
+    }
+  };
+
+  const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'client' | 'lawyer') => {
+    const maskedCep = applyCepMask(e.target.value);
+    if (type === 'client') {
+      setClientCep(maskedCep);
+    } else {
+      setLawyerCep(maskedCep);
+    }
+
+    if (maskedCep.length === 9) {
+      fetchCep(maskedCep, type);
+    }
+  };
 
   const handleRegister = (role: string) => (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,9 +134,21 @@ export const Signup = () => {
                       <span className="font-bold text-slate-800 text-sm">Seu Endereço</span>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-6 gap-4">
-                      <div className="sm:col-span-2">
+                      <div className="sm:col-span-2 relative">
                         <Label className="text-slate-700 font-bold">CEP</Label>
-                        <Input required className="mt-1 h-12 rounded-xl bg-white border-slate-200" placeholder="00000-000" maxLength={9} />
+                        <Input 
+                          required 
+                          value={clientCep}
+                          onChange={(e) => handleCepChange(e, 'client')}
+                          className="mt-1 h-12 rounded-xl bg-white border-slate-200 pr-10" 
+                          placeholder="00000-000" 
+                          maxLength={9} 
+                        />
+                        {isFetchingClientCep && (
+                          <div className="absolute right-3 top-[38px]">
+                            <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                          </div>
+                        )}
                       </div>
                       <div className="sm:col-span-2">
                         <Label className="text-slate-700 font-bold">Estado (UF)</Label>
@@ -84,6 +157,7 @@ export const Signup = () => {
                           value={clientState}
                           onChange={(e) => {
                             setClientState(e.target.value);
+                            setClientCity(""); // reseta cidade ao mudar estado
                           }}
                           className="mt-1 flex h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none"
                         >
@@ -97,13 +171,18 @@ export const Signup = () => {
                         <Label className="text-slate-700 font-bold">Cidade</Label>
                         <select 
                           required 
+                          value={clientCity}
+                          onChange={(e) => setClientCity(e.target.value)}
                           disabled={!clientState}
                           className="mt-1 flex h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
                         >
-                          <option value="" disabled selected>Selecione</option>
+                          <option value="" disabled>Selecione</option>
                           {clientState && cidadesPorEstado[clientState]?.map(city => (
                             <option key={city} value={city}>{city}</option>
                           ))}
+                          {clientCity && (!clientState || !cidadesPorEstado[clientState]?.includes(clientCity)) && (
+                            <option value={clientCity}>{clientCity}</option>
+                          )}
                         </select>
                       </div>
                     </div>
@@ -161,16 +240,31 @@ export const Signup = () => {
                     </div>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-6 gap-4">
-                      <div className="sm:col-span-2">
+                      <div className="sm:col-span-2 relative">
                         <Label className="text-slate-700 font-bold">CEP</Label>
-                        <Input required className="mt-1 h-12 rounded-xl bg-white border-slate-200" placeholder="00000-000" maxLength={9} />
+                        <Input 
+                          required 
+                          value={lawyerCep}
+                          onChange={(e) => handleCepChange(e, 'lawyer')}
+                          className="mt-1 h-12 rounded-xl bg-white border-slate-200 pr-10" 
+                          placeholder="00000-000" 
+                          maxLength={9} 
+                        />
+                        {isFetchingLawyerCep && (
+                          <div className="absolute right-3 top-[38px]">
+                            <Loader2 className="w-4 h-4 animate-spin text-[#1E3A5F]" />
+                          </div>
+                        )}
                       </div>
                       <div className="sm:col-span-2">
                         <Label className="text-slate-700 font-bold">Estado (UF)</Label>
                         <select 
                           required 
                           value={lawyerState}
-                          onChange={(e) => setLawyerState(e.target.value)}
+                          onChange={(e) => {
+                            setLawyerState(e.target.value);
+                            setLawyerCity("");
+                          }}
                           className="mt-1 flex h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none"
                         >
                           <option value="" disabled>Selecione</option>
@@ -183,13 +277,18 @@ export const Signup = () => {
                         <Label className="text-slate-700 font-bold">Cidade</Label>
                         <select 
                           required 
+                          value={lawyerCity}
+                          onChange={(e) => setLawyerCity(e.target.value)}
                           disabled={!lawyerState}
                           className="mt-1 flex h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
                         >
-                          <option value="" disabled selected>Selecione</option>
+                          <option value="" disabled>Selecione</option>
                           {lawyerState && cidadesPorEstado[lawyerState]?.map(city => (
                             <option key={city} value={city}>{city}</option>
                           ))}
+                          {lawyerCity && (!lawyerState || !cidadesPorEstado[lawyerState]?.includes(lawyerCity)) && (
+                            <option value={lawyerCity}>{lawyerCity}</option>
+                          )}
                         </select>
                       </div>
                     </div>
