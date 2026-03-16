@@ -2,7 +2,6 @@ import React from 'react';
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
-  Scale, 
   LogOut, 
   LayoutDashboard, 
   User, 
@@ -65,10 +64,10 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
       <aside className="hidden md:flex flex-col w-[280px] bg-slate-950 border-r border-slate-800 min-h-screen relative z-20 shadow-2xl shadow-slate-900/20">
         
         {/* Brand Area */}
-        <div className="h-20 flex items-center px-6 mb-2">
+        <div className="h-20 flex items-center px-6 mb-2 mt-4">
           <Link to="/" className="flex items-center gap-3 transition-opacity hover:opacity-80">
-            <div className="bg-blue-600 text-white p-2 rounded-xl shadow-lg shadow-blue-600/20">
-              <Scale className="h-5 w-5" />
+            <div className="bg-white p-1.5 rounded-xl shadow-lg">
+              <img src="/logo.png" alt="Meu Advogado" className="h-6 w-6 object-contain" />
             </div>
             <span className="font-bold text-xl tracking-tight text-white">Meu Advogado</span>
           </Link>
@@ -132,10 +131,8 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
         
         {/* Mobile Header (Refinado) */}
         <header className="md:hidden h-16 bg-white/80 backdrop-blur-xl border-b border-slate-200 flex items-center px-4 justify-between sticky top-0 z-40 shadow-sm">
-          <div className="flex items-center gap-2">
-            <div className="bg-primary text-white p-1.5 rounded-lg">
-              <Scale className="h-5 w-5" />
-            </div>
+          <div className="flex items-center gap-2.5">
+            <img src="/logo.png" alt="Meu Advogado" className="h-7 w-7 object-contain" />
             <span className="font-bold text-slate-900 tracking-tight">Meu Advogado</span>
           </div>
           <Button 

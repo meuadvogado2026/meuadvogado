@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Scale, User, Briefcase, MapPin, Loader2 } from "lucide-react";
+import { User, Briefcase, MapPin, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { estados, cidadesPorEstado } from "@/data/locations";
 
@@ -88,9 +88,7 @@ export const Signup = () => {
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <Link to="/" className="inline-flex items-center justify-center gap-2 mb-6">
-          <div className="bg-[#0F172A] text-white p-3 rounded-2xl shadow-xl shadow-slate-900/20">
-            <Scale className="h-8 w-8" />
-          </div>
+          <img src="/logo.png" alt="Meu Advogado" className="h-20 w-auto object-contain drop-shadow-sm" />
         </Link>
         <h2 className="text-3xl font-black text-[#0F172A] tracking-tight">
           Crie sua conta

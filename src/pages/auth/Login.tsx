@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Scale } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 
 export const Login = () => {
@@ -45,9 +44,7 @@ export const Login = () => {
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <Link to="/" className="inline-flex items-center justify-center gap-2 mb-6">
-          <div className="bg-primary text-white p-2 rounded-xl">
-            <Scale className="h-8 w-8" />
-          </div>
+          <img src="/logo.png" alt="Meu Advogado" className="h-20 w-auto object-contain drop-shadow-sm" />
         </Link>
         <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
           Acesse sua conta
