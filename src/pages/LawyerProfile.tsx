@@ -21,7 +21,8 @@ import {
   Scale,
   MessageSquareQuote,
   Phone,
-  Mail
+  Mail,
+  Share2
 } from "lucide-react";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 
@@ -199,7 +200,7 @@ export const LawyerProfile = () => {
                   Áreas de Atuação
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {[lawyer.specialty, ...lawyer.secondarySpecialties].map((spec, index) => (
+                  {[lawyer.specialty, ...(lawyer.secondarySpecialties || [])].map((spec, index) => (
                     <div key={index} className="flex items-center gap-4 bg-slate-50 border border-slate-100 p-4 rounded-2xl hover:border-slate-200 transition-colors">
                       <div className="w-12 h-12 shrink-0 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center">
                         <Scale className="w-5 h-5 text-slate-400" />
@@ -228,7 +229,7 @@ export const LawyerProfile = () => {
 
                 <div className="space-y-6">
                   {lawyer.reviewsList && lawyer.reviewsList.length > 0 ? (
-                    lawyer.reviewsList.map((review) => (
+                    lawyer.reviewsList.map((review: any) => (
                       <div key={review.id} className="p-6 bg-slate-50 border border-slate-100 rounded-3xl flex gap-6 items-start hover:shadow-md transition-shadow">
                         <div className="w-12 h-12 bg-slate-200 rounded-full flex items-center justify-center font-bold text-slate-500 text-lg shrink-0 border-2 border-white shadow-sm">
                           {review.name.charAt(0)}
