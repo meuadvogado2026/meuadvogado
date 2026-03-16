@@ -20,6 +20,7 @@ import { LawyerDashboard } from "./pages/dashboards/LawyerDashboard";
 import { LawyerProfileEdit } from "./pages/dashboards/LawyerProfileEdit";
 import { LawyerSettings } from "./pages/dashboards/LawyerSettings";
 import { AdminDashboard } from "./pages/dashboards/AdminDashboard";
+import { AdminApprovals } from "./pages/dashboards/AdminApprovals";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -60,6 +61,7 @@ const App = () => (
           
           <Route element={<DashboardLayout role="admin" />}>
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/aprovacoes" element={<AdminApprovals />} />
             <Route path="/admin/*" element={<AdminDashboard />} />
           </Route>
 
