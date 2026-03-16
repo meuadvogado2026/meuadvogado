@@ -1,9 +1,10 @@
 import React from 'react';
 import { mockLawyers } from "@/data/mock";
 import { LawyerCard } from "@/components/LawyerCard";
-import { Search, Sparkles, Clock, Bookmark } from "lucide-react";
+import { Search, Sparkles, Clock, Bookmark, Scale, UserX } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const ClientDashboard = () => {
   // Simulações de dados (Em um app real, viriam da API baseadas no histórico do usuário)
@@ -11,29 +12,62 @@ export const ClientDashboard = () => {
   const recentLawyers = mockLawyers.slice(0, 1);
   const savedLawyers = mockLawyers.filter(l => l.specialty === "Criminal");
 
+  // Componente auxiliar para estados vazios
+  const EmptyState = ({ icon: Icon, title, description }: { icon: any, title: string, description: string }) => (
+    <div className="flex flex-col items-center justify-center p-12 text-center bg-white border border-dashed border-slate-300 rounded-3xl">
+      <div className="p-4 bg-slate-50 text-slate-400 rounded-2xl mb-4">
+        <Icon className="w-8 h-8" />
+      </div>
+      <h3 className="text-lg font-bold text-slate-900 mb-1">{title}</h3>
+      <p className="text-slate-500 max-w-sm mb-6">{description}</p>
+      <Link to="/buscar">
+        <Button variant="outline" className="rounded-xl font-bold">
+          Explorar Advogados
+        </Button>
+      </Link>
+    </div>
+  );
+
   return (
     <div className="max-w-5xl mx-auto space-y-12 pb-12">
       
-      {/* Header / Saudação */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-gradient-to-r from-slate-900 to-[#1E3A5F] p-8 md:p-10 rounded-[2.5rem] text-white shadow-xl shadow-slate-900/10">
-        <div>
-          <h1 className="text-3xl md:text-4xl font-black mb-2">Olá, João!</h1>
-          <p className="text-slate-300 text-lg">Pronto para encontrar o advogado ideal hoje?</p>
+      {/* Header / Saudação Premium */}
+      <div className="bg-[#0F172A] p-8 md:p-12 rounded-[2.5rem] relative overflow-hidden shadow-2xl shadow-slate-900/10 border border-slate-800">
+        <div className="absolute top-0 right-0 -mt-16 -mr-16 text-white/5 pointer-events-none">
+          <Scale className="w-96 h-96" />
         </div>
-        <Link to="/buscar" className="w-full md:w-auto">
-          <Button className="w-full md:w-auto bg-white text-slate-900 hover:bg-slate-100 h-14 px-8 rounded-2xl font-bold shadow-lg">
-            <Search className="w-5 h-5 mr-2 text-primary" /> Fazer nova busca
-          </Button>
-        </Link>
+        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+          <div className="max-w-2xl">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-white text-sm font-medium mb-4 backdrop-blur-sm border border-white/10">
+              Visão Geral
+            </span>
+            <h1 className="text-3xl md:text-5xl font-black text-white mb-4 tracking-tight">
+              Olá, João!
+            </h1>
+            <p className="text-lg text-slate-300 font-medium">
+              Encontre o especialista ideal para o seu caso. Acesse os melhores profissionais com rapidez, transparência e segurança.
+            </p>
+          </div>
+          <Link to="/buscar" className="w-full md:w-auto shrink-0">
+            <Button className="w-full h-14 px-8 bg-white text-slate-900 hover:bg-slate-100 font-black rounded-2xl text-lg shadow-xl shadow-white/10 transition-transform hover:scale-105">
+              <Search className="w-5 h-5 mr-2" /> Fazer nova busca
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Advogados em Destaque */}
       <div className="space-y-6">
-        <div className="flex items-center gap-2">
-          <div className="p-2 bg-amber-100 text-amber-600 rounded-xl">
-            <Sparkles className="w-5 h-5" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-amber-100 text-amber-600 rounded-xl">
+              <Sparkles className="w-6 h-6" />
+            </div>
+            <h2 className="text-2xl font-black text-slate-900">Em Destaque</h2>
           </div>
-          <h2 className="text-2xl font-black text-slate-900">Em Destaque</h2>
+          <Link to="/buscar" className="text-sm font-bold text-primary hover:underline hidden sm:block">
+            Ver todos profissionais
+          </Link>
         </div>
         <div className="grid grid-cols-1 gap-6">
           {featuredLawyers.map(lawyer => (
@@ -42,42 +76,50 @@ export const ClientDashboard = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        {/* Vistos Recentemente */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
-              <Clock className="w-5 h-5" />
-            </div>
-            <h2 className="text-xl font-bold text-slate-900">Vistos Recentemente</h2>
-          </div>
-          <div className="space-y-4">
-            {recentLawyers.map(lawyer => (
-              <LawyerCard key={lawyer.id} lawyer={lawyer} />
-            ))}
-            {recentLawyers.length === 0 && (
-              <p className="text-slate-500 text-sm">Você ainda não visualizou nenhum perfil.</p>
-            )}
-          </div>
-        </div>
+      {/* Seção de Abas para Recentes e Salvos (Evita espremer os cards) */}
+      <div className="pt-4">
+        <Tabs defaultValue="recentes" className="w-full">
+          <TabsList className="h-14 mb-8 bg-slate-100/50 p-1 border border-slate-200/60 rounded-2xl w-full max-w-md">
+            <TabsTrigger value="recentes" className="rounded-xl h-11 text-base font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary flex-1">
+              <Clock className="w-4 h-4 mr-2" /> Vistos Recentemente
+            </TabsTrigger>
+            <TabsTrigger value="salvos" className="rounded-xl h-11 text-base font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary flex-1">
+              <Bookmark className="w-4 h-4 mr-2" /> Salvos
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Salvos */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-slate-100 text-slate-600 rounded-xl">
-              <Bookmark className="w-5 h-5" />
-            </div>
-            <h2 className="text-xl font-bold text-slate-900">Advogados Salvos</h2>
-          </div>
-          <div className="space-y-4">
-            {savedLawyers.map(lawyer => (
-              <LawyerCard key={lawyer.id} lawyer={lawyer} />
-            ))}
-            {savedLawyers.length === 0 && (
-              <p className="text-slate-500 text-sm">Você ainda não salvou nenhum perfil.</p>
+          <TabsContent value="recentes" className="space-y-6">
+            {recentLawyers.length > 0 ? (
+              <div className="grid grid-cols-1 gap-6">
+                {recentLawyers.map(lawyer => (
+                  <LawyerCard key={lawyer.id} lawyer={lawyer} />
+                ))}
+              </div>
+            ) : (
+              <EmptyState 
+                icon={Clock} 
+                title="Nenhum perfil visto" 
+                description="Os advogados que você visitar recentemente aparecerão aqui para fácil acesso."
+              />
             )}
-          </div>
-        </div>
+          </TabsContent>
+
+          <TabsContent value="salvos" className="space-y-6">
+            {savedLawyers.length > 0 ? (
+              <div className="grid grid-cols-1 gap-6">
+                {savedLawyers.map(lawyer => (
+                  <LawyerCard key={lawyer.id} lawyer={lawyer} />
+                ))}
+              </div>
+            ) : (
+              <EmptyState 
+                icon={Bookmark} 
+                title="Nenhum advogado salvo" 
+                description="Salve os perfis que você mais gostou para entrar em contato no momento certo."
+              />
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
 
     </div>
