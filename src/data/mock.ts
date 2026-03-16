@@ -24,7 +24,8 @@ export const mockLawyers = [
     oab: "SP 123456",
     type: "Híbrido (Online e Presencial)",
     bio: "Especialista em Direito do Trabalho com mais de 15 anos de atuação na defesa de trabalhadores e empresas. Foco em resoluções ágeis e atendimento humanizado.",
-    image: "https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&q=80&w=400&h=400"
+    image: "https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&q=80&w=400&h=400",
+    cover: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=1200&h=400"
   },
   {
     id: "2",
@@ -39,7 +40,8 @@ export const mockLawyers = [
     oab: "RJ 654321",
     type: "Online",
     bio: "Atuação dedicada ao Direito de Família e Sucessões. Divórcios, pensão alimentícia e guarda com discrição, ética e acolhimento em momentos delicados.",
-    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400&h=400"
+    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400&h=400",
+    cover: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200&h=400"
   },
   {
     id: "3",
@@ -54,7 +56,8 @@ export const mockLawyers = [
     oab: "MG 98765",
     type: "Presencial",
     bio: "Advocacia criminal contenciosa e consultiva. Defesa em inquéritos policiais e processos criminais com plantão 24h para emergências.",
-    image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400&h=400"
+    image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400&h=400",
+    cover: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&q=80&w=1200&h=400"
   },
   {
     id: "4",
@@ -69,7 +72,8 @@ export const mockLawyers = [
     oab: "PR 45678",
     type: "Online",
     bio: "Defesa implacável dos direitos do consumidor contra abusos de empresas aéreas, planos de saúde e bancos. Atendimento rápido via WhatsApp.",
-    image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=400&h=400"
+    image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=400&h=400",
+    cover: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&q=80&w=1200&h=400"
   }
 ];
 

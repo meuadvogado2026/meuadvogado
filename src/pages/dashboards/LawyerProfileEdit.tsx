@@ -15,9 +15,10 @@ import {
   Mail,
   MessageCircle,
   User,
-  Star
+  Star,
+  Upload
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,7 +28,6 @@ import { toast } from "sonner";
 import { specialties } from "@/data/mock";
 
 export const LawyerProfileEdit = () => {
-  // Estado mockado inicial baseado no Dr. Carlos
   const [profile, setProfile] = useState({
     name: "Dr. Carlos Eduardo Silva",
     title: "Especialista em Direito do Trabalho e Previdenciário",
@@ -58,6 +58,21 @@ export const LawyerProfileEdit = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setProfile(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'cover' | 'avatar') => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Mock de upload local com FileReader para preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfile(prev => ({ ...prev, [field]: reader.result as string }));
+        toast.success(field === 'cover' ? "Capa atualizada!" : "Foto atualizada!", {
+          description: "Preview gerado com sucesso."
+        });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSave = () => {
@@ -96,13 +111,21 @@ export const LawyerProfileEdit = () => {
             </CardHeader>
             <CardContent className="p-0">
               {/* Capa */}
-              <div className="relative h-48 bg-slate-200 group">
-                <img src={profile.cover} alt="Capa" className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Button variant="secondary" className="rounded-full bg-white/90 hover:bg-white text-slate-900">
-                    <Camera className="w-4 h-4 mr-2" /> Alterar Capa
-                  </Button>
-                </div>
+              <div className="relative h-48 bg-slate-200 group overflow-hidden">
+                <img src={profile.cover} alt="Capa" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                
+                <input 
+                  type="file" 
+                  id="cover-upload" 
+                  className="hidden" 
+                  accept="image/*"
+                  onChange={(e) => handleImageUpload(e, 'cover')}
+                />
+                <label htmlFor="cover-upload" className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer backdrop-blur-sm">
+                  <div className="flex items-center gap-2 bg-white text-slate-900 px-5 py-2.5 rounded-full font-medium text-sm shadow-xl hover:bg-slate-50 transition-colors">
+                    <Upload className="w-4 h-4" /> Alterar imagem de capa
+                  </div>
+                </label>
               </div>
               
               {/* Foto de Perfil */}
@@ -111,15 +134,22 @@ export const LawyerProfileEdit = () => {
                   <img 
                     src={profile.avatar} 
                     alt="Perfil" 
-                    className="w-32 h-32 rounded-2xl object-cover border-4 border-white shadow-md bg-white"
+                    className="w-32 h-32 rounded-3xl object-cover border-4 border-white shadow-lg bg-white"
                   />
-                  <div className="absolute inset-0 bg-black/40 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
-                    <Camera className="w-6 h-6 text-white" />
-                  </div>
+                  <input 
+                    type="file" 
+                    id="avatar-upload" 
+                    className="hidden" 
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload(e, 'avatar')}
+                  />
+                  <label htmlFor="avatar-upload" className="absolute inset-0 bg-slate-900/40 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer backdrop-blur-[2px]">
+                    <Camera className="w-8 h-8 text-white drop-shadow-md" />
+                  </label>
                 </div>
                 <div className="flex-1 space-y-1 mb-2">
-                  <h3 className="font-semibold text-slate-900">Foto Profissional</h3>
-                  <p className="text-xs text-slate-500">Recomendado: Rosto visível, fundo neutro, alta resolução (1:1).</p>
+                  <h3 className="font-semibold text-slate-900 text-lg">Sua Foto</h3>
+                  <p className="text-sm text-slate-500">Transmita confiança. Use fundo neutro e iluminação clara.</p>
                 </div>
               </div>
             </CardContent>
@@ -240,7 +270,6 @@ export const LawyerProfileEdit = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
-              
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2"><MessageCircle className="w-4 h-4 text-green-600"/> WhatsApp</Label>
@@ -255,9 +284,7 @@ export const LawyerProfileEdit = () => {
                   <Input name="email" value={profile.email} onChange={handleChange} className="h-11 rounded-xl bg-slate-50" />
                 </div>
               </div>
-
               <hr className="border-slate-100" />
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2"><Instagram className="w-4 h-4 text-pink-600"/> Instagram</Label>
@@ -284,7 +311,6 @@ export const LawyerProfileEdit = () => {
                   <Input name="customLink" value={profile.customLink} onChange={handleChange} placeholder="Linktree, etc" className="h-11 rounded-xl bg-slate-50" />
                 </div>
               </div>
-
             </CardContent>
           </Card>
         </div>
@@ -292,13 +318,13 @@ export const LawyerProfileEdit = () => {
         {/* Preview Sidebar (Direita - Sticky) */}
         <div className="lg:col-span-4 hidden lg:block">
           <div className="sticky top-28 space-y-4">
-            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Preview do Perfil</h3>
+            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Preview do Perfil Público</h3>
             
             <Card className="overflow-hidden border-slate-200/60 shadow-xl shadow-slate-200/50 rounded-3xl">
               <div className="h-32 relative">
                 <img src={profile.cover} alt="Cover Preview" className="w-full h-full object-cover" />
-                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-slate-900 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide shadow-sm">
-                  Visão do Cliente
+                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-slate-900 text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wide shadow-sm flex items-center gap-1">
+                  <Globe className="w-3 h-3" /> Visão do Cliente
                 </div>
               </div>
               
@@ -307,10 +333,10 @@ export const LawyerProfileEdit = () => {
                   <img 
                     src={profile.avatar} 
                     alt="Avatar Preview" 
-                    className="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-sm bg-white relative z-10"
+                    className="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-md bg-white relative z-10"
                   />
-                  <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-0 flex gap-1 h-6 mb-2">
-                    <ShieldCheck className="w-3 h-3" /> Verificado
+                  <Badge className="bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 flex gap-1 h-6 mb-2">
+                    <ShieldCheck className="w-3.5 h-3.5" /> Verificado
                   </Badge>
                 </div>
                 
@@ -335,14 +361,14 @@ export const LawyerProfileEdit = () => {
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-1.5">
-                  <Badge variant="secondary" className="bg-slate-100 text-slate-700 font-medium text-[10px]">{profile.mainSpecialty || "Área Principal"}</Badge>
+                  <Badge variant="secondary" className="bg-slate-100 text-slate-700 font-medium text-[10px] hover:bg-slate-200">{profile.mainSpecialty || "Área Principal"}</Badge>
                   {profile.secondarySpecialties.split(',').map((spec, i) => spec.trim() && (
-                    <Badge key={i} variant="outline" className="text-slate-500 text-[10px]">{spec.trim()}</Badge>
+                    <Badge key={i} variant="outline" className="text-slate-500 text-[10px] border-slate-200">{spec.trim()}</Badge>
                   ))}
                 </div>
 
                 <div className="mt-6">
-                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl h-11 pointer-events-none">
+                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl h-11 pointer-events-none shadow-md shadow-green-600/20">
                     <MessageCircle className="w-4 h-4 mr-2" />
                     Falar no WhatsApp
                   </Button>
@@ -350,7 +376,7 @@ export const LawyerProfileEdit = () => {
               </CardContent>
             </Card>
             
-            <p className="text-xs text-center text-slate-400">
+            <p className="text-xs text-center text-slate-400 font-medium">
               O preview é atualizado em tempo real conforme você digita.
             </p>
           </div>
