@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,15 +8,37 @@ import { toast } from "@/components/ui/use-toast";
 
 export const Login = () => {
   const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Fake login logic - for demonstration, let's route to Client Dashboard
-    toast({
-      title: "Login realizado com sucesso",
-      description: "Bem-vindo de volta!",
-    });
-    navigate('/painel/cliente');
+
+    if (password !== "123456") {
+      toast({
+        title: "Erro no login",
+        description: "Senha incorreta. Utilize 123456 para testes.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (email === "admin@email.com") {
+      toast({ title: "Bem-vindo, Administrador!" });
+      navigate('/admin');
+    } else if (email === "adv@email.com") {
+      toast({ title: "Bem-vindo, Dr(a).!" });
+      navigate('/painel/advogado');
+    } else if (email === "user@email.com") {
+      toast({ title: "Bem-vindo ao Meu Advogado!" });
+      navigate('/painel/cliente');
+    } else {
+      toast({
+        title: "Usuário não encontrado",
+        description: "Utilize os e-mails: admin@email.com, adv@email.com ou user@email.com.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -31,7 +53,7 @@ export const Login = () => {
           Acesse sua conta
         </h2>
         <p className="mt-2 text-sm text-slate-600">
-          Ou <Link to="/cadastro" className="font-medium text-primary hover:text-blue-800 transition-colors">crie sua conta gratuitamente</Link>
+          Utilize os acessos de teste com a senha <span className="font-bold">123456</span>
         </p>
       </div>
 
@@ -41,7 +63,16 @@ export const Login = () => {
             <div>
               <Label htmlFor="email" className="text-slate-700 font-medium">Email</Label>
               <div className="mt-1">
-                <Input id="email" name="email" type="email" required className="h-11" placeholder="voce@exemplo.com" />
+                <Input 
+                  id="email" 
+                  name="email" 
+                  type="email" 
+                  required 
+                  className="h-11" 
+                  placeholder="admin@email.com, adv@email.com ou user@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </div>
             </div>
 
@@ -53,7 +84,15 @@ export const Login = () => {
                 </a>
               </div>
               <div className="mt-1">
-                <Input id="password" name="password" type="password" required className="h-11" />
+                <Input 
+                  id="password" 
+                  name="password" 
+                  type="password" 
+                  required 
+                  className="h-11"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
               </div>
             </div>
 
@@ -62,10 +101,19 @@ export const Login = () => {
             </Button>
           </form>
           
-          <div className="mt-6 text-center">
-            <p className="text-xs text-slate-500">
-              Acesso temporário para demonstração. Clique em Entrar para visualizar o painel.
-            </p>
+          <div className="mt-8 space-y-2">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center">Acessos rápidos de teste:</p>
+            <div className="grid grid-cols-1 gap-2">
+              <button onClick={() => {setEmail("admin@email.com"); setPassword("123456")}} className="text-xs text-left p-2 bg-slate-50 hover:bg-slate-100 rounded border border-slate-200 text-slate-600">
+                <strong>Admin:</strong> admin@email.com
+              </button>
+              <button onClick={() => {setEmail("adv@email.com"); setPassword("123456")}} className="text-xs text-left p-2 bg-slate-50 hover:bg-slate-100 rounded border border-slate-200 text-slate-600">
+                <strong>Advogado:</strong> adv@email.com
+              </button>
+              <button onClick={() => {setEmail("user@email.com"); setPassword("123456")}} className="text-xs text-left p-2 bg-slate-50 hover:bg-slate-100 rounded border border-slate-200 text-slate-600">
+                <strong>Cliente:</strong> user@email.com
+              </button>
+            </div>
           </div>
         </div>
       </div>
