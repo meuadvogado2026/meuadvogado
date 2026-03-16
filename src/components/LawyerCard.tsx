@@ -20,7 +20,7 @@ interface LawyerCardProps {
     verified: boolean;
     image: string;
     bio: string;
-    type: string;
+    type?: string;
   };
 }
 
@@ -67,7 +67,8 @@ export const LawyerCard = ({ lawyer }: LawyerCardProps) => {
               </Link>
               <div className="flex flex-wrap items-center gap-2 mt-1.5">
                 <Badge variant="secondary" className="bg-blue-50 text-blue-700 font-bold border-blue-100">{lawyer.specialty}</Badge>
-                {lawyer.type.includes("Online") && (
+                {/* Proteção adicionada aqui com ?.includes */}
+                {lawyer.type?.includes("Online") && (
                   <Badge variant="outline" className="border-green-200 text-green-700 bg-green-50 font-semibold text-[10px]">Atende Online</Badge>
                 )}
               </div>
