@@ -10,16 +10,15 @@ interface MobileNavProps {
 export const MobileNav = ({ role = 'public' }: MobileNavProps) => {
   const location = useLocation();
 
-  // Se estiver na landing page, o menu inferior não deve ser exibido
   if (location.pathname === '/') return null;
 
   const getLinks = () => {
     switch (role) {
       case 'client':
         return [
-          { icon: Search, label: 'Buscar', path: '/buscar' },
-          { icon: LayoutDashboard, label: 'Painel', path: '/painel/client' },
-          { icon: User, label: 'Perfil', path: '/painel/client/perfil' },
+          { icon: Search, label: 'Buscar', path: '/painel/cliente/buscar' },
+          { icon: LayoutDashboard, label: 'Painel', path: '/painel/cliente' },
+          { icon: User, label: 'Perfil', path: '/painel/cliente/perfil' },
         ];
       case 'lawyer':
         return [
@@ -47,8 +46,10 @@ export const MobileNav = ({ role = 'public' }: MobileNavProps) => {
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-2 pb-safe pt-2 z-50 flex justify-around items-center shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
       {links.map((link) => {
-        const isActive = location.pathname.startsWith(link.path);
+        // Correção visual para identificar a aba correta mesmo estando no perfil do advogado
+        const isActive = location.pathname === link.path || (link.path.includes('/buscar') && location.pathname.includes('/advogado'));
         const Icon = link.icon;
+        
         return (
           <Link 
             key={link.path} 

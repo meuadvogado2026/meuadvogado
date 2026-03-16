@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Star, ShieldCheck, User } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { WhatsAppButton } from "./WhatsAppButton";
 
 interface LawyerCardProps {
@@ -21,6 +21,10 @@ interface LawyerCardProps {
 }
 
 export const LawyerCard = ({ lawyer }: LawyerCardProps) => {
+  const location = useLocation();
+  const basePath = location.pathname.startsWith('/painel/cliente') ? '/painel/cliente' : '';
+  const profileLink = `${basePath}/advogado/${lawyer.id}`;
+
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 border-slate-200/60 rounded-3xl bg-white group">
       <CardContent className="p-0">
@@ -47,7 +51,7 @@ export const LawyerCard = ({ lawyer }: LawyerCardProps) => {
           <div className="p-6 flex flex-col flex-1">
             <div className="flex flex-col sm:flex-row justify-between items-start mb-3 gap-2">
               <div>
-                <Link to={`/advogado/${lawyer.id}`} className="hover:text-primary transition-colors inline-block">
+                <Link to={profileLink} className="hover:text-primary transition-colors inline-block">
                   <h3 className="text-xl font-black text-slate-900 leading-tight">{lawyer.name}</h3>
                 </Link>
                 <p className="text-primary font-bold text-sm mt-0.5">{lawyer.specialty}</p>
@@ -68,7 +72,7 @@ export const LawyerCard = ({ lawyer }: LawyerCardProps) => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-3 mt-auto">
-              <Link to={`/advogado/${lawyer.id}`} className="flex-1">
+              <Link to={profileLink} className="flex-1">
                 <button className="w-full h-11 px-4 border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 hover:border-slate-300 font-bold transition-colors text-sm">
                   Ver perfil
                 </button>

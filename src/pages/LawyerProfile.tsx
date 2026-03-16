@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useLocation } from "react-router-dom";
 import { mockLawyers } from "@/data/mock";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,7 +29,11 @@ import { WhatsAppButton } from "@/components/WhatsAppButton";
 
 export const LawyerProfile = () => {
   const { id } = useParams();
+  const location = useLocation();
   const lawyer = mockLawyers.find(l => l.id === id) || mockLawyers[0];
+
+  const basePath = location.pathname.startsWith('/painel/cliente') ? '/painel/cliente' : '';
+  const searchLink = `${basePath}/buscar`;
 
   const renderSocialIcon = (key: string, value: string) => {
     if (!value) return null;
@@ -79,7 +83,7 @@ export const LawyerProfile = () => {
         
         <div className="absolute top-0 left-0 w-full z-10">
           <div className="container mx-auto px-4 pt-6">
-            <Link to="/buscar">
+            <Link to={searchLink}>
               <Button variant="ghost" className="text-white hover:bg-white/20 backdrop-blur-sm bg-black/20 rounded-xl px-4 h-10 -ml-2">
                 <ArrowLeft className="w-4 h-4 mr-2" /> Voltar para a busca
               </Button>

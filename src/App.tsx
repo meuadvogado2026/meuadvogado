@@ -46,6 +46,8 @@ const App = () => (
           <Route element={<DashboardLayout role="client" />}>
             <Route path="/painel/cliente" element={<ClientDashboard />} />
             <Route path="/painel/cliente/perfil" element={<ClientProfile />} />
+            <Route path="/painel/cliente/buscar" element={<Search />} />
+            <Route path="/painel/cliente/advogado/:id" element={<LawyerProfile />} />
             <Route path="/painel/cliente/*" element={<ClientDashboard />} />
           </Route>
           

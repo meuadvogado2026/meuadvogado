@@ -20,7 +20,7 @@ export const ClientDashboard = () => {
       </div>
       <h3 className="text-lg font-bold text-slate-900 mb-1">{title}</h3>
       <p className="text-slate-500 max-w-sm mb-6">{description}</p>
-      <Link to="/buscar">
+      <Link to="/painel/cliente/buscar">
         <Button variant="outline" className="rounded-xl font-bold">
           Explorar Advogados
         </Button>
@@ -48,7 +48,7 @@ export const ClientDashboard = () => {
               Encontre o especialista ideal para o seu caso. Acesse os melhores profissionais com rapidez, transparência e segurança.
             </p>
           </div>
-          <Link to="/buscar" className="w-full md:w-auto shrink-0">
+          <Link to="/painel/cliente/buscar" className="w-full md:w-auto shrink-0">
             <Button className="w-full h-14 px-8 bg-white text-slate-900 hover:bg-slate-100 font-black rounded-2xl text-lg shadow-xl shadow-white/10 transition-transform hover:scale-105">
               <Search className="w-5 h-5 mr-2" /> Fazer nova busca
             </Button>
@@ -65,7 +65,7 @@ export const ClientDashboard = () => {
             </div>
             <h2 className="text-2xl font-black text-slate-900">Em Destaque</h2>
           </div>
-          <Link to="/buscar" className="text-sm font-bold text-primary hover:underline hidden sm:block">
+          <Link to="/painel/cliente/buscar" className="text-sm font-bold text-primary hover:underline hidden sm:block">
             Ver todos profissionais
           </Link>
         </div>
@@ -76,7 +76,7 @@ export const ClientDashboard = () => {
         </div>
       </div>
 
-      {/* Seção de Abas para Recentes e Salvos (Evita espremer os cards) */}
+      {/* Seção de Abas para Recentes e Salvos */}
       <div className="pt-4">
         <Tabs defaultValue="recentes" className="w-full">
           <TabsList className="h-14 mb-8 bg-slate-100/50 p-1 border border-slate-200/60 rounded-2xl w-full max-w-md">

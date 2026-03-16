@@ -29,7 +29,7 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
       case 'client':
         return [
           { icon: LayoutDashboard, label: 'Visão Geral', path: '/painel/cliente' },
-          { icon: Search, label: 'Buscar Advogados', path: '/buscar' },
+          { icon: Search, label: 'Buscar Advogados', path: '/painel/cliente/buscar' },
           { icon: User, label: 'Meu Perfil', path: '/painel/cliente/perfil' },
         ];
       case 'lawyer':
@@ -54,6 +54,9 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
     lawyer: 'Advogado',
     client: 'Cliente'
   };
+
+  // Se for a página de busca ou perfil dentro do painel, remove o padding para ocupar a tela toda
+  const isFullWidthPage = location.pathname.includes('/advogado') || location.pathname.includes('/buscar');
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans pb-20 md:pb-0">
@@ -91,7 +94,7 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
         {/* Navigation Links */}
         <nav className="flex-1 px-4 space-y-1.5 mt-2">
           {links.map((link) => {
-            const isActive = location.pathname === link.path;
+            const isActive = location.pathname === link.path || (link.path.includes('/buscar') && location.pathname.includes('/advogado'));
             const Icon = link.icon;
             return (
               <Link key={link.path} to={link.path} className="block group">
@@ -145,12 +148,12 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
           </Button>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 lg:px-12">
+        <main className={cn("flex-1 overflow-y-auto", !isFullWidthPage && "p-4 md:p-8 lg:px-12")}>
           <Outlet />
         </main>
       </div>
 
-      {/* Mobile Bottom Navigation (Mantido como estava) */}
+      {/* Mobile Bottom Navigation */}
       <MobileNav role={role} />
     </div>
   );
