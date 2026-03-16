@@ -1,7 +1,18 @@
 import React from 'react';
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Scale, LogOut, LayoutDashboard, User, Search, Settings, PieChart, Users, ShieldCheck } from "lucide-react";
+import { 
+  Scale, 
+  LogOut, 
+  LayoutDashboard, 
+  User, 
+  Search, 
+  Settings, 
+  PieChart, 
+  Users, 
+  ShieldCheck,
+  ChevronRight
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MobileNav } from "@/components/MobileNav";
 
@@ -37,68 +48,109 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
   };
 
   const links = getLinks();
+  
+  const roleDisplay = {
+    admin: 'Administrador',
+    lawyer: 'Advogado',
+    client: 'Cliente'
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans pb-20 md:pb-0">
-      {/* Sidebar Desktop */}
-      <aside className="hidden md:flex flex-col w-64 bg-slate-900 text-white min-h-screen">
-        <div className="h-16 flex items-center px-6 border-b border-slate-800">
-          <Link to="/" className="flex items-center gap-2">
-            <Scale className="h-6 w-6 text-blue-400" />
-            <span className="font-bold text-lg tracking-tight">Meu Advogado</span>
+      
+      {/* Sidebar Desktop (SaaS Premium) */}
+      <aside className="hidden md:flex flex-col w-[280px] bg-slate-950 border-r border-slate-800 min-h-screen relative z-20 shadow-2xl shadow-slate-900/20">
+        
+        {/* Brand Area */}
+        <div className="h-20 flex items-center px-6 mb-2">
+          <Link to="/" className="flex items-center gap-3 transition-opacity hover:opacity-80">
+            <div className="bg-blue-600 text-white p-2 rounded-xl shadow-lg shadow-blue-600/20">
+              <Scale className="h-5 w-5" />
+            </div>
+            <span className="font-bold text-xl tracking-tight text-white">Meu Advogado</span>
           </Link>
         </div>
         
-        <div className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-          {role === 'admin' ? 'Painel Admin' : role === 'lawyer' ? 'Painel do Advogado' : 'Painel do Cliente'}
+        {/* Role Badge */}
+        <div className="px-6 mb-6">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Painel de Acesso</span>
+              <span className="text-sm font-semibold text-slate-300">{roleDisplay[role]}</span>
+            </div>
+            <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700">
+              <User className="w-4 h-4 text-slate-400" />
+            </div>
+          </div>
         </div>
 
-        <nav className="flex-1 px-4 space-y-1">
+        <div className="px-6 py-2 text-xs font-bold text-slate-500 uppercase tracking-widest">
+          Menu Principal
+        </div>
+
+        {/* Navigation Links */}
+        <nav className="flex-1 px-4 space-y-1.5 mt-2">
           {links.map((link) => {
             const isActive = location.pathname === link.path;
             const Icon = link.icon;
             return (
-              <Link key={link.path} to={link.path}>
-                <span className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
-                  isActive ? "bg-primary text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"
+              <Link key={link.path} to={link.path} className="block group">
+                <div className={cn(
+                  "flex items-center justify-between px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200",
+                  isActive 
+                    ? "bg-blue-600/15 text-blue-400 border border-blue-500/20 shadow-inner" 
+                    : "text-slate-400 border border-transparent hover:bg-slate-900 hover:text-slate-200"
                 )}>
-                  <Icon className="w-5 h-5" />
-                  {link.label}
-                </span>
+                  <div className="flex items-center gap-3">
+                    <Icon className={cn("w-5 h-5", isActive ? "text-blue-500" : "text-slate-500 group-hover:text-slate-300")} />
+                    {link.label}
+                  </div>
+                  {isActive && <ChevronRight className="w-4 h-4 text-blue-500/50" />}
+                </div>
               </Link>
             );
           })}
         </nav>
 
-        <div className="p-4 border-t border-slate-800">
+        {/* Logout Area */}
+        <div className="p-4 mt-auto mb-4">
           <button 
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2 w-full rounded-md text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-red-400 transition-colors"
+            className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-sm font-medium text-slate-400 border border-transparent hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-all duration-200 group"
           >
-            <LogOut className="w-5 h-5" />
+            <LogOut className="w-5 h-5 text-slate-500 group-hover:text-red-400 transition-colors" />
             Sair da conta
           </button>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
-        {/* Mobile Header */}
-        <header className="md:hidden h-16 bg-white border-b flex items-center px-4 justify-between sticky top-0 z-40">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-h-screen overflow-hidden bg-slate-50/50">
+        
+        {/* Mobile Header (Refinado) */}
+        <header className="md:hidden h-16 bg-white/80 backdrop-blur-xl border-b border-slate-200 flex items-center px-4 justify-between sticky top-0 z-40 shadow-sm">
           <div className="flex items-center gap-2">
-            <Scale className="h-6 w-6 text-primary" />
-            <span className="font-bold">Meu Advogado</span>
+            <div className="bg-primary text-white p-1.5 rounded-lg">
+              <Scale className="h-5 w-5" />
+            </div>
+            <span className="font-bold text-slate-900 tracking-tight">Meu Advogado</span>
           </div>
-          <Button variant="ghost" size="sm" onClick={handleLogout} className="text-slate-500">Sair</Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={handleLogout} 
+            className="text-slate-500 font-medium hover:text-red-600 hover:bg-red-50 transition-colors"
+          >
+            <LogOut className="w-4 h-4 mr-2" /> Sair
+          </Button>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 lg:px-12">
           <Outlet />
         </main>
       </div>
 
-      {/* Mobile Bottom Navigation */}
+      {/* Mobile Bottom Navigation (Mantido como estava) */}
       <MobileNav role={role} />
     </div>
   );
