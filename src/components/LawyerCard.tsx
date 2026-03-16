@@ -59,41 +59,41 @@ export const LawyerCard = ({ lawyer }: LawyerCardProps) => {
         {/* Header: Avatar Sobreposto + Nome/Especialidade */}
         <div className="flex gap-4">
           
-          {/* Avatar Menor */}
-          <div className="-mt-12 shrink-0 relative z-10">
+          {/* Avatar com tamanho aumentado (30% maior) */}
+          <div className="-mt-12 sm:-mt-14 shrink-0 relative z-10">
             {lawyer.image ? (
               <img 
                 src={lawyer.image} 
                 alt={lawyer.name} 
-                className="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-sm bg-slate-100"
+                className="w-24 h-24 sm:w-28 sm:h-28 rounded-[1.25rem] object-cover border-4 border-white shadow-sm bg-slate-100"
               />
             ) : (
-              <div className="w-20 h-20 rounded-2xl flex items-center justify-center bg-slate-100 text-slate-400 border-4 border-white shadow-sm">
-                <User className="w-8 h-8" />
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-[1.25rem] flex items-center justify-center bg-slate-100 text-slate-400 border-4 border-white shadow-sm">
+                <User className="w-10 h-10 sm:w-12 sm:h-12" />
               </div>
             )}
           </div>
           
-          {/* Informações Primárias */}
-          <div className="pt-1.5 flex-1 flex justify-between items-start gap-2">
+          {/* Informações Primárias alinhadas com o novo tamanho da foto */}
+          <div className="pt-2 sm:pt-3 flex-1 flex justify-between items-start gap-2">
             <div>
               <Link to={profileLink} className="hover:text-primary transition-colors inline-block">
-                <h3 className="text-lg font-black text-[#0F172A] leading-tight line-clamp-1 flex items-center gap-1.5">
+                <h3 className="text-lg sm:text-xl font-black text-[#0F172A] leading-tight line-clamp-1 flex items-center gap-1.5">
                   {lawyer.name}
                   {lawyer.verified && (
-                    <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" title="Perfil Verificado" />
+                    <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 shrink-0" title="Perfil Verificado" />
                   )}
                 </h3>
               </Link>
-              <div className="flex flex-wrap items-center gap-2 mt-1">
-                <Badge variant="secondary" className="bg-blue-50 text-blue-700 font-bold border-blue-100 text-[10px] px-2 py-0.5">
+              <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                <Badge variant="secondary" className="bg-blue-50 text-blue-700 font-bold border-blue-100 text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5">
                   {lawyer.specialty}
                 </Badge>
               </div>
             </div>
             
             {/* Avaliação */}
-            <div className="flex items-center gap-1 bg-amber-50 px-2 py-1.5 rounded-xl text-xs font-bold shadow-sm shrink-0 border border-amber-100/50">
+            <div className="flex items-center gap-1 bg-amber-50 px-2 sm:px-2.5 py-1.5 rounded-xl text-xs font-bold shadow-sm shrink-0 border border-amber-100/50">
               <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
               <span className="text-amber-700">{lawyer.rating}</span>
             </div>
@@ -101,7 +101,7 @@ export const LawyerCard = ({ lawyer }: LawyerCardProps) => {
         </div>
         
         {/* Localização e Tags Extras */}
-        <div className="flex flex-wrap items-center gap-3 mt-4 text-xs font-medium text-slate-500">
+        <div className="flex flex-wrap items-center gap-3 mt-5 text-xs font-medium text-slate-500">
           <span className="flex items-center gap-1.5">
             <MapPin className="w-4 h-4 text-slate-400" /> 
             {lawyer.city}, {lawyer.state}
