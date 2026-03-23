@@ -66,18 +66,21 @@ export const LawyerProfileEdit = () => {
           .from('lawyer_details')
           .select('*')
           .eq('id', user.id)
-          .single();
+          .maybeSingle(); // maybeSingle não dá erro caso não exista ainda
 
-        if (pData || lData) {
+        if (pData) {
           setProfile(prev => ({
             ...prev,
-            name: pData?.name || "",
-            email: pData?.email || "",
-            phone: pData?.phone || "",
-            city: pData?.city || "",
-            state: pData?.state || "",
-            avatar: pData?.avatar_url || prev.avatar,
+            name: pData.name || "",
+            email: pData.email || "",
+            phone: pData.phone || "",
+            city: pData.city || "",
+            state: pData.state || "",
+            cep: pData.cep || "",
+            avatar: pData.avatar_url || prev.avatar,
+            cover: pData.cover_url || prev.cover,
             
+            // Dados da tabela lawyer_details (com fallback se estiver vazio)
             title: lData?.title || "",
             oab: lData?.oab || "",
             oabState: lData?.oab_state || "",
@@ -87,6 +90,7 @@ export const LawyerProfileEdit = () => {
             secondarySpecialties: lData?.secondary_specialties?.join(', ') || "",
             miniBio: lData?.mini_bio || "",
             fullBio: lData?.full_bio || "",
+            whatsapp: lData?.whatsapp || pData.phone || "",
             website: lData?.website || "",
             instagram: lData?.instagram || "",
             linkedin: lData?.linkedin || "",
@@ -142,23 +146,25 @@ export const LawyerProfileEdit = () => {
           phone: profile.phone,
           city: profile.city,
           state: profile.state,
-          // Salva avatar como base64 (para facilitar no MVP, idealmente usaríamos Storage depois)
-          avatar_url: profile.avatar.startsWith('data:') ? profile.avatar : profile.avatar,
+          cep: profile.cep,
+          avatar_url: profile.avatar,
+          cover_url: profile.cover
         })
         .eq('id', user.id);
 
       if (pError) throw pError;
 
-      // Trata as especialidades secundárias (converte string separada por vírgula em array)
       const secSpecsArray = profile.secondarySpecialties
         .split(',')
         .map(s => s.trim())
         .filter(s => s.length > 0);
 
-      // 2. Atualiza dados da tabela lawyer_details
+      // 2. Usando UPSERT na tabela lawyer_details 
+      // Upsert: Atualiza a linha se já existir, senão cria uma nova.
       const { error: lError } = await supabase
         .from('lawyer_details')
-        .update({
+        .upsert({
+          id: user.id, // ID é obrigatório no upsert
           title: profile.title,
           oab: profile.oab,
           oab_state: profile.oabState,
@@ -168,6 +174,7 @@ export const LawyerProfileEdit = () => {
           secondary_specialties: secSpecsArray,
           mini_bio: profile.miniBio,
           full_bio: profile.fullBio,
+          whatsapp: profile.whatsapp,
           website: profile.website,
           instagram: profile.instagram,
           linkedin: profile.linkedin,
@@ -175,8 +182,7 @@ export const LawyerProfileEdit = () => {
           youtube: profile.youtube,
           office_link: profile.officeLink,
           custom_link: profile.customLink,
-        })
-        .eq('id', user.id);
+        });
 
       if (lError) throw lError;
 
@@ -441,7 +447,7 @@ export const LawyerProfileEdit = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2 font-bold text-slate-700"><MessageCircle className="w-4 h-4 text-green-600"/> WhatsApp</Label>
-                  <Input name="whatsapp" value={profile.whatsapp || profile.phone} onChange={handleChange} className="h-11 rounded-xl bg-slate-50" />
+                  <Input name="whatsapp" value={profile.whatsapp} onChange={handleChange} className="h-11 rounded-xl bg-slate-50" />
                 </div>
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2 font-bold text-slate-700"><Phone className="w-4 h-4 text-slate-500"/> Telefone</Label>
