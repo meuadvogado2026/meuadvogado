@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,27 +9,37 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Briefcase, MapPin, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { estados, cidadesPorEstado } from "@/data/locations";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Signup = () => {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
 
   // Estados para Cliente
+  const [clientName, setClientName] = useState("");
+  const [clientEmail, setClientEmail] = useState("");
+  const [clientPhone, setClientPhone] = useState("");
+  const [clientPassword, setClientPassword] = useState("");
   const [clientCep, setClientCep] = useState("");
   const [clientState, setClientState] = useState("");
   const [clientCity, setClientCity] = useState("");
   const [isFetchingClientCep, setIsFetchingClientCep] = useState(false);
 
   // Estados para Advogado
+  const [lawyerName, setLawyerName] = useState("");
+  const [lawyerEmail, setLawyerEmail] = useState("");
+  const [lawyerPhone, setLawyerPhone] = useState("");
+  const [lawyerOab, setLawyerOab] = useState("");
+  const [lawyerOabState, setLawyerOabState] = useState("");
+  const [lawyerAttendance, setLawyerAttendance] = useState("Híbrido (Online e Presencial)");
+  const [lawyerPassword, setLawyerPassword] = useState("");
   const [lawyerCep, setLawyerCep] = useState("");
   const [lawyerState, setLawyerState] = useState("");
   const [lawyerCity, setLawyerCity] = useState("");
   const [isFetchingLawyerCep, setIsFetchingLawyerCep] = useState(false);
 
   const applyCepMask = (value: string) => {
-    return value
-      .replace(/\D/g, '')
-      .replace(/(\d{5})(\d)/, '$1-$2')
-      .slice(0, 9);
+    return value.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2').slice(0, 9);
   };
 
   const fetchCep = async (cep: string, type: 'client' | 'lawyer') => {
@@ -53,7 +65,6 @@ export const Signup = () => {
         setLawyerState(data.uf);
         setLawyerCity(data.localidade);
       }
-      
       toast.success("Endereço preenchido!", { description: `${data.localidade} - ${data.uf}` });
     } catch (error) {
       toast.error("Erro ao buscar CEP", { description: "Tente preencher os dados manualmente." });
@@ -65,23 +76,69 @@ export const Signup = () => {
 
   const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'client' | 'lawyer') => {
     const maskedCep = applyCepMask(e.target.value);
-    if (type === 'client') {
-      setClientCep(maskedCep);
-    } else {
-      setLawyerCep(maskedCep);
-    }
+    if (type === 'client') setClientCep(maskedCep);
+    else setLawyerCep(maskedCep);
 
-    if (maskedCep.length === 9) {
-      fetchCep(maskedCep, type);
-    }
+    if (maskedCep.length === 9) fetchCep(maskedCep, type);
   };
 
-  const handleRegister = (role: string) => (e: React.FormEvent) => {
+  const handleRegister = (role: 'client' | 'lawyer') => async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("Conta criada com sucesso!", {
-      description: "Redirecionando para o seu painel...",
-    });
-    navigate(role === 'lawyer' ? '/painel/advogado' : '/painel/cliente');
+    setIsLoading(true);
+
+    const email = role === 'client' ? clientEmail : lawyerEmail;
+    const password = role === 'client' ? clientPassword : lawyerPassword;
+    const name = role === 'client' ? clientName : lawyerName;
+    const phone = role === 'client' ? clientPhone : lawyerPhone;
+    const city = role === 'client' ? clientCity : lawyerCity;
+    const state = role === 'client' ? clientState : lawyerState;
+
+    try {
+      // Cria a conta no Supabase Auth. 
+      // O gatilho (trigger) no banco de dados pegará 'name' e 'role' e criará o Profile.
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            role,
+            phone,
+            city,
+            state
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      // Se a sessão for criada diretamente (sem confirmação de email requerida)
+      if (data.session) {
+        // Atualiza campos adicionais na tabela profiles
+        await supabase.from('profiles').update({
+          phone,
+          city,
+          state,
+        }).eq('id', data.user!.id);
+        
+        toast.success("Conta criada com sucesso!", {
+          description: "Redirecionando para o seu painel...",
+        });
+        navigate(role === 'lawyer' ? '/painel/advogado' : '/painel/cliente');
+      } else {
+        // Se a confirmação de e-mail estiver ativada no Supabase
+        toast.success("Cadastro realizado!", {
+          description: "Verifique seu e-mail para confirmar a conta antes de fazer login."
+        });
+        navigate('/login');
+      }
+    } catch (error: any) {
+      toast.error("Erro ao criar conta", {
+        description: error.message || "Verifique os dados e tente novamente."
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -113,16 +170,16 @@ export const Signup = () => {
                 <div className="space-y-4">
                   <div>
                     <Label className="text-slate-700 font-bold">Nome Completo</Label>
-                    <Input required className="mt-1 h-12 rounded-xl bg-slate-50" />
+                    <Input required value={clientName} onChange={(e) => setClientName(e.target.value)} className="mt-1 h-12 rounded-xl bg-slate-50" />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <Label className="text-slate-700 font-bold">Email</Label>
-                      <Input type="email" required className="mt-1 h-12 rounded-xl bg-slate-50" />
+                      <Input type="email" required value={clientEmail} onChange={(e) => setClientEmail(e.target.value)} className="mt-1 h-12 rounded-xl bg-slate-50" />
                     </div>
                     <div>
                       <Label className="text-slate-700 font-bold">WhatsApp</Label>
-                      <Input type="tel" required className="mt-1 h-12 rounded-xl bg-slate-50" placeholder="(00) 00000-0000" />
+                      <Input type="tel" required value={clientPhone} onChange={(e) => setClientPhone(e.target.value)} className="mt-1 h-12 rounded-xl bg-slate-50" placeholder="(00) 00000-0000" />
                     </div>
                   </div>
                   
@@ -155,7 +212,7 @@ export const Signup = () => {
                           value={clientState}
                           onChange={(e) => {
                             setClientState(e.target.value);
-                            setClientCity(""); // reseta cidade ao mudar estado
+                            setClientCity("");
                           }}
                           className="mt-1 flex h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none"
                         >
@@ -184,15 +241,16 @@ export const Signup = () => {
                         </select>
                       </div>
                     </div>
-                    <p className="text-xs text-slate-500 font-medium mt-2">Usaremos sua localização para encontrar advogados próximos.</p>
                   </div>
 
                   <div>
                     <Label className="text-slate-700 font-bold">Senha</Label>
-                    <Input type="password" required className="mt-1 h-12 rounded-xl bg-slate-50" />
+                    <Input type="password" required value={clientPassword} onChange={(e) => setClientPassword(e.target.value)} className="mt-1 h-12 rounded-xl bg-slate-50" />
                   </div>
                 </div>
-                <Button type="submit" className="w-full h-14 mt-6 text-base font-black rounded-2xl shadow-lg shadow-primary/20">Criar conta grátis</Button>
+                <Button type="submit" disabled={isLoading} className="w-full h-14 mt-6 text-base font-black rounded-2xl shadow-lg shadow-primary/20">
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Criar conta grátis"}
+                </Button>
               </form>
             </TabsContent>
 
@@ -202,27 +260,29 @@ export const Signup = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
                     <Label className="text-slate-700 font-bold">Nome Completo (como na OAB)</Label>
-                    <Input required className="mt-1 h-12 rounded-xl bg-slate-50" />
+                    <Input required value={lawyerName} onChange={(e) => setLawyerName(e.target.value)} className="mt-1 h-12 rounded-xl bg-slate-50" />
                   </div>
                   <div>
                     <Label className="text-slate-700 font-bold">Email Profissional</Label>
-                    <Input type="email" required className="mt-1 h-12 rounded-xl bg-slate-50" />
+                    <Input type="email" required value={lawyerEmail} onChange={(e) => setLawyerEmail(e.target.value)} className="mt-1 h-12 rounded-xl bg-slate-50" />
                   </div>
                   <div>
                     <Label className="text-slate-700 font-bold">WhatsApp Profissional</Label>
-                    <Input type="tel" required className="mt-1 h-12 rounded-xl bg-slate-50" placeholder="(00) 00000-0000" />
+                    <Input type="tel" required value={lawyerPhone} onChange={(e) => setLawyerPhone(e.target.value)} className="mt-1 h-12 rounded-xl bg-slate-50" placeholder="(00) 00000-0000" />
                   </div>
                   <div>
                     <Label className="text-slate-700 font-bold">Número da OAB</Label>
-                    <Input required className="mt-1 h-12 rounded-xl bg-slate-50" placeholder="123456" />
+                    <Input required value={lawyerOab} onChange={(e) => setLawyerOab(e.target.value)} className="mt-1 h-12 rounded-xl bg-slate-50" placeholder="123456" />
                   </div>
                   <div>
                     <Label className="text-slate-700 font-bold">Estado OAB (UF)</Label>
                     <select 
                       required 
+                      value={lawyerOabState}
+                      onChange={(e) => setLawyerOabState(e.target.value)}
                       className="mt-1 flex h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none"
                     >
-                      <option value="" disabled selected>UF</option>
+                      <option value="" disabled>UF</option>
                       {estados.map(estado => (
                         <option key={estado.sigla} value={estado.sigla}>{estado.sigla}</option>
                       ))}
@@ -293,7 +353,7 @@ export const Signup = () => {
                     
                     <div>
                       <Label className="text-slate-700 font-bold">Formato de Atendimento</Label>
-                      <select required className="mt-1 w-full h-12 rounded-xl bg-white border border-slate-200 px-3 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none">
+                      <select required value={lawyerAttendance} onChange={(e) => setLawyerAttendance(e.target.value)} className="mt-1 w-full h-12 rounded-xl bg-white border border-slate-200 px-3 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none">
                         <option value="Híbrido (Online e Presencial)">Híbrido (Online e Presencial)</option>
                         <option value="Online">Apenas Online</option>
                         <option value="Presencial">Apenas Presencial</option>
@@ -303,10 +363,12 @@ export const Signup = () => {
 
                   <div className="sm:col-span-2 mt-2">
                     <Label className="text-slate-700 font-bold">Senha</Label>
-                    <Input type="password" required className="mt-1 h-12 rounded-xl bg-slate-50" />
+                    <Input type="password" required value={lawyerPassword} onChange={(e) => setLawyerPassword(e.target.value)} className="mt-1 h-12 rounded-xl bg-slate-50" />
                   </div>
                 </div>
-                <Button type="submit" className="w-full h-14 mt-6 bg-[#0F172A] hover:bg-slate-800 text-white text-base font-black rounded-2xl shadow-xl shadow-slate-900/20">Cadastrar Perfil Profissional</Button>
+                <Button type="submit" disabled={isLoading} className="w-full h-14 mt-6 bg-[#0F172A] hover:bg-slate-800 text-white text-base font-black rounded-2xl shadow-xl shadow-slate-900/20">
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Cadastrar Perfil Profissional"}
+                </Button>
                 <p className="text-xs font-semibold text-center text-slate-500 mt-4">
                   Seu perfil passará por validação da equipe antes de ser publicado.
                 </p>
