@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Camera, MapPin, Briefcase, ShieldCheck, Save,
   Instagram, Linkedin, Facebook, Youtube, Globe,
-  Phone, Mail, MessageCircle, User, Star, Upload, Building2, Loader2
+  Phone, Mail, MessageCircle, User, Star, Upload, Building2, Loader2, Check
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { specialties } from "@/data/mock";
 import { estados, cidadesPorEstado } from "@/data/locations";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 export const LawyerProfileEdit = () => {
   const { user } = useAuth();
@@ -32,7 +33,7 @@ export const LawyerProfileEdit = () => {
     attendanceType: "Híbrido (Online e Presencial)",
     experienceYears: "",
     mainSpecialty: "",
-    secondarySpecialties: "",
+    secondarySpecialties: [] as string[],
     miniBio: "",
     fullBio: "",
     phone: "",
@@ -54,19 +55,17 @@ export const LawyerProfileEdit = () => {
       if (!user) return;
       
       try {
-        // 1. Busca dados básicos (profiles)
         const { data: pData, error: pError } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', user.id)
           .single();
 
-        // 2. Busca detalhes profissionais (lawyer_details)
         const { data: lData, error: lError } = await supabase
           .from('lawyer_details')
           .select('*')
           .eq('id', user.id)
-          .maybeSingle(); // maybeSingle não dá erro caso não exista ainda
+          .maybeSingle();
 
         if (pData) {
           setProfile(prev => ({
@@ -80,14 +79,13 @@ export const LawyerProfileEdit = () => {
             avatar: pData.avatar_url || prev.avatar,
             cover: pData.cover_url || prev.cover,
             
-            // Dados da tabela lawyer_details (com fallback se estiver vazio)
             title: lData?.title || "",
             oab: lData?.oab || "",
             oabState: lData?.oab_state || "",
             attendanceType: lData?.attendance_type || "Híbrido (Online e Presencial)",
             experienceYears: lData?.experience_years?.toString() || "",
             mainSpecialty: lData?.main_specialty || "",
-            secondarySpecialties: lData?.secondary_specialties?.join(', ') || "",
+            secondarySpecialties: lData?.secondary_specialties || [],
             miniBio: lData?.mini_bio || "",
             fullBio: lData?.full_bio || "",
             whatsapp: lData?.whatsapp || pData.phone || "",
@@ -119,6 +117,29 @@ export const LawyerProfileEdit = () => {
     });
   };
 
+  const handleMainSpecialtyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newMain = e.target.value;
+    setProfile(prev => ({
+      ...prev,
+      mainSpecialty: newMain,
+      // Remove a nova especialidade principal das secundárias, caso estivesse lá
+      secondarySpecialties: prev.secondarySpecialties.filter(s => s !== newMain)
+    }));
+  };
+
+  const handleToggleSecondarySpecialty = (spec: string) => {
+    setProfile(prev => {
+      const isSelected = prev.secondarySpecialties.includes(spec);
+      let newSpecs;
+      if (isSelected) {
+        newSpecs = prev.secondarySpecialties.filter(s => s !== spec);
+      } else {
+        newSpecs = [...prev.secondarySpecialties, spec];
+      }
+      return { ...prev, secondarySpecialties: newSpecs };
+    });
+  };
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'cover' | 'avatar') => {
     const file = e.target.files?.[0];
     if (file) {
@@ -138,7 +159,6 @@ export const LawyerProfileEdit = () => {
     setIsSaving(true);
 
     try {
-      // 1. Atualiza dados da tabela profiles
       const { error: pError } = await supabase
         .from('profiles')
         .update({
@@ -154,24 +174,17 @@ export const LawyerProfileEdit = () => {
 
       if (pError) throw pError;
 
-      const secSpecsArray = profile.secondarySpecialties
-        .split(',')
-        .map(s => s.trim())
-        .filter(s => s.length > 0);
-
-      // 2. Usando UPSERT na tabela lawyer_details 
-      // Upsert: Atualiza a linha se já existir, senão cria uma nova.
       const { error: lError } = await supabase
         .from('lawyer_details')
         .upsert({
-          id: user.id, // ID é obrigatório no upsert
+          id: user.id,
           title: profile.title,
           oab: profile.oab,
           oab_state: profile.oabState,
           attendance_type: profile.attendanceType,
           experience_years: parseInt(profile.experienceYears) || null,
           main_specialty: profile.mainSpecialty,
-          secondary_specialties: secSpecsArray,
+          secondary_specialties: profile.secondarySpecialties,
           mini_bio: profile.miniBio,
           full_bio: profile.fullBio,
           whatsapp: profile.whatsapp,
@@ -396,26 +409,53 @@ export const LawyerProfileEdit = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="font-bold text-slate-700">Especialidade Principal</Label>
-                  <select 
-                    name="mainSpecialty" 
-                    value={profile.mainSpecialty} 
-                    onChange={handleChange}
-                    className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                  >
-                    <option value="" disabled>Selecione</option>
-                    {specialties.map(spec => (
-                      <option key={spec} value={spec}>{spec}</option>
-                    ))}
-                  </select>
+              <div className="space-y-2">
+                <Label className="font-bold text-slate-700">Especialidade Principal</Label>
+                <select 
+                  name="mainSpecialty" 
+                  value={profile.mainSpecialty} 
+                  onChange={handleMainSpecialtyChange}
+                  className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  <option value="" disabled>Selecione</option>
+                  {specialties.map(spec => (
+                    <option key={spec} value={spec}>{spec}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-3">
+                <Label className="font-bold text-slate-700">Especialidades Secundárias</Label>
+                <div className="flex flex-wrap gap-2">
+                  {specialties.map(spec => {
+                    // Não mostra a especialidade se ela já for a principal
+                    if (profile.mainSpecialty === spec) return null;
+                    
+                    const isSelected = profile.secondarySpecialties.includes(spec);
+
+                    return (
+                      <button
+                        key={spec}
+                        type="button"
+                        onClick={() => handleToggleSecondarySpecialty(spec)}
+                        className={cn(
+                          "px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200 border",
+                          isSelected 
+                            ? "bg-blue-50 border-blue-300 text-blue-700 shadow-sm" 
+                            : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300"
+                        )}
+                      >
+                        <span className="flex items-center gap-1.5">
+                          {isSelected && <Check className="w-4 h-4" />}
+                          {spec}
+                        </span>
+                      </button>
+                    )
+                  })}
                 </div>
-                <div className="space-y-2">
-                  <Label className="font-bold text-slate-700">Especialidades Secundárias</Label>
-                  <Input name="secondarySpecialties" value={profile.secondarySpecialties} onChange={handleChange} placeholder="Ex: Família, Sucessões" className="h-11 rounded-xl bg-slate-50" />
-                  <p className="text-xs font-medium text-slate-500">Separe por vírgulas.</p>
-                </div>
+                <p className="text-xs font-medium text-slate-500">
+                  Selecione as áreas complementares de sua atuação. Elas aparecerão no seu perfil e nos filtros de busca.
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -538,7 +578,15 @@ export const LawyerProfileEdit = () => {
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-1.5">
-                  <Badge variant="secondary" className="bg-slate-100 text-slate-700 font-bold text-[10px]">{profile.mainSpecialty || "Área Principal"}</Badge>
+                  {profile.mainSpecialty && (
+                    <Badge variant="secondary" className="bg-slate-100 text-slate-700 font-bold text-[10px]">{profile.mainSpecialty}</Badge>
+                  )}
+                  {profile.secondarySpecialties.slice(0, 2).map(spec => (
+                     <Badge key={spec} variant="outline" className="text-slate-500 font-medium text-[10px]">{spec}</Badge>
+                  ))}
+                  {profile.secondarySpecialties.length > 2 && (
+                    <Badge variant="outline" className="text-slate-400 text-[10px]">+{profile.secondarySpecialties.length - 2}</Badge>
+                  )}
                 </div>
 
                 <div className="mt-4">
