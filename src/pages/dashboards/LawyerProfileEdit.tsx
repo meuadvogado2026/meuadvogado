@@ -1,23 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  Camera, 
-  MapPin, 
-  Briefcase, 
-  ShieldCheck, 
-  Save,
-  Instagram,
-  Linkedin,
-  Facebook,
-  Youtube,
-  Globe,
-  Link as LinkIcon,
-  Phone,
-  Mail,
-  MessageCircle,
-  User,
-  Star,
-  Upload,
-  Building2
+  Camera, MapPin, Briefcase, ShieldCheck, Save,
+  Instagram, Linkedin, Facebook, Youtube, Globe,
+  Phone, Mail, MessageCircle, User, Star, Upload, Building2, Loader2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,40 +13,103 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { specialties } from "@/data/mock";
 import { estados, cidadesPorEstado } from "@/data/locations";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export const LawyerProfileEdit = () => {
+  const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
   const [profile, setProfile] = useState({
-    name: "Dr. Carlos Eduardo Silva",
-    title: "Especialista em Direito do Trabalho e Previdenciário",
-    oab: "123456",
-    oabState: "SP",
-    cep: "01310-100",
-    city: "São Paulo",
-    state: "SP",
+    name: "",
+    title: "",
+    oab: "",
+    oabState: "",
+    cep: "",
+    city: "",
+    state: "",
     attendanceType: "Híbrido (Online e Presencial)",
-    experienceYears: "15",
-    mainSpecialty: "Trabalhista",
-    secondarySpecialties: "Previdenciário, Empresarial",
-    miniBio: "Defesa ágil de trabalhadores e empresas com atendimento humanizado e foco em resultados.",
-    fullBio: "Especialista em Direito do Trabalho com mais de 15 anos de atuação na defesa de trabalhadores e empresas. Foco em resoluções ágeis e atendimento humanizado.\n\nCom uma trajetória marcada pela excelência e dedicação ao cliente, atuo buscando sempre a melhor estratégia jurídica para o seu caso.",
-    phone: "(11) 3000-0000",
-    whatsapp: "(11) 99999-9999",
-    email: "contato@carloseduardo.adv.br",
-    instagram: "@carloseduardo.adv",
-    linkedin: "linkedin.com/in/carloseduardoadv",
+    experienceYears: "",
+    mainSpecialty: "",
+    secondarySpecialties: "",
+    miniBio: "",
+    fullBio: "",
+    phone: "",
+    whatsapp: "",
+    email: "",
+    instagram: "",
+    linkedin: "",
     facebook: "",
-    youtube: "youtube.com/@carloseduardoadv",
-    website: "www.carloseduardo.adv.br",
-    officeLink: "Escritório Silva & Associados",
-    customLink: "linktr.ee/carloseduardo",
+    youtube: "",
+    website: "",
+    officeLink: "",
+    customLink: "",
     avatar: "https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&q=80&w=400&h=400",
     cover: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=1200&h=400"
   });
 
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      if (!user) return;
+      
+      try {
+        // 1. Busca dados básicos (profiles)
+        const { data: pData, error: pError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        // 2. Busca detalhes profissionais (lawyer_details)
+        const { data: lData, error: lError } = await supabase
+          .from('lawyer_details')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (pData || lData) {
+          setProfile(prev => ({
+            ...prev,
+            name: pData?.name || "",
+            email: pData?.email || "",
+            phone: pData?.phone || "",
+            city: pData?.city || "",
+            state: pData?.state || "",
+            avatar: pData?.avatar_url || prev.avatar,
+            
+            title: lData?.title || "",
+            oab: lData?.oab || "",
+            oabState: lData?.oab_state || "",
+            attendanceType: lData?.attendance_type || "Híbrido (Online e Presencial)",
+            experienceYears: lData?.experience_years?.toString() || "",
+            mainSpecialty: lData?.main_specialty || "",
+            secondarySpecialties: lData?.secondary_specialties?.join(', ') || "",
+            miniBio: lData?.mini_bio || "",
+            fullBio: lData?.full_bio || "",
+            website: lData?.website || "",
+            instagram: lData?.instagram || "",
+            linkedin: lData?.linkedin || "",
+            facebook: lData?.facebook || "",
+            youtube: lData?.youtube || "",
+            officeLink: lData?.office_link || "",
+            customLink: lData?.custom_link || "",
+          }));
+        }
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
+        toast.error("Erro ao carregar seu perfil.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfileData();
+  }, [user]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setProfile(prev => {
-      // Resetar cidade se o estado mudar
       if (name === 'state') return { ...prev, state: value, city: '' };
       return { ...prev, [name]: value };
     });
@@ -81,11 +129,76 @@ export const LawyerProfileEdit = () => {
     }
   };
 
-  const handleSave = () => {
-    toast.success("Perfil atualizado com sucesso!", {
-      description: "Suas alterações já estão visíveis no seu perfil público."
-    });
+  const handleSave = async () => {
+    if (!user) return;
+    setIsSaving(true);
+
+    try {
+      // 1. Atualiza dados da tabela profiles
+      const { error: pError } = await supabase
+        .from('profiles')
+        .update({
+          name: profile.name,
+          phone: profile.phone,
+          city: profile.city,
+          state: profile.state,
+          // Salva avatar como base64 (para facilitar no MVP, idealmente usaríamos Storage depois)
+          avatar_url: profile.avatar.startsWith('data:') ? profile.avatar : profile.avatar,
+        })
+        .eq('id', user.id);
+
+      if (pError) throw pError;
+
+      // Trata as especialidades secundárias (converte string separada por vírgula em array)
+      const secSpecsArray = profile.secondarySpecialties
+        .split(',')
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+
+      // 2. Atualiza dados da tabela lawyer_details
+      const { error: lError } = await supabase
+        .from('lawyer_details')
+        .update({
+          title: profile.title,
+          oab: profile.oab,
+          oab_state: profile.oabState,
+          attendance_type: profile.attendanceType,
+          experience_years: parseInt(profile.experienceYears) || null,
+          main_specialty: profile.mainSpecialty,
+          secondary_specialties: secSpecsArray,
+          mini_bio: profile.miniBio,
+          full_bio: profile.fullBio,
+          website: profile.website,
+          instagram: profile.instagram,
+          linkedin: profile.linkedin,
+          facebook: profile.facebook,
+          youtube: profile.youtube,
+          office_link: profile.officeLink,
+          custom_link: profile.customLink,
+        })
+        .eq('id', user.id);
+
+      if (lError) throw lError;
+
+      toast.success("Perfil atualizado com sucesso!", {
+        description: "Suas alterações já estão salvas no banco de dados."
+      });
+
+    } catch (error: any) {
+      console.error(error);
+      toast.error("Erro ao salvar", { description: error.message });
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-12 relative">
@@ -96,9 +209,13 @@ export const LawyerProfileEdit = () => {
           <h1 className="text-2xl font-black text-slate-950">Editar Perfil</h1>
           <p className="text-sm text-slate-500 font-medium">Personalize como os clientes veem você na plataforma.</p>
         </div>
-        <Button onClick={handleSave} className="bg-primary text-white hover:bg-blue-900 shadow-lg shadow-primary/20 rounded-xl px-6 h-11 font-bold">
-          <Save className="w-4 h-4 mr-2" />
-          Salvar Alterações
+        <Button 
+          onClick={handleSave} 
+          disabled={isSaving}
+          className="bg-primary text-white hover:bg-blue-900 shadow-lg shadow-primary/20 rounded-xl px-6 h-11 font-bold"
+        >
+          {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+          {isSaving ? "Salvando..." : "Salvar Alterações"}
         </Button>
       </div>
 
@@ -282,6 +399,7 @@ export const LawyerProfileEdit = () => {
                     onChange={handleChange}
                     className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   >
+                    <option value="" disabled>Selecione</option>
                     {specialties.map(spec => (
                       <option key={spec} value={spec}>{spec}</option>
                     ))}
@@ -323,7 +441,7 @@ export const LawyerProfileEdit = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2 font-bold text-slate-700"><MessageCircle className="w-4 h-4 text-green-600"/> WhatsApp</Label>
-                  <Input name="whatsapp" value={profile.whatsapp} onChange={handleChange} className="h-11 rounded-xl bg-slate-50" />
+                  <Input name="whatsapp" value={profile.whatsapp || profile.phone} onChange={handleChange} className="h-11 rounded-xl bg-slate-50" />
                 </div>
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2 font-bold text-slate-700"><Phone className="w-4 h-4 text-slate-500"/> Telefone</Label>
@@ -331,7 +449,8 @@ export const LawyerProfileEdit = () => {
                 </div>
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2 font-bold text-slate-700"><Mail className="w-4 h-4 text-slate-500"/> E-mail</Label>
-                  <Input name="email" value={profile.email} onChange={handleChange} className="h-11 rounded-xl bg-slate-50" />
+                  <Input name="email" value={profile.email} onChange={handleChange} disabled className="h-11 rounded-xl bg-slate-100 text-slate-500 cursor-not-allowed" />
+                  <p className="text-[10px] text-slate-400">Alterável nas Configurações</p>
                 </div>
               </div>
 
@@ -387,9 +506,12 @@ export const LawyerProfileEdit = () => {
                     alt="Avatar Preview" 
                     className="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-md bg-white relative z-10"
                   />
-                  <Badge className="bg-blue-50 text-blue-700 font-bold border border-blue-200 flex gap-1 h-6 mb-2">
-                    <ShieldCheck className="w-3.5 h-3.5" /> Verificado
-                  </Badge>
+                  {/* Simulando selo de verificação baseado se preencheu OAB */}
+                  {profile.oab && profile.oabState && (
+                    <Badge className="bg-blue-50 text-blue-700 font-bold border border-blue-200 flex gap-1 h-6 mb-2">
+                      <ShieldCheck className="w-3.5 h-3.5" /> Verificado
+                    </Badge>
+                  )}
                 </div>
                 
                 <div>
@@ -399,9 +521,6 @@ export const LawyerProfileEdit = () => {
                   <div className="flex flex-wrap gap-2 text-xs font-medium text-slate-500 mt-3">
                     <div className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-md">
                       <MapPin className="w-3.5 h-3.5" /> {profile.city || "Cidade"}
-                    </div>
-                    <div className="flex items-center gap-1 font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-md">
-                      <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" /> 4.9 (124)
                     </div>
                   </div>
                 </div>
