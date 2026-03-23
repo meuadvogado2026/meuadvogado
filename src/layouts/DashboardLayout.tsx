@@ -14,13 +14,21 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MobileNav } from "@/components/MobileNav";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success("Sessão encerrada com sucesso");
+      navigate('/login');
+    } catch (error) {
+      toast.error("Erro ao sair da conta");
+    }
   };
 
   const getLinks = () => {
@@ -54,16 +62,13 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
     client: 'Cliente'
   };
 
-  // Se for a página de busca ou perfil dentro do painel, remove o padding para ocupar a tela toda
   const isFullWidthPage = location.pathname.includes('/advogado') || location.pathname.includes('/buscar');
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans pb-20 md:pb-0">
       
-      {/* Sidebar Desktop (SaaS Premium) */}
       <aside className="hidden md:flex flex-col w-[280px] bg-slate-950 border-r border-slate-800 min-h-screen relative z-20 shadow-2xl shadow-slate-900/20">
         
-        {/* Brand Area */}
         <div className="h-20 flex items-center px-6 mb-2 mt-4">
           <Link to="/" className="flex items-center gap-3 transition-opacity hover:opacity-80">
             <div className="bg-white p-1.5 rounded-xl shadow-lg">
@@ -73,7 +78,6 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
           </Link>
         </div>
         
-        {/* Role Badge */}
         <div className="px-6 mb-6">
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 flex items-center justify-between">
             <div className="flex flex-col">
@@ -90,7 +94,6 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
           Menu Principal
         </div>
 
-        {/* Navigation Links */}
         <nav className="flex-1 px-4 space-y-1.5 mt-2">
           {links.map((link) => {
             const isActive = location.pathname === link.path || (link.path.includes('/buscar') && location.pathname.includes('/advogado'));
@@ -114,7 +117,6 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
           })}
         </nav>
 
-        {/* Logout Area */}
         <div className="p-4 mt-auto mb-4">
           <button 
             onClick={handleLogout}
@@ -126,10 +128,8 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
         </div>
       </aside>
 
-      {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-h-screen overflow-hidden bg-slate-50/50">
         
-        {/* Mobile Header (Refinado) */}
         <header className="md:hidden h-16 bg-white/80 backdrop-blur-xl border-b border-slate-200 flex items-center px-4 justify-between sticky top-0 z-40 shadow-sm">
           <div className="flex items-center gap-2.5">
             <img src="/logo.png" alt="Meu Advogado" className="h-7 w-7 object-contain" />
@@ -150,7 +150,6 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
         </main>
       </div>
 
-      {/* Mobile Bottom Navigation */}
       <MobileNav role={role} />
     </div>
   );

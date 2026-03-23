@@ -3,6 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 // Layouts
 import { MainLayout } from "./layouts/MainLayout";
@@ -32,43 +34,59 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          {/* Public Routes */}
-          <Route element={<MainLayout />}>
-            <Route path="/" element={<Landing />} />
-            <Route path="/buscar" element={<Search />} />
-            <Route path="/advogado/:id" element={<LawyerProfile />} />
-          </Route>
+        <AuthProvider>
+          <Routes>
+            {/* Public Routes */}
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<Landing />} />
+              <Route path="/buscar" element={<Search />} />
+              <Route path="/advogado/:id" element={<LawyerProfile />} />
+            </Route>
 
-          {/* Auth Routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/cadastro" element={<Signup />} />
+            {/* Auth Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/cadastro" element={<Signup />} />
 
-          {/* Dashboard Routes */}
-          <Route element={<DashboardLayout role="client" />}>
-            <Route path="/painel/cliente" element={<ClientDashboard />} />
-            <Route path="/painel/cliente/perfil" element={<ClientProfile />} />
-            <Route path="/painel/cliente/buscar" element={<Search />} />
-            <Route path="/painel/cliente/advogado/:id" element={<LawyerProfile />} />
-            <Route path="/painel/cliente/*" element={<ClientDashboard />} />
-          </Route>
-          
-          <Route element={<DashboardLayout role="lawyer" />}>
-            <Route path="/painel/advogado" element={<LawyerDashboard />} />
-            <Route path="/painel/advogado/perfil" element={<LawyerProfileEdit />} />
-            <Route path="/painel/advogado/config" element={<LawyerSettings />} />
-            <Route path="/painel/advogado/*" element={<LawyerDashboard />} />
-          </Route>
-          
-          <Route element={<DashboardLayout role="admin" />}>
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/aprovacoes" element={<AdminApprovals />} />
-            <Route path="/admin/usuarios" element={<AdminUsers />} />
-            <Route path="/admin/*" element={<AdminDashboard />} />
-          </Route>
+            {/* Client Protected Routes */}
+            <Route element={
+              <ProtectedRoute allowedRoles={['client', 'admin']}>
+                <DashboardLayout role="client" />
+              </ProtectedRoute>
+            }>
+              <Route path="/painel/cliente" element={<ClientDashboard />} />
+              <Route path="/painel/cliente/perfil" element={<ClientProfile />} />
+              <Route path="/painel/cliente/buscar" element={<Search />} />
+              <Route path="/painel/cliente/advogado/:id" element={<LawyerProfile />} />
+              <Route path="/painel/cliente/*" element={<ClientDashboard />} />
+            </Route>
+            
+            {/* Lawyer Protected Routes */}
+            <Route element={
+              <ProtectedRoute allowedRoles={['lawyer', 'admin']}>
+                <DashboardLayout role="lawyer" />
+              </ProtectedRoute>
+            }>
+              <Route path="/painel/advogado" element={<LawyerDashboard />} />
+              <Route path="/painel/advogado/perfil" element={<LawyerProfileEdit />} />
+              <Route path="/painel/advogado/config" element={<LawyerSettings />} />
+              <Route path="/painel/advogado/*" element={<LawyerDashboard />} />
+            </Route>
+            
+            {/* Admin Protected Routes */}
+            <Route element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <DashboardLayout role="admin" />
+              </ProtectedRoute>
+            }>
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/aprovacoes" element={<AdminApprovals />} />
+              <Route path="/admin/usuarios" element={<AdminUsers />} />
+              <Route path="/admin/*" element={<AdminDashboard />} />
+            </Route>
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
