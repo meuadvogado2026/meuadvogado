@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search as SearchIcon, MapPin, SlidersHorizontal, X, Navigation, LocateFixed, Loader2 } from "lucide-react";
-import { mockLawyers, specialties } from "@/data/mock";
+import { specialties } from "@/data/mock";
 import { LawyerCard } from "@/components/LawyerCard";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { estados, cidadesPorEstado } from "@/data/locations";
+import { supabase } from "@/integrations/supabase/client";
 
 // Função para calcular distância usando a Fórmula de Haversine
 function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
-  const R = 6371; // Raio da Terra em km
+  const R = 6371;
   const dLat = deg2rad(lat2 - lat1);
   const dLon = deg2rad(lon2 - lon1);
   const a =
@@ -18,7 +19,7 @@ function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon
     Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
     Math.sin(dLon / 2) * Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c; // Distância em km
+  return R * c;
 }
 
 function deg2rad(deg: number) {
@@ -26,6 +27,9 @@ function deg2rad(deg: number) {
 }
 
 export const Search = () => {
+  const [lawyers, setLawyers] = useState<any[]>([]);
+  const [isLoadingLawyers, setIsLoadingLawyers] = useState(true);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [cepParam, setCepParam] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState("all");
@@ -34,9 +38,57 @@ export const Search = () => {
   const [selectedType, setSelectedType] = useState("all");
   const [sortBy, setSortBy] = useState("recommended");
   
-  // Novos estados para Geolocalização
   const [isFetchingCep, setIsFetchingCep] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null);
+
+  useEffect(() => {
+    const fetchLawyers = async () => {
+      setIsLoadingLawyers(true);
+      try {
+        // Busca profiles que são advogados
+        const { data: profiles, error: pErr } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('role', 'lawyer');
+
+        // Busca os detalhes profissionais
+        const { data: details, error: dErr } = await supabase
+          .from('lawyer_details')
+          .select('*');
+
+        if (profiles && details) {
+          const mappedData = profiles.map(p => {
+            const d = details.find(x => x.id === p.id) || {};
+            return {
+              id: p.id,
+              name: p.name || 'Advogado(a)',
+              specialty: d.main_specialty || 'Não informada',
+              city: p.city || '',
+              state: p.state || '',
+              cep: p.cep || '',
+              rating: d.rating || 5.0,
+              reviews: d.reviews_count || 0,
+              verified: d.is_verified || false,
+              image: p.avatar_url || '',
+              cover: p.cover_url || '',
+              bio: d.mini_bio || d.full_bio || '',
+              type: d.attendance_type || 'Híbrido (Online e Presencial)',
+              lat: null, // Futuramente podemos integrar geocodificação real
+              lng: null
+            };
+          });
+          setLawyers(mappedData);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar advogados:", error);
+        toast.error("Erro ao carregar lista de advogados.");
+      } finally {
+        setIsLoadingLawyers(false);
+      }
+    };
+
+    fetchLawyers();
+  }, []);
 
   const handleUseLocation = () => {
     if (!navigator.geolocation) {
@@ -50,13 +102,10 @@ export const Search = () => {
       (position) => {
         const { latitude, longitude } = position.coords;
         setUserLocation({ lat: latitude, lng: longitude });
-        
-        // Limpar filtros textuais para permitir busca via Raio GPS
         setCepParam("");
         setSelectedCity("");
         setSelectedState("");
         setSortBy("distance");
-        
         toast.success("Localização encontrada com sucesso!", { id: "loc" });
       },
       (error) => {
@@ -70,10 +119,7 @@ export const Search = () => {
   };
 
   const applyCepMask = (value: string) => {
-    return value
-      .replace(/\D/g, '')
-      .replace(/(\d{5})(\d)/, '$1-$2')
-      .slice(0, 9);
+    return value.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2').slice(0, 9);
   };
 
   const fetchViaCep = async (cep: string) => {
@@ -90,10 +136,10 @@ export const Search = () => {
         return;
       }
 
-      setUserLocation(null); // Reseta a localização GPS caso a pessoa force o CEP
+      setUserLocation(null);
       setSelectedState(data.uf);
       setSelectedCity(data.localidade);
-      setSortBy("distance"); // Prioriza mais próximos (simulado para cidades/estados sem GPS)
+      setSortBy("distance");
       toast.success("Região identificada!", { description: `Buscando advogados em ${data.localidade} - ${data.uf}` });
     } catch (error) {
       toast.error("Erro na busca do CEP", { description: "Tente selecionar o estado e cidade manualmente." });
@@ -105,15 +151,12 @@ export const Search = () => {
   const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const maskedCep = applyCepMask(e.target.value);
     setCepParam(maskedCep);
-
-    if (maskedCep.length === 9) {
-      fetchViaCep(maskedCep);
-    }
+    if (maskedCep.length === 9) fetchViaCep(maskedCep);
   };
 
-  // 1. Calcular as distâncias e mapear o array
-  const processedLawyers = mockLawyers.map(lawyer => {
-    let distance = lawyer.distance; // Fallback mockado
+  // 1. Calcular as distâncias
+  const processedLawyers = lawyers.map(lawyer => {
+    let distance = lawyer.distance; 
     if (userLocation && lawyer.lat && lawyer.lng) {
       distance = getDistanceFromLatLonInKm(userLocation.lat, userLocation.lng, lawyer.lat, lawyer.lng);
     }
@@ -132,15 +175,7 @@ export const Search = () => {
       if (selectedType === "Online") matchesType = lawyer.type.includes("Online") || lawyer.type.includes("Híbrido");
       if (selectedType === "Presencial") matchesType = lawyer.type.includes("Presencial") || lawyer.type.includes("Híbrido");
 
-      // Regra de negócio: Ocultar advogados EXCLUSIVAMENTE presenciais se estiverem a > 100km de distância (caso tenhamos GPS)
-      let isWithinReach = true;
-      if (userLocation && lawyer.distance !== undefined) {
-        if (lawyer.distance > 100 && lawyer.type === "Presencial") {
-          isWithinReach = false;
-        }
-      }
-
-      return matchesSearch && matchesSpecialty && matchesCity && matchesState && matchesType && isWithinReach;
+      return matchesSearch && matchesSpecialty && matchesCity && matchesState && matchesType;
     })
     .sort((a, b) => {
       if (sortBy === "distance") {
@@ -164,8 +199,6 @@ export const Search = () => {
 
   const FilterSidebar = () => (
     <div className="space-y-8">
-      
-      {/* Bloco de Localização e CEP */}
       <div>
         <h3 className="text-sm font-bold text-[#0F172A] uppercase tracking-wider mb-4 flex items-center gap-2">
           <MapPin className="w-4 h-4 text-[#1E3A5F]" /> Localização
@@ -206,8 +239,8 @@ export const Search = () => {
               value={selectedState}
               onChange={(e) => {
                 setSelectedState(e.target.value);
-                setSelectedCity(""); // Reseta a cidade ao mudar o estado
-                setUserLocation(null); // Desliga GPS ao escolher UF
+                setSelectedCity(""); 
+                setUserLocation(null); 
               }}
               className="h-11 rounded-xl bg-slate-50 border-slate-200 col-span-1 px-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none"
             >
@@ -227,9 +260,6 @@ export const Search = () => {
               {selectedState && cidadesPorEstado[selectedState]?.map(city => (
                 <option key={city} value={city}>{city}</option>
               ))}
-              {selectedCity && (!selectedState || !cidadesPorEstado[selectedState]?.includes(selectedCity)) && (
-                <option value={selectedCity}>{selectedCity}</option>
-              )}
             </select>
           </div>
         </div>
@@ -343,11 +373,10 @@ export const Search = () => {
           <div className="flex-1">
             <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <h2 className="text-lg font-medium text-slate-600">
-                Exibindo <span className="font-black text-[#0F172A]">{filteredLawyers.length}</span> advogados
-                {(userLocation || cepParam) && (
-                  <span className="text-blue-600 font-bold ml-1 flex items-center gap-1 inline-flex">
-                    <Navigation className="w-4 h-4"/> ordenados por proximidade
-                  </span>
+                {isLoadingLawyers ? (
+                  <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin"/> Buscando...</span>
+                ) : (
+                  <>Exibindo <span className="font-black text-[#0F172A]">{filteredLawyers.length}</span> advogados</>
                 )}
               </h2>
 
@@ -365,15 +394,15 @@ export const Search = () => {
             </div>
 
             <div className="space-y-6">
-              {filteredLawyers.map(lawyer => (
+              {!isLoadingLawyers && filteredLawyers.map(lawyer => (
                 <LawyerCard key={lawyer.id} lawyer={lawyer} />
               ))}
               
-              {filteredLawyers.length === 0 && (
+              {!isLoadingLawyers && filteredLawyers.length === 0 && (
                 <div className="text-center py-20 bg-white rounded-3xl border border-slate-200">
                   <Navigation className="w-16 h-16 text-slate-300 mx-auto mb-4" />
                   <h3 className="text-2xl font-black text-[#0F172A] mb-2">Nenhum profissional encontrado</h3>
-                  <p className="text-slate-500 max-w-md mx-auto mb-6">Tente aumentar o raio, remover alguns filtros ou buscar em outras regiões para encontrar especialistas.</p>
+                  <p className="text-slate-500 max-w-md mx-auto mb-6">Tente remover alguns filtros ou buscar em outras regiões para encontrar especialistas.</p>
                   <Button onClick={clearFilters} className="rounded-xl font-bold bg-[#1E3A5F] hover:bg-[#0F172A] h-12 px-6">
                     Limpar Filtros e Tentar Novamente
                   </Button>

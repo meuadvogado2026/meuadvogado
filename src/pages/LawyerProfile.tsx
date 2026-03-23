@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useLocation } from "react-router-dom";
-import { mockLawyers } from "@/data/mock";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,19 +21,92 @@ import {
   Phone,
   Mail,
   Share2,
-  Info
+  Info,
+  Loader2
 } from "lucide-react";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const LawyerProfile = () => {
   const { id } = useParams();
   const location = useLocation();
-  const lawyer = mockLawyers.find(l => l.id === id) || mockLawyers[0];
+  const [lawyer, setLawyer] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const basePath = location.pathname.startsWith('/painel/cliente') ? '/painel/cliente' : '';
   const searchLink = `${basePath}/buscar`;
 
-  // Fallback de capa para manter a elegância caso não haja
+  useEffect(() => {
+    const fetchLawyer = async () => {
+      if (!id) return;
+      setIsLoading(true);
+      try {
+        const { data: pData } = await supabase.from('profiles').select('*').eq('id', id).single();
+        const { data: lData } = await supabase.from('lawyer_details').select('*').eq('id', id).maybeSingle();
+
+        if (pData) {
+          const details = lData || {};
+          setLawyer({
+            id: pData.id,
+            name: pData.name || 'Advogado(a)',
+            title: details.title || details.main_specialty || '',
+            specialty: details.main_specialty || 'Não informada',
+            secondarySpecialties: details.secondary_specialties || [],
+            city: pData.city || '',
+            state: pData.state || '',
+            oab: details.oab ? `${details.oab_state || ''} ${details.oab}` : 'Não informada',
+            rating: details.rating || 5.0,
+            reviews: details.reviews_count || 0,
+            verified: details.is_verified || false,
+            type: details.attendance_type || 'Híbrido (Online e Presencial)',
+            phone: details.whatsapp || pData.phone || '',
+            email: pData.email || '',
+            bio: details.full_bio || details.mini_bio || 'Este profissional ainda não adicionou uma biografia.',
+            image: pData.avatar_url,
+            cover: pData.cover_url,
+            showSocials: true,
+            socials: {
+              instagram: details.instagram,
+              linkedin: details.linkedin,
+              facebook: details.facebook,
+              youtube: details.youtube,
+              website: details.website,
+              officeLink: details.office_link,
+              customLink: details.custom_link
+            }
+          });
+        }
+      } catch (error) {
+        console.error("Erro ao carregar advogado", error);
+        toast.error("Erro ao carregar os dados deste profissional.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchLawyer();
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!lawyer) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
+        <h2 className="text-2xl font-bold text-slate-800 mb-4">Profissional não encontrado</h2>
+        <Link to={searchLink}>
+          <Button>Voltar para a busca</Button>
+        </Link>
+      </div>
+    );
+  }
+
   const coverImage = lawyer.cover || "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=1200&h=400";
 
   const renderSocialIcon = (key: string, value: string) => {
@@ -69,15 +141,13 @@ export const LawyerProfile = () => {
   return (
     <div className="min-h-screen bg-slate-50 pb-12 font-sans">
       
-      {/* HEADER / HERO - Banner mais compacto */}
+      {/* HEADER / HERO */}
       <div className="w-full h-48 md:h-64 relative bg-[#0F172A] overflow-hidden shrink-0">
         <img 
           src={coverImage} 
           alt={`Capa do Dr(a) ${lawyer.name}`} 
           className="w-full h-full object-cover opacity-90"
         />
-        
-        {/* Gradiente sutil no topo para garantir leitura do botão de voltar */}
         <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-[#0F172A]/80 to-transparent pointer-events-none"></div>
         
         <div className="absolute top-0 left-0 w-full z-10">
@@ -91,11 +161,10 @@ export const LawyerProfile = () => {
         </div>
       </div>
 
-      {/* TOPO DO PERFIL: Avatar sobreposto e Informações (Sem Card) */}
+      {/* TOPO DO PERFIL */}
       <div className="container mx-auto px-4 max-w-5xl mb-8">
         <div className="flex flex-col sm:flex-row gap-5 md:gap-6 items-center sm:items-start text-center sm:text-left">
           
-          {/* Avatar destacado diretamente sobre a capa */}
           <div className="relative shrink-0 -mt-16 md:-mt-20 z-10">
             {lawyer.image ? (
               <img 
@@ -115,13 +184,12 @@ export const LawyerProfile = () => {
             )}
           </div>
 
-          {/* Informações Livres */}
           <div className="flex-1 w-full sm:pt-3">
             <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5">
               
               <div className="space-y-1.5">
                 <h1 className="text-2xl md:text-3xl font-black text-[#0F172A] tracking-tight leading-tight">{lawyer.name}</h1>
-                <p className="text-sm md:text-base font-bold text-primary">{lawyer.title || lawyer.specialty}</p>
+                {lawyer.title && <p className="text-sm md:text-base font-bold text-primary">{lawyer.title}</p>}
                 
                 <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs md:text-sm font-medium text-slate-600 pt-1.5">
                   <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-md text-slate-700 border border-slate-200/60 shadow-sm">
@@ -141,7 +209,7 @@ export const LawyerProfile = () => {
                   <Badge className="px-3 py-1 bg-[#1E3A5F] hover:bg-[#0F172A] text-white font-bold border-0 text-[10px] md:text-xs rounded-md shadow-sm">
                     {lawyer.specialty}
                   </Badge>
-                  {lawyer.secondarySpecialties?.map(spec => (
+                  {lawyer.secondarySpecialties?.map((spec: string) => (
                     <Badge key={spec} variant="outline" className="px-3 py-1 bg-white border-slate-200 text-slate-600 font-medium rounded-md text-[10px] md:text-xs shadow-sm">
                       {spec}
                     </Badge>
@@ -154,10 +222,10 @@ export const LawyerProfile = () => {
                 </div>
               </div>
 
-              {/* Ações Primárias (Direita) */}
               <div className="w-full lg:w-auto shrink-0 flex flex-col items-center sm:items-start lg:items-end gap-3 mt-1 lg:mt-0">
                 <WhatsAppButton 
                   className="w-full sm:w-auto lg:w-auto h-11 md:h-12 px-6 text-sm shadow-md shadow-green-600/20 rounded-xl font-bold"
+                  phone={lawyer.phone?.replace(/\D/g, '')}
                   message={`Olá Dr(a) ${lawyer.name}, encontrei seu perfil no Meu Advogado e gostaria de uma orientação.`} 
                 />
                 
@@ -172,12 +240,11 @@ export const LawyerProfile = () => {
         </div>
       </div>
 
-      {/* CORPO DO PERFIL - Grid mais compacto */}
+      {/* CORPO DO PERFIL */}
       <div className="container mx-auto px-4 max-w-5xl">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           <div className="lg:col-span-2 space-y-5">
-            {/* Sobre */}
             <Card className="border-0 shadow-sm rounded-2xl border border-slate-200/50 bg-white">
               <CardContent className="p-5 md:p-6">
                 <h2 className="text-lg font-black text-[#0F172A] mb-4 flex items-center gap-2">
@@ -190,7 +257,6 @@ export const LawyerProfile = () => {
               </CardContent>
             </Card>
 
-            {/* Especialidades */}
             <Card className="border-0 shadow-sm rounded-2xl border border-slate-200/50 bg-white">
               <CardContent className="p-5 md:p-6">
                 <h2 className="text-lg font-black text-[#0F172A] mb-4 flex items-center gap-2">
@@ -198,7 +264,7 @@ export const LawyerProfile = () => {
                   Áreas de Atuação
                 </h2>
                 <div className="flex flex-wrap gap-3">
-                  {[lawyer.specialty, ...(lawyer.secondarySpecialties || [])].map((spec, index) => (
+                  {[lawyer.specialty, ...(lawyer.secondarySpecialties || [])].filter(Boolean).map((spec: string, index: number) => (
                     <div key={index} className="flex items-center gap-2.5 bg-slate-50 border border-slate-100 px-4 py-2.5 rounded-xl text-sm hover:border-slate-200 transition-colors">
                       <Scale className="w-4 h-4 text-primary" />
                       <span className="font-bold text-slate-800">{spec}</span>
@@ -208,7 +274,6 @@ export const LawyerProfile = () => {
               </CardContent>
             </Card>
 
-            {/* Avaliações Compactas */}
             <Card className="border-0 shadow-sm rounded-2xl border border-slate-200/50 bg-white">
               <CardContent className="p-5 md:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="text-center sm:text-left">
@@ -236,10 +301,8 @@ export const LawyerProfile = () => {
             </Card>
           </div>
 
-          {/* BARRA LATERAL (Contato) */}
           <div className="lg:col-span-1">
             <div className="sticky top-20 space-y-4">
-              
               <Card className="border-0 shadow-sm rounded-2xl border border-slate-200/50 overflow-hidden bg-white">
                 <div className="h-1 w-full bg-[#1E3A5F]" />
                 <CardContent className="p-5 md:p-6">
@@ -280,6 +343,7 @@ export const LawyerProfile = () => {
                       <WhatsAppButton 
                         fullWidth
                         className="h-12 text-sm rounded-xl shadow-md shadow-green-600/20 font-bold"
+                        phone={lawyer.phone?.replace(/\D/g, '')}
                         message={`Olá Dr(a) ${lawyer.name}, encontrei seu perfil no Meu Advogado e gostaria de uma orientação.`} 
                       />
                     </div>
@@ -287,7 +351,6 @@ export const LawyerProfile = () => {
                 </CardContent>
               </Card>
 
-              {/* Botão extra de compartilhar */}
               <Button variant="ghost" className="w-full text-slate-500 h-10 rounded-xl font-bold hover:bg-slate-200/50 hover:text-slate-800 transition-colors text-xs">
                 <Share2 className="w-4 h-4 mr-2" /> Compartilhar Perfil
               </Button>
