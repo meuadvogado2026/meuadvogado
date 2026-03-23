@@ -1,22 +1,63 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Save, User, MapPin } from "lucide-react";
+import { Save, User, MapPin, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { estados, cidadesPorEstado } from "@/data/locations";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export const ClientProfile = () => {
+  const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
   const [profile, setProfile] = useState({
-    name: "João Silva",
-    email: "joao.silva@email.com",
-    phone: "(11) 98765-4321",
-    cep: "01310-100",
-    city: "São Paulo",
-    state: "SP",
+    name: "",
+    email: "",
+    phone: "",
+    cep: "",
+    city: "",
+    state: "",
     password: ""
   });
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          setProfile(prev => ({
+            ...prev,
+            name: data.name || "",
+            email: data.email || user.email || "",
+            phone: data.phone || "",
+            cep: data.cep || "",
+            city: data.city || "",
+            state: data.state || ""
+          }));
+        }
+      } catch (error) {
+        console.error("Erro ao carregar perfil:", error);
+        toast.error("Erro ao carregar seus dados.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -27,11 +68,81 @@ export const ClientProfile = () => {
     });
   };
 
-  const handleSave = () => {
-    toast.success("Dados atualizados com sucesso!", {
-      description: "Suas informações foram salvas."
-    });
+  const applyCepMask = (value: string) => {
+    return value.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2').slice(0, 9);
   };
+
+  const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const maskedCep = applyCepMask(e.target.value);
+    setProfile(prev => ({ ...prev, cep: maskedCep }));
+
+    if (maskedCep.length === 9) {
+      const cleanCep = maskedCep.replace(/\D/g, '');
+      try {
+        const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+        const data = await response.json();
+        if (!data.erro) {
+          setProfile(prev => ({
+            ...prev,
+            state: data.uf,
+            city: data.localidade
+          }));
+          toast.success("Endereço atualizado pelo CEP!");
+        }
+      } catch (error) {
+        // Silencioso em caso de erro de rede no CEP
+      }
+    }
+  };
+
+  const handleSave = async () => {
+    if (!user) return;
+    setIsSaving(true);
+
+    try {
+      // 1. Atualizar dados na tabela profiles
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          name: profile.name,
+          phone: profile.phone,
+          cep: profile.cep,
+          city: profile.city,
+          state: profile.state
+        })
+        .eq('id', user.id);
+
+      if (profileError) throw profileError;
+
+      // 2. Atualizar senha se foi preenchida
+      if (profile.password) {
+        const { error: authError } = await supabase.auth.updateUser({
+          password: profile.password
+        });
+        
+        if (authError) throw authError;
+        setProfile(prev => ({ ...prev, password: "" })); // Limpa o campo de senha após sucesso
+      }
+
+      toast.success("Dados atualizados com sucesso!", {
+        description: "Suas informações foram salvas na plataforma."
+      });
+
+    } catch (error: any) {
+      console.error(error);
+      toast.error("Erro ao salvar", { description: error.message || "Tente novamente mais tarde." });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl mx-auto space-y-8 pb-12">
@@ -45,9 +156,9 @@ export const ClientProfile = () => {
           </h1>
           <p className="text-slate-500 mt-2 font-medium">Mantenha suas informações e localização atualizadas.</p>
         </div>
-        <Button onClick={handleSave} className="bg-primary text-white hover:bg-blue-900 shadow-lg shadow-primary/20 rounded-xl px-6 h-12 font-bold">
-          <Save className="w-4 h-4 mr-2" />
-          Salvar Alterações
+        <Button onClick={handleSave} disabled={isSaving} className="bg-primary text-white hover:bg-blue-900 shadow-lg shadow-primary/20 rounded-xl px-6 h-12 font-bold">
+          {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+          {isSaving ? "Salvando..." : "Salvar Alterações"}
         </Button>
       </div>
 
@@ -74,8 +185,8 @@ export const ClientProfile = () => {
                 type="email" 
                 name="email" 
                 value={profile.email} 
-                onChange={handleChange} 
-                className="h-12 rounded-xl bg-slate-50 border-slate-200" 
+                disabled
+                className="h-12 rounded-xl bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed" 
               />
             </div>
             <div className="space-y-2">
@@ -103,7 +214,7 @@ export const ClientProfile = () => {
                 <Input 
                   name="cep" 
                   value={profile.cep} 
-                  onChange={handleChange} 
+                  onChange={handleCepChange} 
                   maxLength={9}
                   className="h-12 rounded-xl bg-slate-50 border-slate-200" 
                 />
@@ -135,7 +246,7 @@ export const ClientProfile = () => {
                   {profile.state && cidadesPorEstado[profile.state]?.map(city => (
                     <option key={city} value={city}>{city}</option>
                   ))}
-                  {profile.city && !cidadesPorEstado[profile.state]?.includes(profile.city) && (
+                  {profile.city && (!profile.state || !cidadesPorEstado[profile.state]?.includes(profile.city)) && (
                      <option value={profile.city}>{profile.city}</option>
                   )}
                 </select>

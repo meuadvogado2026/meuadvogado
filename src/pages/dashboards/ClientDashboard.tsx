@@ -1,16 +1,87 @@
-import React from 'react';
-import { mockLawyers } from "@/data/mock";
+import React, { useEffect, useState } from 'react';
 import { LawyerCard } from "@/components/LawyerCard";
-import { Search, Sparkles, Clock, Bookmark, Scale, MapPin } from "lucide-react";
+import { Search, Sparkles, Clock, Bookmark, Scale, MapPin, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const ClientDashboard = () => {
-  // Tratamento de segurança para garantir que mockLawyers sempre retorne um array válido
-  const featuredLawyers = mockLawyers?.filter(l => l.rating >= 4.9).slice(0, 2) || [];
-  const recentLawyers = mockLawyers?.slice(0, 1) || [];
-  const savedLawyers = mockLawyers?.filter(l => l.specialty === "Criminal") || [];
+  const { user } = useAuth();
+  const [clientData, setClientData] = useState({ name: 'Cliente', city: '', state: '' });
+  const [recommendedLawyers, setRecommendedLawyers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user) return;
+      setIsLoading(true);
+
+      try {
+        // Busca os dados do cliente
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name, city, state')
+          .eq('id', user.id)
+          .single();
+
+        if (profile) {
+          setClientData({
+            name: profile.name?.split(' ')[0] || 'Cliente',
+            city: profile.city || '',
+            state: profile.state || ''
+          });
+        }
+
+        // Busca advogados recomendados (que tenham perfil verificado)
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('role', 'lawyer')
+          .limit(4);
+
+        const { data: detailsData } = await supabase
+          .from('lawyer_details')
+          .select('*')
+          .eq('is_verified', true);
+
+        if (profilesData && detailsData) {
+          // Filtra perfis que têm detalhes verificados
+          const verifiedLawyers = profilesData.filter(p => detailsData.some(d => d.id === p.id));
+          
+          const mappedData = verifiedLawyers.map(p => {
+            const d = detailsData.find(x => x.id === p.id) || {};
+            return {
+              id: p.id,
+              name: p.name || 'Advogado(a)',
+              specialty: d.main_specialty || 'Não informada',
+              city: p.city || '',
+              state: p.state || '',
+              rating: d.rating || 5.0,
+              reviews: d.reviews_count || 0,
+              verified: d.is_verified || false,
+              image: p.avatar_url || '',
+              cover: p.cover_url || '',
+              bio: d.mini_bio || d.full_bio || '',
+              type: d.attendance_type || 'Híbrido'
+            };
+          });
+
+          // Mostra apenas os 2 primeiros como recomendados na home
+          setRecommendedLawyers(mappedData.slice(0, 2));
+        }
+
+      } catch (error) {
+        console.error("Erro ao carregar dashboard:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [user]);
 
   // Componente auxiliar para estados vazios
   const EmptyState = ({ icon: Icon, title, description }: { icon: any, title: string, description: string }) => (
@@ -28,6 +99,14 @@ export const ClientDashboard = () => {
     </div>
   );
 
+  if (isLoading) {
+    return (
+      <div className="flex h-[60vh] items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto space-y-10 pb-12">
       
@@ -38,11 +117,13 @@ export const ClientDashboard = () => {
         </div>
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-white text-sm font-medium mb-4 backdrop-blur-sm border border-white/10">
-              <MapPin className="w-4 h-4" /> Sua localização: São Paulo, SP
-            </span>
+            {clientData.city && clientData.state && (
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-white text-sm font-medium mb-4 backdrop-blur-sm border border-white/10">
+                <MapPin className="w-4 h-4" /> Sua localização: {clientData.city}, {clientData.state}
+              </span>
+            )}
             <h1 className="text-3xl md:text-5xl font-black text-white mb-4 tracking-tight">
-              Olá, João!
+              Olá, {clientData.name}!
             </h1>
             <p className="text-lg text-slate-300 font-medium">
               Encontre o especialista ideal para o seu caso.
@@ -63,17 +144,26 @@ export const ClientDashboard = () => {
             <div className="p-2.5 bg-amber-100 text-amber-600 rounded-xl">
               <Sparkles className="w-6 h-6" />
             </div>
-            <h2 className="text-2xl font-black text-[#0F172A]">Recomendados perto de você</h2>
+            <h2 className="text-2xl font-black text-[#0F172A]">Recomendados na plataforma</h2>
           </div>
           <Link to="/painel/cliente/buscar" className="text-sm font-bold text-blue-600 hover:text-blue-800 hidden sm:block">
             Ver todos profissionais
           </Link>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {featuredLawyers.map(lawyer => (
-            <LawyerCard key={lawyer.id} lawyer={lawyer} />
-          ))}
-        </div>
+        
+        {recommendedLawyers.length > 0 ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {recommendedLawyers.map(lawyer => (
+              <LawyerCard key={lawyer.id} lawyer={lawyer} />
+            ))}
+          </div>
+        ) : (
+          <EmptyState 
+            icon={Sparkles} 
+            title="Nenhum advogado verificado ainda" 
+            description="Estamos cadastrando os melhores profissionais. Faça uma busca para ver todos os perfis disponíveis."
+          />
+        )}
       </div>
 
       {/* Histórico e Salvos */}
@@ -89,35 +179,19 @@ export const ClientDashboard = () => {
           </TabsList>
 
           <TabsContent value="recentes" className="space-y-6 outline-none">
-            {recentLawyers.length > 0 ? (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {recentLawyers.map(lawyer => (
-                  <LawyerCard key={lawyer.id} lawyer={lawyer} />
-                ))}
-              </div>
-            ) : (
-              <EmptyState 
-                icon={Clock} 
-                title="Nenhum perfil visto" 
-                description="Os advogados que você visitar recentemente aparecerão aqui para fácil acesso."
-              />
-            )}
+            <EmptyState 
+              icon={Clock} 
+              title="Nenhum perfil visto" 
+              description="Os advogados que você visitar recentemente aparecerão aqui para fácil acesso."
+            />
           </TabsContent>
 
           <TabsContent value="salvos" className="space-y-6 outline-none">
-            {savedLawyers.length > 0 ? (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {savedLawyers.map(lawyer => (
-                  <LawyerCard key={lawyer.id} lawyer={lawyer} />
-                ))}
-              </div>
-            ) : (
-              <EmptyState 
-                icon={Bookmark} 
-                title="Nenhum advogado salvo" 
-                description="Salve os perfis que você mais gostou para entrar em contato no momento certo."
-              />
-            )}
+            <EmptyState 
+              icon={Bookmark} 
+              title="Nenhum advogado salvo" 
+              description="Em breve você poderá salvar os perfis que mais gostou para entrar em contato no momento certo."
+            />
           </TabsContent>
         </Tabs>
       </div>
