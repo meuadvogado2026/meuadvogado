@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Save, User, MapPin, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { estados, cidadesPorEstado } from "@/data/locations";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -23,6 +22,7 @@ export const ClientProfile = () => {
     state: "",
     street: "",
     neighborhood: "",
+    addressNumber: "",
     lat: null as number | null,
     lng: null as number | null,
     password: ""
@@ -52,6 +52,7 @@ export const ClientProfile = () => {
             state: data.state || "",
             street: data.street || "",
             neighborhood: data.neighborhood || "",
+            addressNumber: data.address_number || "",
             lat: data.lat ? parseFloat(data.lat) : null,
             lng: data.lng ? parseFloat(data.lng) : null
           }));
@@ -69,10 +70,7 @@ export const ClientProfile = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setProfile(prev => {
-      if (name === 'state') return { ...prev, state: value, city: '' };
-      return { ...prev, [name]: value };
-    });
+    setProfile(prev => ({ ...prev, [name]: value }));
   };
 
   const applyCepMask = (value: string) => {
@@ -98,7 +96,12 @@ export const ClientProfile = () => {
             lat: data.location?.coordinates?.latitude ? parseFloat(data.location.coordinates.latitude) : prev.lat,
             lng: data.location?.coordinates?.longitude ? parseFloat(data.location.coordinates.longitude) : prev.lng
           }));
-          toast.success("Endereço preenchido com coordenadas!");
+          
+          if (data.street) {
+            document.getElementById('edit-address-number-client')?.focus();
+          }
+
+          toast.success("Endereço atualizado com sucesso!");
         }
       } catch (error) {
         // Silencioso em caso de erro de rede no CEP
@@ -121,6 +124,7 @@ export const ClientProfile = () => {
           state: profile.state,
           street: profile.street,
           neighborhood: profile.neighborhood,
+          address_number: profile.addressNumber,
           lat: profile.lat,
           lng: profile.lng
         })
@@ -219,7 +223,7 @@ export const ClientProfile = () => {
               <MapPin className="w-4 h-4 text-primary" /> Localização
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
-              <div className="space-y-2 md:col-span-2">
+              <div className="sm:col-span-2">
                 <Label className="font-bold text-slate-700">CEP</Label>
                 <Input 
                   name="cep" 
@@ -229,55 +233,55 @@ export const ClientProfile = () => {
                   className="h-12 rounded-xl bg-slate-50 border-slate-200" 
                 />
               </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label className="font-bold text-slate-700">Estado (UF)</Label>
-                <select 
-                  name="state"
+              
+              <div className="sm:col-span-1">
+                <Label className="font-bold text-slate-700">Estado</Label>
+                <Input 
+                  readOnly 
                   value={profile.state} 
-                  onChange={handleChange}
-                  className="flex h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none"
-                >
-                  <option value="" disabled>Selecione</option>
-                  {estados.map(estado => (
-                    <option key={estado.sigla} value={estado.sigla}>{estado.sigla}</option>
-                  ))}
-                </select>
+                  placeholder="Auto" 
+                  className="h-12 rounded-xl bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed" 
+                />
               </div>
-              <div className="space-y-2 md:col-span-2">
+              <div className="sm:col-span-3">
                 <Label className="font-bold text-slate-700">Cidade</Label>
-                <select 
-                  name="city"
+                <Input 
+                  readOnly 
                   value={profile.city} 
-                  onChange={handleChange}
-                  disabled={!profile.state}
-                  className="flex h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none disabled:opacity-50"
-                >
-                  <option value="" disabled>Selecione</option>
-                  {profile.state && cidadesPorEstado[profile.state]?.map(city => (
-                    <option key={city} value={city}>{city}</option>
-                  ))}
-                  {profile.city && (!profile.state || !cidadesPorEstado[profile.state]?.includes(profile.city)) && (
-                     <option value={profile.city}>{profile.city}</option>
-                  )}
-                </select>
+                  placeholder="Auto" 
+                  className="h-12 rounded-xl bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed" 
+                />
               </div>
 
-              <div className="space-y-2 md:col-span-3">
+              <div className="sm:col-span-2">
                 <Label className="font-bold text-slate-700">Bairro</Label>
                 <Input 
+                  readOnly={!!profile.neighborhood} 
                   name="neighborhood" 
                   value={profile.neighborhood} 
                   onChange={handleChange} 
-                  className="h-12 rounded-xl bg-slate-50 border-slate-200" 
+                  className={`h-12 rounded-xl border-slate-200 ${profile.neighborhood ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`} 
                 />
               </div>
-              <div className="space-y-2 md:col-span-3">
-                <Label className="font-bold text-slate-700">Rua / Logradouro</Label>
+              <div className="sm:col-span-3">
+                <Label className="text-slate-700 font-bold">Rua / Logradouro</Label>
                 <Input 
+                  readOnly={!!profile.street} 
                   name="street" 
                   value={profile.street} 
                   onChange={handleChange} 
-                  className="h-12 rounded-xl bg-slate-50 border-slate-200" 
+                  className={`h-12 rounded-xl border-slate-200 ${profile.street ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`} 
+                />
+              </div>
+              <div className="sm:col-span-1">
+                <Label className="text-slate-700 font-bold">Num/Ap</Label>
+                <Input 
+                  id="edit-address-number-client"
+                  name="addressNumber" 
+                  value={profile.addressNumber} 
+                  onChange={handleChange} 
+                  placeholder="Ex: 10" 
+                  className="h-12 rounded-xl bg-white border-slate-300 shadow-sm focus:border-blue-500" 
                 />
               </div>
             </div>

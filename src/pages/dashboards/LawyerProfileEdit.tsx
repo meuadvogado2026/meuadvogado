@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { specialties } from "@/data/mock";
-import { estados, cidadesPorEstado } from "@/data/locations";
+import { estados } from "@/data/locations";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -32,6 +32,7 @@ export const LawyerProfileEdit = () => {
     state: "",
     street: "",
     neighborhood: "",
+    addressNumber: "",
     lat: null as number | null,
     lng: null as number | null,
     attendanceType: "Híbrido (Online e Presencial)",
@@ -82,6 +83,7 @@ export const LawyerProfileEdit = () => {
             cep: pData.cep || "",
             street: pData.street || "",
             neighborhood: pData.neighborhood || "",
+            addressNumber: pData.address_number || "",
             lat: pData.lat ? parseFloat(pData.lat) : null,
             lng: pData.lng ? parseFloat(pData.lng) : null,
             avatar: pData.avatar_url || prev.avatar,
@@ -119,10 +121,7 @@ export const LawyerProfileEdit = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setProfile(prev => {
-      if (name === 'state') return { ...prev, state: value, city: '' };
-      return { ...prev, [name]: value };
-    });
+    setProfile(prev => ({ ...prev, [name]: value }));
   };
 
   const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -144,7 +143,12 @@ export const LawyerProfileEdit = () => {
             lat: data.location?.coordinates?.latitude ? parseFloat(data.location.coordinates.latitude) : prev.lat,
             lng: data.location?.coordinates?.longitude ? parseFloat(data.location.coordinates.longitude) : prev.lng
           }));
-          toast.success("Endereço preenchido com coordenadas!");
+          
+          if (data.street) {
+            document.getElementById('edit-address-number')?.focus();
+          }
+          
+          toast.success("Endereço atualizado com sucesso!");
         }
       } catch (error) {
         console.error(error);
@@ -203,6 +207,7 @@ export const LawyerProfileEdit = () => {
           cep: profile.cep,
           street: profile.street,
           neighborhood: profile.neighborhood,
+          address_number: profile.addressNumber,
           lat: profile.lat,
           lng: profile.lng,
           avatar_url: profile.avatar,
@@ -366,12 +371,12 @@ export const LawyerProfileEdit = () => {
               <div className="w-full h-px bg-slate-100" />
 
               <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-                <div className="space-y-2 md:col-span-2">
-                  <Label className="font-bold text-slate-700">CEP do Escritório</Label>
+                <div className="sm:col-span-2 relative">
+                  <Label className="text-slate-700 font-bold">CEP do Escritório</Label>
                   <Input name="cep" value={profile.cep} onChange={handleCepChange} maxLength={9} className="h-11 rounded-xl bg-slate-50" />
                 </div>
-                <div className="space-y-2 md:col-span-4">
-                  <Label className="font-bold text-slate-700">Formato de Atendimento</Label>
+                <div className="sm:col-span-4">
+                  <Label className="text-slate-700 font-bold">Formato de Atendimento</Label>
                   <select 
                     name="attendanceType" 
                     value={profile.attendanceType} 
@@ -384,46 +389,55 @@ export const LawyerProfileEdit = () => {
                   </select>
                 </div>
                 
-                <div className="space-y-2 md:col-span-3">
-                  <Label className="font-bold text-slate-700">Estado (UF)</Label>
-                  <select 
-                    name="state"
+                <div className="sm:col-span-2">
+                  <Label className="text-slate-700 font-bold">Estado (UF)</Label>
+                  <Input 
+                    readOnly 
                     value={profile.state} 
-                    onChange={handleChange}
-                    className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none"
-                  >
-                    <option value="" disabled>Selecione o Estado</option>
-                    {estados.map(estado => (
-                      <option key={estado.sigla} value={estado.sigla}>{estado.sigla} - {estado.nome}</option>
-                    ))}
-                  </select>
+                    placeholder="Auto" 
+                    className="h-11 rounded-xl bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed" 
+                  />
                 </div>
-                <div className="space-y-2 md:col-span-3">
-                  <Label className="font-bold text-slate-700">Cidade</Label>
-                  <select 
-                    name="city"
+                <div className="sm:col-span-4">
+                  <Label className="text-slate-700 font-bold">Cidade</Label>
+                  <Input 
+                    readOnly 
                     value={profile.city} 
-                    onChange={handleChange}
-                    disabled={!profile.state}
-                    className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none disabled:opacity-50"
-                  >
-                    <option value="" disabled>Selecione a Cidade</option>
-                    {profile.state && cidadesPorEstado[profile.state]?.map(city => (
-                      <option key={city} value={city}>{city}</option>
-                    ))}
-                    {profile.city && !cidadesPorEstado[profile.state]?.includes(profile.city) && (
-                       <option value={profile.city}>{profile.city}</option>
-                    )}
-                  </select>
+                    placeholder="Auto" 
+                    className="h-11 rounded-xl bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed" 
+                  />
                 </div>
 
-                <div className="space-y-2 md:col-span-3">
-                  <Label className="font-bold text-slate-700">Bairro</Label>
-                  <Input name="neighborhood" value={profile.neighborhood} onChange={handleChange} className="h-11 rounded-xl bg-slate-50" />
+                <div className="sm:col-span-2">
+                  <Label className="text-slate-700 font-bold">Bairro</Label>
+                  <Input 
+                    readOnly={!!profile.neighborhood} 
+                    name="neighborhood" 
+                    value={profile.neighborhood} 
+                    onChange={handleChange} 
+                    className={`h-11 rounded-xl border-slate-200 ${profile.neighborhood ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`} 
+                  />
                 </div>
-                <div className="space-y-2 md:col-span-3">
-                  <Label className="font-bold text-slate-700">Rua / Logradouro</Label>
-                  <Input name="street" value={profile.street} onChange={handleChange} className="h-11 rounded-xl bg-slate-50" />
+                <div className="sm:col-span-3">
+                  <Label className="text-slate-700 font-bold">Rua / Logradouro</Label>
+                  <Input 
+                    readOnly={!!profile.street} 
+                    name="street" 
+                    value={profile.street} 
+                    onChange={handleChange} 
+                    className={`h-11 rounded-xl border-slate-200 ${profile.street ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`} 
+                  />
+                </div>
+                <div className="sm:col-span-1">
+                  <Label className="text-slate-700 font-bold">Num / Ap</Label>
+                  <Input 
+                    id="edit-address-number"
+                    name="addressNumber" 
+                    value={profile.addressNumber} 
+                    onChange={handleChange} 
+                    placeholder="Ex: 10" 
+                    className="h-11 rounded-xl bg-white border-slate-300 shadow-sm focus:border-primary" 
+                  />
                 </div>
               </div>
             </CardContent>

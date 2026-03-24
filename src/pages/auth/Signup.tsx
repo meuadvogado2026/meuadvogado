@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Briefcase, MapPin, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { estados, cidadesPorEstado } from "@/data/locations";
+import { estados } from "@/data/locations";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Signup = () => {
@@ -25,6 +25,7 @@ export const Signup = () => {
   const [clientCity, setClientCity] = useState("");
   const [clientStreet, setClientStreet] = useState("");
   const [clientNeighborhood, setClientNeighborhood] = useState("");
+  const [clientAddressNumber, setClientAddressNumber] = useState("");
   const [clientLat, setClientLat] = useState<number | null>(null);
   const [clientLng, setClientLng] = useState<number | null>(null);
   const [isFetchingClientCep, setIsFetchingClientCep] = useState(false);
@@ -42,6 +43,7 @@ export const Signup = () => {
   const [lawyerCity, setLawyerCity] = useState("");
   const [lawyerStreet, setLawyerStreet] = useState("");
   const [lawyerNeighborhood, setLawyerNeighborhood] = useState("");
+  const [lawyerAddressNumber, setLawyerAddressNumber] = useState("");
   const [lawyerLat, setLawyerLat] = useState<number | null>(null);
   const [lawyerLng, setLawyerLng] = useState<number | null>(null);
   const [isFetchingLawyerCep, setIsFetchingLawyerCep] = useState(false);
@@ -84,6 +86,12 @@ export const Signup = () => {
         setLawyerLat(lat);
         setLawyerLng(lng);
       }
+      
+      // Foca automaticamente no campo "Número" se tiver achado a rua
+      if (data.street) {
+        document.getElementById(`address-number-${type}`)?.focus();
+      }
+      
       toast.success("Endereço preenchido!", { description: `${data.street || data.neighborhood || data.city}` });
     } catch (error) {
       toast.error("Erro ao buscar CEP", { description: "Tente preencher os dados manualmente." });
@@ -116,6 +124,7 @@ export const Signup = () => {
     const cep = role === 'client' ? clientCep : lawyerCep;
     const lat = role === 'client' ? clientLat : lawyerLat;
     const lng = role === 'client' ? clientLng : lawyerLng;
+    const address_number = role === 'client' ? clientAddressNumber : lawyerAddressNumber;
 
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -129,9 +138,8 @@ export const Signup = () => {
       if (error) throw error;
 
       if (data.session) {
-        // Atualiza campos adicionais, inclusive rua, bairro e as COORDENADAS GPS
         await supabase.from('profiles').update({
-          phone, city, state, street, neighborhood, cep, lat, lng
+          phone, city, state, street, neighborhood, cep, lat, lng, address_number
         }).eq('id', data.user!.id);
         
         toast.success("Conta criada com sucesso!");
@@ -194,6 +202,7 @@ export const Signup = () => {
                       <MapPin className="w-4 h-4 text-blue-600"/>
                       <span className="font-bold text-slate-800 text-sm">Seu Endereço</span>
                     </div>
+                    
                     <div className="grid grid-cols-1 sm:grid-cols-6 gap-4">
                       <div className="sm:col-span-2 relative">
                         <Label className="text-slate-700 font-bold">CEP</Label>
@@ -213,50 +222,52 @@ export const Signup = () => {
                       </div>
                       <div className="sm:col-span-2">
                         <Label className="text-slate-700 font-bold">Estado (UF)</Label>
-                        <select 
-                          required 
-                          value={clientState}
-                          onChange={(e) => {
-                            setClientState(e.target.value);
-                            setClientCity("");
-                          }}
-                          className="mt-1 flex h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none"
-                        >
-                          <option value="" disabled>Selecione</option>
-                          {estados.map(estado => (
-                            <option key={estado.sigla} value={estado.sigla}>{estado.sigla}</option>
-                          ))}
-                        </select>
+                        <Input 
+                          readOnly 
+                          value={clientState} 
+                          placeholder="Auto" 
+                          className="mt-1 h-12 rounded-xl bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed" 
+                        />
                       </div>
                       <div className="sm:col-span-2">
                         <Label className="text-slate-700 font-bold">Cidade</Label>
-                        <select 
-                          required 
-                          value={clientCity}
-                          onChange={(e) => setClientCity(e.target.value)}
-                          disabled={!clientState}
-                          className="mt-1 flex h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
-                        >
-                          <option value="" disabled>Selecione</option>
-                          {clientState && cidadesPorEstado[clientState]?.map(city => (
-                            <option key={city} value={city}>{city}</option>
-                          ))}
-                          {clientCity && (!clientState || !cidadesPorEstado[clientState]?.includes(clientCity)) && (
-                            <option value={clientCity}>{clientCity}</option>
-                          )}
-                        </select>
+                        <Input 
+                          readOnly 
+                          value={clientCity} 
+                          placeholder="Auto" 
+                          className="mt-1 h-12 rounded-xl bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed" 
+                        />
                       </div>
 
-                      {/* Logradouro e Bairro */}
-                      <div className="sm:col-span-3">
+                      <div className="sm:col-span-2">
                         <Label className="text-slate-700 font-bold">Bairro</Label>
-                        <Input required value={clientNeighborhood} onChange={(e) => setClientNeighborhood(e.target.value)} className="mt-1 h-12 rounded-xl bg-white border-slate-200" />
+                        <Input 
+                          readOnly={!!clientNeighborhood} 
+                          value={clientNeighborhood} 
+                          onChange={(e) => setClientNeighborhood(e.target.value)} 
+                          className={`mt-1 h-12 rounded-xl border-slate-200 ${clientNeighborhood ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`} 
+                        />
                       </div>
                       <div className="sm:col-span-3">
                         <Label className="text-slate-700 font-bold">Rua / Logradouro</Label>
-                        <Input required value={clientStreet} onChange={(e) => setClientStreet(e.target.value)} className="mt-1 h-12 rounded-xl bg-white border-slate-200" />
+                        <Input 
+                          readOnly={!!clientStreet} 
+                          value={clientStreet} 
+                          onChange={(e) => setClientStreet(e.target.value)} 
+                          className={`mt-1 h-12 rounded-xl border-slate-200 ${clientStreet ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`} 
+                        />
                       </div>
-
+                      <div className="sm:col-span-1">
+                        <Label className="text-slate-700 font-bold">Número</Label>
+                        <Input 
+                          id="address-number-client"
+                          required 
+                          value={clientAddressNumber} 
+                          onChange={(e) => setClientAddressNumber(e.target.value)} 
+                          className="mt-1 h-12 rounded-xl bg-white border-slate-300 shadow-sm focus:border-blue-500" 
+                          placeholder="Ex: 10" 
+                        />
+                      </div>
                     </div>
                   </div>
 
@@ -331,59 +342,63 @@ export const Signup = () => {
                           </div>
                         )}
                       </div>
-                      <div className="sm:col-span-2">
-                        <Label className="text-slate-700 font-bold">Estado (UF)</Label>
-                        <select 
-                          required 
-                          value={lawyerState}
-                          onChange={(e) => {
-                            setLawyerState(e.target.value);
-                            setLawyerCity("");
-                          }}
-                          className="mt-1 flex h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none"
-                        >
-                          <option value="" disabled>Selecione</option>
-                          {estados.map(estado => (
-                            <option key={estado.sigla} value={estado.sigla}>{estado.sigla}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="sm:col-span-2">
-                        <Label className="text-slate-700 font-bold">Cidade</Label>
-                        <select 
-                          required 
-                          value={lawyerCity}
-                          onChange={(e) => setLawyerCity(e.target.value)}
-                          disabled={!lawyerState}
-                          className="mt-1 flex h-12 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
-                        >
-                          <option value="" disabled>Selecione</option>
-                          {lawyerState && cidadesPorEstado[lawyerState]?.map(city => (
-                            <option key={city} value={city}>{city}</option>
-                          ))}
-                          {lawyerCity && (!lawyerState || !cidadesPorEstado[lawyerState]?.includes(lawyerCity)) && (
-                            <option value={lawyerCity}>{lawyerCity}</option>
-                          )}
+                      <div className="sm:col-span-4">
+                        <Label className="text-slate-700 font-bold">Formato de Atendimento</Label>
+                        <select required value={lawyerAttendance} onChange={(e) => setLawyerAttendance(e.target.value)} className="mt-1 w-full h-12 rounded-xl bg-white border border-slate-200 px-3 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none">
+                          <option value="Híbrido (Online e Presencial)">Híbrido (Online e Presencial)</option>
+                          <option value="Online">Apenas Online</option>
+                          <option value="Presencial">Apenas Presencial</option>
                         </select>
                       </div>
 
-                      <div className="sm:col-span-3">
+                      <div className="sm:col-span-2">
+                        <Label className="text-slate-700 font-bold">Estado (UF)</Label>
+                        <Input 
+                          readOnly 
+                          value={lawyerState} 
+                          placeholder="Auto" 
+                          className="mt-1 h-12 rounded-xl bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed" 
+                        />
+                      </div>
+                      <div className="sm:col-span-4">
+                        <Label className="text-slate-700 font-bold">Cidade</Label>
+                        <Input 
+                          readOnly 
+                          value={lawyerCity} 
+                          placeholder="Auto" 
+                          className="mt-1 h-12 rounded-xl bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed" 
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
                         <Label className="text-slate-700 font-bold">Bairro</Label>
-                        <Input required value={lawyerNeighborhood} onChange={(e) => setLawyerNeighborhood(e.target.value)} className="mt-1 h-12 rounded-xl bg-white border-slate-200" />
+                        <Input 
+                          readOnly={!!lawyerNeighborhood} 
+                          value={lawyerNeighborhood} 
+                          onChange={(e) => setLawyerNeighborhood(e.target.value)} 
+                          className={`mt-1 h-12 rounded-xl border-slate-200 ${lawyerNeighborhood ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`} 
+                        />
                       </div>
                       <div className="sm:col-span-3">
                         <Label className="text-slate-700 font-bold">Rua / Logradouro</Label>
-                        <Input required value={lawyerStreet} onChange={(e) => setLawyerStreet(e.target.value)} className="mt-1 h-12 rounded-xl bg-white border-slate-200" />
+                        <Input 
+                          readOnly={!!lawyerStreet} 
+                          value={lawyerStreet} 
+                          onChange={(e) => setLawyerStreet(e.target.value)} 
+                          className={`mt-1 h-12 rounded-xl border-slate-200 ${lawyerStreet ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`} 
+                        />
                       </div>
-                    </div>
-                    
-                    <div>
-                      <Label className="text-slate-700 font-bold">Formato de Atendimento</Label>
-                      <select required value={lawyerAttendance} onChange={(e) => setLawyerAttendance(e.target.value)} className="mt-1 w-full h-12 rounded-xl bg-white border border-slate-200 px-3 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none">
-                        <option value="Híbrido (Online e Presencial)">Híbrido (Online e Presencial)</option>
-                        <option value="Online">Apenas Online</option>
-                        <option value="Presencial">Apenas Presencial</option>
-                      </select>
+                      <div className="sm:col-span-1">
+                        <Label className="text-slate-700 font-bold">Num / Ap</Label>
+                        <Input 
+                          id="address-number-lawyer"
+                          required 
+                          value={lawyerAddressNumber} 
+                          onChange={(e) => setLawyerAddressNumber(e.target.value)} 
+                          className="mt-1 h-12 rounded-xl bg-white border-slate-300 shadow-sm focus:border-[#1E3A5F]" 
+                          placeholder="Ex: 10" 
+                        />
+                      </div>
                     </div>
                   </div>
 
