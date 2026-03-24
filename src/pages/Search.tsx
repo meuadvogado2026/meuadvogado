@@ -64,6 +64,7 @@ export const Search = () => {
               id: p.id,
               name: p.name || 'Advogado(a)',
               specialty: d.main_specialty || 'Não informada',
+              secondarySpecialties: d.secondary_specialties || [], // Adicionando especialidades secundárias
               city: p.city || '',
               state: p.state || '',
               cep: p.cep || '',
@@ -195,14 +196,15 @@ export const Search = () => {
   const filteredLawyers = processedLawyers
     .filter(lawyer => {
       const matchesSearch = lawyer.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesSpecialty = selectedSpecialty === "all" || lawyer.specialty === selectedSpecialty;
+      
+      // Checa tanto a especialidade principal quanto as secundárias
+      const matchesSpecialty = selectedSpecialty === "all" || 
+                               lawyer.specialty === selectedSpecialty || 
+                               (lawyer.secondarySpecialties && lawyer.secondarySpecialties.includes(selectedSpecialty));
       
       let matchesCity = true;
       let matchesState = true;
 
-      // Se não houver uma localização exata de usuário (GPS/CEP com coordenadas),
-      // a busca exige que a cidade/estado batam estritamente.
-      // Se tiver coordenadas, ignoramos os campos textuais de cidade para poder trazer de cidades vizinhas.
       if (!userLocation) {
         matchesCity = selectedCity === "" || lawyer.city.toLowerCase() === selectedCity.toLowerCase();
         matchesState = selectedState === "" || lawyer.state.toLowerCase() === selectedState.toLowerCase();
@@ -216,13 +218,12 @@ export const Search = () => {
     })
     .sort((a, b) => {
       if (sortBy === "distance") {
-        const distA = a.distance ?? 999999; // Se não tiver lat/lng, joga pro fim da lista
+        const distA = a.distance ?? 999999; 
         const distB = b.distance ?? 999999;
         if (distA !== distB) {
-          return distA - distB; // O mais próximo aparece primeiro
+          return distA - distB; 
         }
       }
-      // Se não ordenou por distância, ou empatou (ex: os dois sem GPS), ordena por avaliação
       return b.rating - a.rating;
     });
 
@@ -280,8 +281,8 @@ export const Search = () => {
               onChange={(e) => {
                 setSelectedState(e.target.value);
                 setSelectedCity(""); 
-                setUserLocation(null); // Reseta GPS para forçar filtro de texto
-                setCepParam(""); // Limpa o CEP se trocar UF manual
+                setUserLocation(null); 
+                setCepParam(""); 
                 setSortBy("recommended");
               }}
               className="h-11 rounded-xl bg-slate-50 border-slate-200 col-span-1 px-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none"

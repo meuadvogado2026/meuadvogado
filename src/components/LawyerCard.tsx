@@ -11,6 +11,7 @@ interface LawyerCardProps {
     id: string;
     name: string;
     specialty: string;
+    secondarySpecialties?: string[];
     city: string;
     state: string;
     cep?: string;
@@ -23,7 +24,7 @@ interface LawyerCardProps {
     cover?: string;
     bio: string;
     type?: string;
-    phone?: string; // Adicionado suporte para telefone
+    phone?: string;
   };
 }
 
@@ -85,10 +86,20 @@ export const LawyerCard = ({ lawyer }: LawyerCardProps) => {
                   )}
                 </h3>
               </Link>
-              <div className="flex flex-wrap items-center gap-2 mt-1.5">
+              
+              <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                 <Badge variant="secondary" className="bg-blue-50 text-blue-700 font-bold border-blue-100 text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5">
                   {lawyer.specialty}
                 </Badge>
+                {/* Mostra até 2 especialidades secundárias */}
+                {lawyer.secondarySpecialties && lawyer.secondarySpecialties.slice(0, 2).map((spec, i) => (
+                  <Badge key={i} variant="outline" className="text-slate-500 font-medium border-slate-200 text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5">
+                    {spec}
+                  </Badge>
+                ))}
+                {lawyer.secondarySpecialties && lawyer.secondarySpecialties.length > 2 && (
+                  <span className="text-[10px] font-bold text-slate-400">+{lawyer.secondarySpecialties.length - 2}</span>
+                )}
               </div>
             </div>
             
