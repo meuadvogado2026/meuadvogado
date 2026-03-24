@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from "react-router-dom";
-import { Search, User, LayoutDashboard, Briefcase, ShieldCheck, Settings, PieChart, AlertTriangle, HeartHandshake } from "lucide-react";
+import { Search, User, LayoutDashboard, Briefcase, ShieldCheck, Settings, PieChart, AlertTriangle, HeartHandshake, Gift } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MobileNavProps {
@@ -26,8 +26,8 @@ export const MobileNav = ({ role = 'public', onOpenPrayer }: MobileNavProps) => 
         return [
           { icon: LayoutDashboard, label: 'Painel', path: '/painel/advogado' },
           { icon: Search, label: 'Colegas', path: '/painel/advogado/buscar' },
+          { icon: Gift, label: 'Benefícios', path: '/painel/advogado/beneficios' },
           { icon: User, label: 'Perfil', path: '/painel/advogado/perfil' },
-          { icon: Settings, label: 'Config', path: '/painel/advogado/config' },
           { icon: HeartHandshake, label: 'Oração', action: 'prayer' },
         ];
       case 'admin':
@@ -35,6 +35,7 @@ export const MobileNav = ({ role = 'public', onOpenPrayer }: MobileNavProps) => 
           { icon: PieChart, label: 'Métricas', path: '/admin' },
           { icon: AlertTriangle, label: 'Urgências', path: '/admin/urgencias' },
           { icon: ShieldCheck, label: 'Aprovações', path: '/admin/aprovacoes' },
+          { icon: Gift, label: 'Benefícios', path: '/admin/beneficios' },
         ];
       default:
         return [
@@ -66,7 +67,9 @@ export const MobileNav = ({ role = 'public', onOpenPrayer }: MobileNavProps) => 
         const isViewingProfile = location.pathname.includes('/advogado/') && link.path?.includes('/buscar');
         const isActive = location.pathname === link.path || isViewingProfile;
         const Icon = link.icon;
+        
         const isUrgencyLink = link.path === '/admin/urgencias';
+        const isBenefitsLink = link.path?.includes('/beneficios');
         
         return (
           <Link 
@@ -74,12 +77,12 @@ export const MobileNav = ({ role = 'public', onOpenPrayer }: MobileNavProps) => 
             to={link.path || '#'} 
             className={cn(
               "flex flex-col items-center justify-center py-1 px-3 min-w-[64px] transition-colors relative",
-              isActive ? (isUrgencyLink ? "text-red-600" : "text-primary") : (isUrgencyLink ? "text-red-400 hover:text-red-600" : "text-slate-400 hover:text-slate-600")
+              isActive ? (isUrgencyLink ? "text-red-600" : isBenefitsLink ? "text-amber-500" : "text-primary") : (isUrgencyLink ? "text-red-400 hover:text-red-600" : isBenefitsLink ? "text-amber-400 hover:text-amber-600" : "text-slate-400 hover:text-slate-600")
             )}
           >
-            <Icon className={cn("w-6 h-6 mb-1", isActive ? "stroke-[2.5px]" : "stroke-[2px]", isUrgencyLink && !isActive && "text-red-400")} />
+            <Icon className={cn("w-6 h-6 mb-1", isActive ? "stroke-[2.5px]" : "stroke-[2px]", isUrgencyLink && !isActive && "text-red-400", isBenefitsLink && !isActive && "text-amber-400")} />
             <span className="text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">{link.label}</span>
-            {isActive && <span className={cn("absolute -bottom-2 w-8 h-1 rounded-t-full", isUrgencyLink ? "bg-red-600" : "bg-primary")} />}
+            {isActive && <span className={cn("absolute -bottom-2 w-8 h-1 rounded-t-full", isUrgencyLink ? "bg-red-600" : isBenefitsLink ? "bg-amber-500" : "bg-primary")} />}
           </Link>
         );
       })}

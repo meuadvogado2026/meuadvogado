@@ -21,11 +21,13 @@ import { ClientProfile } from "./pages/dashboards/ClientProfile";
 import { LawyerDashboard } from "./pages/dashboards/LawyerDashboard";
 import { LawyerProfileEdit } from "./pages/dashboards/LawyerProfileEdit";
 import { LawyerSettings } from "./pages/dashboards/LawyerSettings";
+import { LawyerBenefits } from "./pages/dashboards/LawyerBenefits";
 import { AdminDashboard } from "./pages/dashboards/AdminDashboard";
 import { AdminApprovals } from "./pages/dashboards/AdminApprovals";
 import { AdminUsers } from "./pages/dashboards/AdminUsers";
 import { AdminPrayers } from "./pages/dashboards/AdminPrayers";
 import { AdminUrgentCalls } from "./pages/dashboards/AdminUrgentCalls";
+import { AdminBenefits } from "./pages/dashboards/AdminBenefits";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -70,6 +72,7 @@ const App = () => (
             }>
               <Route path="/painel/advogado" element={<LawyerDashboard />} />
               <Route path="/painel/advogado/buscar" element={<Search />} />
+              <Route path="/painel/advogado/beneficios" element={<LawyerBenefits />} />
               <Route path="/painel/advogado/advogado/:id" element={<LawyerProfile />} />
               <Route path="/painel/advogado/perfil" element={<LawyerProfileEdit />} />
               <Route path="/painel/advogado/config" element={<LawyerSettings />} />
@@ -87,6 +90,7 @@ const App = () => (
               <Route path="/admin/aprovacoes" element={<AdminApprovals />} />
               <Route path="/admin/usuarios" element={<AdminUsers />} />
               <Route path="/admin/oracoes" element={<AdminPrayers />} />
+              <Route path="/admin/beneficios" element={<AdminBenefits />} />
               <Route path="/admin/*" element={<AdminDashboard />} />
             </Route>
 

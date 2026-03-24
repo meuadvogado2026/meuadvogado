@@ -13,7 +13,8 @@ import {
   ChevronRight,
   HeartHandshake,
   Loader2,
-  AlertTriangle
+  AlertTriangle,
+  Gift
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MobileNav } from "@/components/MobileNav";
@@ -39,13 +40,11 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
   const [prayerRequest, setPrayerRequest] = useState("");
   const [isSubmittingPrayer, setIsSubmittingPrayer] = useState(false);
 
-  // Escuta chamadas urgentes em tempo real para o ADMIN
   useEffect(() => {
     if (role !== 'admin') return;
 
     const channel = supabase.channel('urgent_calls_admin_alert')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'urgent_calls' }, (payload) => {
-        // Dispara um toast vermelho gigante que chama atenção
         toast.error("🚨 NOVA CHAMADA URGENTE!", {
           description: `O cliente ${payload.new.client_name} acabou de acionar o plantão com ${payload.new.lawyer_name}.`,
           duration: 15000,
@@ -55,7 +54,6 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
           }
         });
         
-        // Opcional: Tocar um som
         try {
           const audio = new Audio('/alert.mp3'); 
           audio.play().catch(() => {});
@@ -124,6 +122,7 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
         return [
           { icon: LayoutDashboard, label: 'Meu Desempenho', path: '/painel/advogado' },
           { icon: Search, label: 'Buscar Colegas', path: '/painel/advogado/buscar' },
+          { icon: Gift, label: 'Benefícios', path: '/painel/advogado/beneficios' },
           { icon: User, label: 'Editar Perfil', path: '/painel/advogado/perfil' },
           { icon: Settings, label: 'Configurações', path: '/painel/advogado/config' },
         ];
@@ -134,6 +133,7 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
           { icon: ShieldCheck, label: 'Aprovações', path: '/admin/aprovacoes' },
           { icon: Users, label: 'Usuários', path: '/admin/usuarios' },
           { icon: HeartHandshake, label: 'Orações', path: '/admin/oracoes' },
+          { icon: Gift, label: 'Benefícios', path: '/admin/beneficios' },
         ];
     }
   };
@@ -184,35 +184,35 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
             const isActive = location.pathname === link.path || isViewingProfile;
             const Icon = link.icon;
             
-            // Destaque vermelho para o botão de urgências no menu
             const isUrgencyLink = link.path === '/admin/urgencias';
+            const isBenefitsLink = link.path.includes('/beneficios');
 
             return (
               <Link key={link.path} to={link.path} className="block group">
                 <div className={cn(
                   "flex items-center justify-between px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200",
                   isActive 
-                    ? (isUrgencyLink ? "bg-red-600/15 text-red-400 border border-red-500/20 shadow-inner" : "bg-blue-600/15 text-blue-400 border border-blue-500/20 shadow-inner") 
+                    ? (isUrgencyLink ? "bg-red-600/15 text-red-400 border border-red-500/20 shadow-inner" : isBenefitsLink ? "bg-amber-600/15 text-amber-400 border border-amber-500/20 shadow-inner" : "bg-blue-600/15 text-blue-400 border border-blue-500/20 shadow-inner") 
                     : "text-slate-400 border border-transparent hover:bg-slate-900 hover:text-slate-200",
-                  !isActive && isUrgencyLink && "hover:text-red-400"
+                  !isActive && isUrgencyLink && "hover:text-red-400",
+                  !isActive && isBenefitsLink && "hover:text-amber-400"
                 )}>
                   <div className="flex items-center gap-3">
                     <Icon className={cn(
                       "w-5 h-5", 
                       isActive 
-                        ? (isUrgencyLink ? "text-red-500" : "text-blue-500") 
-                        : (isUrgencyLink ? "text-slate-500 group-hover:text-red-400" : "text-slate-500 group-hover:text-slate-300")
+                        ? (isUrgencyLink ? "text-red-500" : isBenefitsLink ? "text-amber-500" : "text-blue-500") 
+                        : (isUrgencyLink ? "text-slate-500 group-hover:text-red-400" : isBenefitsLink ? "text-slate-500 group-hover:text-amber-400" : "text-slate-500 group-hover:text-slate-300")
                     )} />
                     {link.label}
                   </div>
-                  {isActive && <ChevronRight className={cn("w-4 h-4", isUrgencyLink ? "text-red-500/50" : "text-blue-500/50")} />}
+                  {isActive && <ChevronRight className={cn("w-4 h-4", isUrgencyLink ? "text-red-500/50" : isBenefitsLink ? "text-amber-500/50" : "text-blue-500/50")} />}
                 </div>
               </Link>
             );
           })}
         </nav>
 
-        {/* Botão de oração movido para cima (logo abaixo do menu principal) */}
         {role !== 'admin' && (
           <div className="px-4 mt-6">
             <button 
@@ -225,7 +225,6 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
           </div>
         )}
 
-        {/* Botão de sair destacado no rodapé do menu desktop */}
         <div className="p-4 mt-auto mb-4">
           <button 
             onClick={handleLogout}
@@ -261,7 +260,6 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
 
       <MobileNav role={role} onOpenPrayer={() => setIsPrayerModalOpen(true)} />
 
-      {/* Modal de Pedido de Oração */}
       <Dialog open={isPrayerModalOpen} onOpenChange={setIsPrayerModalOpen}>
         <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-0 shadow-2xl">
           <div className="bg-gradient-to-br from-[#0F172A] to-[#1E3A5F] p-6 text-center text-white relative">
