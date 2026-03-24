@@ -57,7 +57,7 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
         
         // Opcional: Tocar um som
         try {
-          const audio = new Audio('/alert.mp3'); // Caso você adicione um arquivo de som em public/
+          const audio = new Audio('/alert.mp3'); 
           audio.play().catch(() => {});
         } catch(e) {}
       })
@@ -123,6 +123,7 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
       case 'lawyer':
         return [
           { icon: LayoutDashboard, label: 'Meu Desempenho', path: '/painel/advogado' },
+          { icon: Search, label: 'Buscar Colegas', path: '/painel/advogado/buscar' },
           { icon: User, label: 'Editar Perfil', path: '/painel/advogado/perfil' },
           { icon: Settings, label: 'Configurações', path: '/painel/advogado/config' },
         ];
@@ -145,7 +146,7 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
     client: 'Cliente'
   };
 
-  const isFullWidthPage = location.pathname.includes('/advogado') || location.pathname.includes('/buscar');
+  const isFullWidthPage = location.pathname.includes('/advogado/advogado/') || location.pathname.includes('/cliente/advogado/') || location.pathname.includes('/buscar');
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans pb-20 md:pb-0">
@@ -179,7 +180,8 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
 
         <nav className="flex-1 px-4 space-y-1.5 mt-2">
           {links.map((link) => {
-            const isActive = location.pathname === link.path || (link.path.includes('/buscar') && location.pathname.includes('/advogado'));
+            const isViewingProfile = location.pathname.includes('/advogado/') && link.path.includes('/buscar');
+            const isActive = location.pathname === link.path || isViewingProfile;
             const Icon = link.icon;
             
             // Destaque vermelho para o botão de urgências no menu

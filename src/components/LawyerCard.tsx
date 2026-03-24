@@ -29,7 +29,14 @@ interface LawyerCardProps {
 
 export const LawyerCard = ({ lawyer }: LawyerCardProps) => {
   const location = useLocation();
-  const basePath = location.pathname.startsWith('/painel/cliente') ? '/painel/cliente' : '';
+  
+  // Decide se estamos no painel do cliente ou do advogado para montar a URL
+  const basePath = location.pathname.startsWith('/painel/cliente') 
+    ? '/painel/cliente' 
+    : location.pathname.startsWith('/painel/advogado') 
+      ? '/painel/advogado' 
+      : '';
+      
   const profileLink = `${basePath}/advogado/${lawyer.id}`;
 
   const coverImage = lawyer.cover || "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=800&h=300";

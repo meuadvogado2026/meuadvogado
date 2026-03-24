@@ -69,6 +69,8 @@ const App = () => (
               </ProtectedRoute>
             }>
               <Route path="/painel/advogado" element={<LawyerDashboard />} />
+              <Route path="/painel/advogado/buscar" element={<Search />} />
+              <Route path="/painel/advogado/advogado/:id" element={<LawyerProfile />} />
               <Route path="/painel/advogado/perfil" element={<LawyerProfileEdit />} />
               <Route path="/painel/advogado/config" element={<LawyerSettings />} />
               <Route path="/painel/advogado/*" element={<LawyerDashboard />} />

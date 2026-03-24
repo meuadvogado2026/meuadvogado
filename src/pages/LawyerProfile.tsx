@@ -43,7 +43,12 @@ export const LawyerProfile = () => {
   const [isUrgencyModalOpen, setIsUrgencyModalOpen] = useState(false);
   const [isSubmittingUrgency, setIsSubmittingUrgency] = useState(false);
 
-  const basePath = location.pathname.startsWith('/painel/cliente') ? '/painel/cliente' : '';
+  // Calcula para onde o botão voltar deve mandar
+  const basePath = location.pathname.startsWith('/painel/cliente') 
+    ? '/painel/cliente' 
+    : location.pathname.startsWith('/painel/advogado') 
+      ? '/painel/advogado' 
+      : '';
   const searchLink = `${basePath}/buscar`;
 
   useEffect(() => {

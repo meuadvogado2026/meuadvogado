@@ -23,6 +23,7 @@ export const MobileNav = ({ role = 'public' }: MobileNavProps) => {
       case 'lawyer':
         return [
           { icon: LayoutDashboard, label: 'Painel', path: '/painel/advogado' },
+          { icon: Search, label: 'Colegas', path: '/painel/advogado/buscar' },
           { icon: User, label: 'Perfil', path: '/painel/advogado/perfil' },
           { icon: Settings, label: 'Config', path: '/painel/advogado/config' },
         ];
@@ -46,7 +47,8 @@ export const MobileNav = ({ role = 'public' }: MobileNavProps) => {
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-2 pb-safe pt-2 z-50 flex justify-around items-center shadow-[0_-4px_12px_rgba(0,0,0,0.05)] overflow-x-auto">
       {links.map((link) => {
-        const isActive = location.pathname === link.path || (link.path.includes('/buscar') && location.pathname.includes('/advogado'));
+        const isViewingProfile = location.pathname.includes('/advogado/') && link.path.includes('/buscar');
+        const isActive = location.pathname === link.path || isViewingProfile;
         const Icon = link.icon;
         const isUrgencyLink = link.path === '/admin/urgencias';
         
