@@ -34,7 +34,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { subDays, startOfDay, endOfDay } from "date-fns";
+import { subDays } from "date-fns";
 
 const MetricCard = ({ title, value, icon: Icon, trend, trendValue, color, chartData, isLoading }: any) => (
   <Card className="border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-300 group overflow-hidden">
@@ -104,7 +104,6 @@ export const LawyerDashboard = () => {
     const fetchDashboardData = async () => {
       try {
         const now = new Date();
-        const thirtyDaysAgo = subDays(now, 30).toISOString();
         const sixtyDaysAgo = subDays(now, 60).toISOString();
 
         // 1. Busca perfil do advogado
@@ -114,7 +113,6 @@ export const LawyerDashboard = () => {
         if (profile) {
           setProfileData({ ...profile, ...details });
           
-          // Cálculo de completude do perfil
           let score = 0;
           if (profile.avatar_url) score += 15;
           if (profile.cover_url) score += 5;
@@ -128,54 +126,31 @@ export const LawyerDashboard = () => {
           setProfileCompleteness(Math.min(100, score));
         }
 
-        // 2. Busca eventos (Views e Cliques do WhatsApp)
-        const { data: events } = await supabase
-          .from('lawyer_events')
-          .select('*')
-          .eq('lawyer_id', user.id)
-          .gte('created_at', sixtyDaysAgo);
-
-        // 3. Busca Favoritos
-        const { data: favs } = await supabase
-          .from('favorites')
-          .select('*')
-          .eq('lawyer_id', user.id)
-          .gte('created_at', sixtyDaysAgo);
-
-        // 4. Busca Chamadas Urgentes (Contatos extras)
-        const { data: urgents } = await supabase
-          .from('urgent_calls')
-          .select('*')
-          .eq('lawyer_id', user.id)
-          .gte('created_at', sixtyDaysAgo);
+        const { data: events } = await supabase.from('lawyer_events').select('*').eq('lawyer_id', user.id).gte('created_at', sixtyDaysAgo);
+        const { data: favs } = await supabase.from('favorites').select('*').eq('lawyer_id', user.id).gte('created_at', sixtyDaysAgo);
+        const { data: urgents } = await supabase.from('urgent_calls').select('*').eq('lawyer_id', user.id).gte('created_at', sixtyDaysAgo);
 
         const safeEvents = events || [];
         const safeFavs = favs || [];
         const safeUrgents = urgents || [];
 
-        // Filtra por períodos
         const current30 = safeEvents.filter(e => new Date(e.created_at) >= subDays(now, 30));
         const previous30 = safeEvents.filter(e => new Date(e.created_at) < subDays(now, 30));
 
-        // Views
         const viewsNow = current30.filter(e => e.event_type === 'profile_view').length;
         const viewsPrev = previous30.filter(e => e.event_type === 'profile_view').length;
         
-        // WhatsApp Clicks
         const clicksNow = current30.filter(e => e.event_type === 'whatsapp_click').length;
         const clicksPrev = previous30.filter(e => e.event_type === 'whatsapp_click').length;
 
-        // Favoritos
         const favsNow = safeFavs.filter(e => new Date(e.created_at) >= subDays(now, 30)).length;
         const favsPrev = safeFavs.filter(e => new Date(e.created_at) < subDays(now, 30)).length;
 
-        // Contatos Recebidos (WhatsApp + Urgentes)
         const urgentsNow = safeUrgents.filter(e => new Date(e.created_at) >= subDays(now, 30)).length;
         const urgentsPrev = safeUrgents.filter(e => new Date(e.created_at) < subDays(now, 30)).length;
         const contactsNow = clicksNow + urgentsNow;
         const contactsPrev = clicksPrev + urgentsPrev;
 
-        // Função para calcular tendência
         const getTrend = (current: number, prev: number) => {
           if (prev === 0 && current > 0) return { trend: 'up', label: '+100%' };
           if (prev === 0 && current === 0) return { trend: 'neutral', label: '0%' };
@@ -194,7 +169,6 @@ export const LawyerDashboard = () => {
           rating: { total: details?.rating || 0, trend: 'neutral', trendLabel: 'Estável', data: [{value: details?.rating || 0}, {value: details?.rating || 0}] }
         });
 
-        // Gráfico principal (Agrupado por Semana das últimas 4 semanas)
         const newChartData = [1, 2, 3, 4].map(week => {
           const start = subDays(now, week * 7);
           const end = subDays(now, (week - 1) * 7);
@@ -223,7 +197,6 @@ export const LawyerDashboard = () => {
     fetchDashboardData();
   }, [user]);
 
-  // Função auxiliar para gerar dados pros mini-gráficos (dividir os ultimos 30 dias em 6 blocos de 5 dias)
   const generateMiniChart = (data: any[]) => {
     const now = new Date();
     return [5, 4, 3, 2, 1, 0].map(block => {
@@ -238,7 +211,7 @@ export const LawyerDashboard = () => {
     });
   };
 
-  const profileLink = profileData?.custom_link || `meuadvogado.com/advogado/${user?.id?.substring(0,8)}`;
+  const profileLink = `${window.location.origin}/advogado/${user?.id || ''}`;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(profileLink);
@@ -246,6 +219,24 @@ export const LawyerDashboard = () => {
   };
 
   const firstName = profileData?.name ? profileData.name.split(' ')[0] : 'Doutor(a)';
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Perfil de Dr(a). ${firstName}`,
+          text: 'Confira meu perfil profissional na plataforma Meu Advogado.',
+          url: profileLink
+        });
+      } catch (error: any) {
+        if (error.name !== 'AbortError') {
+          copyToClipboard();
+        }
+      }
+    } else {
+      copyToClipboard();
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-12">
@@ -421,14 +412,18 @@ export const LawyerDashboard = () => {
               <h3 className="text-xl font-bold mb-2">Seu Cartão de Visitas</h3>
               <p className="text-blue-100/70 text-sm mb-6">Compartilhe seu perfil otimizado e receba contatos diretos.</p>
               
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 flex items-center justify-between border border-white/20 mb-6 group cursor-pointer" onClick={copyToClipboard}>
+              <div 
+                className="bg-white/10 backdrop-blur-md rounded-2xl p-4 flex items-center justify-between border border-white/20 mb-6 group cursor-pointer" 
+                onClick={copyToClipboard}
+                title="Copiar link"
+              >
                 <span className="text-xs font-mono truncate mr-4">
                   {isLoading ? "..." : profileLink}
                 </span>
                 <Copy className="w-4 h-4 shrink-0 group-hover:scale-110 transition-transform" />
               </div>
               
-              <Button onClick={copyToClipboard} className="w-full bg-white text-primary hover:bg-blue-50 font-bold h-12 rounded-xl">
+              <Button onClick={handleShare} className="w-full bg-white text-primary hover:bg-blue-50 font-bold h-12 rounded-xl">
                 Compartilhar agora
               </Button>
             </CardContent>

@@ -101,7 +101,6 @@ export const LawyerProfile = () => {
     fetchLawyer();
   }, [id]);
 
-  // Registra a visualização (se não for o próprio advogado olhando o perfil)
   useEffect(() => {
     if (lawyer && lawyer.id !== user?.id) {
       const recordView = async () => {
@@ -154,6 +153,29 @@ export const LawyerProfile = () => {
       toast.error("Falha ao emitir alerta", { description: "Tente entrar em contato pelo WhatsApp." });
     } finally {
       setIsSubmittingUrgency(false);
+    }
+  };
+
+  const handleShareProfile = async () => {
+    const shareUrl = `${window.location.origin}/advogado/${lawyer.id}`;
+    const shareData = {
+      title: `Perfil de ${lawyer.name}`,
+      text: `Confira o perfil de ${lawyer.name} na plataforma Meu Advogado.`,
+      url: shareUrl
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          navigator.clipboard.writeText(shareUrl);
+          toast.success("Link copiado para a área de transferência!");
+        }
+      }
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      toast.success("Link copiado para a área de transferência!");
     }
   };
 
@@ -453,7 +475,11 @@ export const LawyerProfile = () => {
                 </CardContent>
               </Card>
 
-              <Button variant="ghost" className="w-full text-slate-500 h-10 rounded-xl font-bold hover:bg-slate-200/50 hover:text-slate-800 transition-colors text-xs">
+              <Button 
+                onClick={handleShareProfile}
+                variant="ghost" 
+                className="w-full text-slate-500 h-10 rounded-xl font-bold hover:bg-slate-200/50 hover:text-slate-800 transition-colors text-xs"
+              >
                 <Share2 className="w-4 h-4 mr-2" /> Compartilhar Perfil
               </Button>
 

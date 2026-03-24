@@ -18,24 +18,22 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from "@/contexts/AuthContext";
 
 export const LawyerSettings = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   
-  // Estado consolidado das configurações
   const [settings, setSettings] = useState({
-    // Perfil Público
     isProfileActive: true,
-    publicLink: "meuadvogado.com/dr-carlos-eduardo",
-    
-    // WhatsApp
     whatsappNumber: "(11) 99999-9999",
     whatsappMessage: "Olá! Encontrei seu perfil no Meu Advogado e gostaria de uma orientação inicial.",
-    
-    // Conta
     email: "contato@carloseduardo.adv.br",
     password: ""
   });
+
+  // Gera o link público real baseado no domínio atual e no ID do usuário
+  const publicLink = `${window.location.origin}/advogado/${user?.id || ''}`;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -58,14 +56,31 @@ export const LawyerSettings = () => {
   };
 
   const copyLink = () => {
-    navigator.clipboard.writeText(settings.publicLink);
-    toast.success("Link copiado!");
+    navigator.clipboard.writeText(publicLink);
+    toast.success("Link copiado para a área de transferência!");
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Meu Perfil Jurídico',
+          text: 'Confira meu perfil na plataforma Meu Advogado.',
+          url: publicLink
+        });
+      } catch (error: any) {
+        if (error.name !== 'AbortError') {
+          copyLink();
+        }
+      }
+    } else {
+      copyLink();
+    }
   };
 
   return (
     <div className="max-w-3xl mx-auto space-y-8 pb-12 relative">
       
-      {/* Header Sticky */}
       <div className="sticky top-0 z-30 bg-slate-50/80 backdrop-blur-md py-4 border-b border-slate-200/60 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 -mx-4 px-4 md:-mx-8 md:px-8">
         <div>
           <h1 className="text-2xl font-black text-slate-950 flex items-center gap-2">
@@ -105,18 +120,26 @@ export const LawyerSettings = () => {
             <div className="space-y-3">
               <Label>Seu link personalizado</Label>
               <div className="flex gap-2">
-                <Input readOnly value={settings.publicLink} className="h-11 rounded-xl bg-slate-50 text-slate-600 font-mono text-sm" />
-                <Button variant="outline" onClick={copyLink} className="h-11 w-11 shrink-0 rounded-xl border-slate-200 hover:bg-slate-100 p-0">
+                <Input readOnly value={publicLink} className="h-11 rounded-xl bg-slate-50 text-slate-600 font-mono text-sm" />
+                <Button variant="outline" onClick={copyLink} className="h-11 w-11 shrink-0 rounded-xl border-slate-200 hover:bg-slate-100 p-0" title="Copiar link">
                   <Copy className="w-4 h-4 text-slate-600" />
                 </Button>
               </div>
             </div>
 
             <div className="flex gap-3 pt-2">
-              <Button variant="outline" className="flex-1 h-11 rounded-xl border-slate-200 hover:bg-slate-50 text-primary font-medium">
+              <Button 
+                variant="outline" 
+                onClick={() => navigate(`/advogado/${user?.id}`)}
+                className="flex-1 h-11 rounded-xl border-slate-200 hover:bg-slate-50 text-primary font-medium"
+              >
                 <ExternalLink className="w-4 h-4 mr-2" /> Ver Perfil
               </Button>
-              <Button variant="outline" className="flex-1 h-11 rounded-xl border-slate-200 hover:bg-slate-50 text-slate-700 font-medium">
+              <Button 
+                variant="outline" 
+                onClick={handleShare}
+                className="flex-1 h-11 rounded-xl border-slate-200 hover:bg-slate-50 text-slate-700 font-medium"
+              >
                 <Share2 className="w-4 h-4 mr-2" /> Compartilhar
               </Button>
             </div>
