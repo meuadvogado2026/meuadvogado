@@ -11,13 +11,28 @@ interface WhatsAppButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEleme
 
 export const WhatsAppButton = ({ 
   message = "Olá! Encontrei seu perfil no Meu Advogado e gostaria de uma orientação.", 
-  phone = "5511999999999", 
+  phone = "", 
   fullWidth = false,
   className,
   ...props 
 }: WhatsAppButtonProps) => {
-  const handleClick = () => {
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+  
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Remove tudo que não for número
+    let cleanedPhone = phone?.replace(/\D/g, '');
+    
+    // Se não tiver nenhum número, usa um fallback (para evitar erro de link vazio)
+    if (!cleanedPhone) {
+      cleanedPhone = "5511999999999";
+    } else if (cleanedPhone.length === 10 || cleanedPhone.length === 11) {
+      // Se tiver 10 ou 11 dígitos, é provável que seja só o (DDD) + Número. Adicionamos o "55" do Brasil.
+      cleanedPhone = `55${cleanedPhone}`;
+    }
+
+    const url = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };
 

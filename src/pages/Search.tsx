@@ -52,10 +52,14 @@ export const Search = () => {
 
         const { data: details, error: dErr } = await supabase
           .from('lawyer_details')
-          .select('*');
+          .select('*')
+          .eq('status', 'approved'); // Apenas aprovados
 
         if (profiles && details) {
-          const mappedData = profiles.map(p => {
+          // Filtramos apenas quem tem dados nos details (está aprovado)
+          const verifiedLawyers = profiles.filter(p => details.some(d => d.id === p.id));
+
+          const mappedData = verifiedLawyers.map(p => {
             const d = details.find(x => x.id === p.id) || {};
             return {
               id: p.id,
@@ -71,7 +75,8 @@ export const Search = () => {
               cover: p.cover_url || '',
               bio: d.mini_bio || d.full_bio || '',
               type: d.attendance_type || 'Híbrido (Online e Presencial)',
-              lat: null, // Pode ser preenchido futuramente com os dados exatos do advogado
+              phone: d.whatsapp || p.phone || '', // Resgata o telefone
+              lat: null, 
               lng: null
             };
           });
@@ -138,7 +143,6 @@ export const Search = () => {
       setSelectedCity(data.city);
       setSortBy("distance");
       
-      // Se a Brasil API V2 retornar as coordenadas geográficas exatas do CEP
       if (data.location && data.location.coordinates && data.location.coordinates.latitude) {
          setUserLocation({
            lat: parseFloat(data.location.coordinates.latitude),

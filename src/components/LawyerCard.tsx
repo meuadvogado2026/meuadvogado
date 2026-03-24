@@ -23,6 +23,7 @@ interface LawyerCardProps {
     cover?: string;
     bio: string;
     type?: string;
+    phone?: string; // Adicionado suporte para telefone
   };
 }
 
@@ -31,13 +32,11 @@ export const LawyerCard = ({ lawyer }: LawyerCardProps) => {
   const basePath = location.pathname.startsWith('/painel/cliente') ? '/painel/cliente' : '';
   const profileLink = `${basePath}/advogado/${lawyer.id}`;
 
-  // Caso o advogado não tenha uma capa cadastrada, usa um fallback profissional e sutil
   const coverImage = lawyer.cover || "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=800&h=300";
 
   return (
     <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-slate-200/60 rounded-3xl bg-white group flex flex-col h-full">
       
-      {/* Banner / Capa Horizontal */}
       <div className="h-28 w-full relative bg-slate-800 overflow-hidden shrink-0">
         <img 
           src={coverImage} 
@@ -45,7 +44,6 @@ export const LawyerCard = ({ lawyer }: LawyerCardProps) => {
           className="w-full h-full object-cover opacity-90 transition-transform duration-500 group-hover:scale-105"
         />
         
-        {/* Badge de Distância Inteligente (Sobre a capa) */}
         {lawyer.distance !== undefined && (
           <div className="absolute top-3 left-3 bg-[#0F172A]/90 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
             <Navigation className="w-3.5 h-3.5 text-blue-400" />
@@ -55,11 +53,7 @@ export const LawyerCard = ({ lawyer }: LawyerCardProps) => {
       </div>
       
       <CardContent className="p-5 flex-1 flex flex-col relative">
-        
-        {/* Header: Avatar Sobreposto + Nome/Especialidade */}
         <div className="flex gap-4">
-          
-          {/* Avatar com tamanho aumentado (30% maior) */}
           <div className="-mt-12 sm:-mt-14 shrink-0 relative z-10">
             {lawyer.image ? (
               <img 
@@ -74,7 +68,6 @@ export const LawyerCard = ({ lawyer }: LawyerCardProps) => {
             )}
           </div>
           
-          {/* Informações Primárias alinhadas com o novo tamanho da foto */}
           <div className="pt-2 sm:pt-3 flex-1 flex justify-between items-start gap-2">
             <div>
               <Link to={profileLink} className="hover:text-primary transition-colors inline-block">
@@ -92,7 +85,6 @@ export const LawyerCard = ({ lawyer }: LawyerCardProps) => {
               </div>
             </div>
             
-            {/* Avaliação */}
             <div className="flex items-center gap-1 bg-amber-50 px-2 sm:px-2.5 py-1.5 rounded-xl text-xs font-bold shadow-sm shrink-0 border border-amber-100/50">
               <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
               <span className="text-amber-700">{lawyer.rating}</span>
@@ -100,7 +92,6 @@ export const LawyerCard = ({ lawyer }: LawyerCardProps) => {
           </div>
         </div>
         
-        {/* Localização e Tags Extras */}
         <div className="flex flex-wrap items-center gap-3 mt-5 text-xs font-medium text-slate-500">
           <span className="flex items-center gap-1.5">
             <MapPin className="w-4 h-4 text-slate-400" /> 
@@ -113,12 +104,10 @@ export const LawyerCard = ({ lawyer }: LawyerCardProps) => {
           )}
         </div>
         
-        {/* Mini Bio Resumida */}
         <p className="text-sm text-slate-600 mt-3 line-clamp-2 flex-1 leading-relaxed">
           {lawyer.bio}
         </p>
         
-        {/* Botões de Ação na parte Inferior */}
         <div className="grid grid-cols-2 gap-3 mt-5 pt-4 border-t border-slate-100">
           <Link to={profileLink}>
             <Button variant="outline" className="w-full h-11 border-slate-200 text-[#0F172A] hover:bg-slate-50 hover:border-slate-300 font-bold rounded-xl transition-colors text-xs sm:text-sm">
@@ -127,6 +116,8 @@ export const LawyerCard = ({ lawyer }: LawyerCardProps) => {
           </Link>
           <WhatsAppButton 
             fullWidth 
+            phone={lawyer.phone}
+            message={`Olá Dr(a). ${lawyer.name}, encontrei seu perfil no Meu Advogado e gostaria de uma orientação.`}
             className="h-11 rounded-xl shadow-md shadow-green-600/20 text-xs sm:text-sm"
           />
         </div>

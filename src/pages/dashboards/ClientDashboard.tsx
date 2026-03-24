@@ -20,7 +20,6 @@ export const ClientDashboard = () => {
       setIsLoading(true);
 
       try {
-        // Busca os dados do cliente
         const { data: profile } = await supabase
           .from('profiles')
           .select('name, city, state')
@@ -35,7 +34,6 @@ export const ClientDashboard = () => {
           });
         }
 
-        // Busca advogados recomendados (que tenham perfil verificado)
         const { data: profilesData } = await supabase
           .from('profiles')
           .select('*')
@@ -48,7 +46,6 @@ export const ClientDashboard = () => {
           .eq('is_verified', true);
 
         if (profilesData && detailsData) {
-          // Filtra perfis que têm detalhes verificados
           const verifiedLawyers = profilesData.filter(p => detailsData.some(d => d.id === p.id));
           
           const mappedData = verifiedLawyers.map(p => {
@@ -65,11 +62,11 @@ export const ClientDashboard = () => {
               image: p.avatar_url || '',
               cover: p.cover_url || '',
               bio: d.mini_bio || d.full_bio || '',
-              type: d.attendance_type || 'Híbrido'
+              type: d.attendance_type || 'Híbrido',
+              phone: d.whatsapp || p.phone || '' // Passando o telefone real pro Card
             };
           });
 
-          // Mostra apenas os 2 primeiros como recomendados na home
           setRecommendedLawyers(mappedData.slice(0, 2));
         }
 
@@ -83,7 +80,6 @@ export const ClientDashboard = () => {
     fetchData();
   }, [user]);
 
-  // Componente auxiliar para estados vazios
   const EmptyState = ({ icon: Icon, title, description }: { icon: any, title: string, description: string }) => (
     <div className="flex flex-col items-center justify-center p-12 text-center bg-white border border-dashed border-slate-300 rounded-3xl col-span-full">
       <div className="p-4 bg-slate-50 text-slate-400 rounded-2xl mb-4">
@@ -110,7 +106,6 @@ export const ClientDashboard = () => {
   return (
     <div className="max-w-6xl mx-auto space-y-10 pb-12">
       
-      {/* Header Premium */}
       <div className="bg-[#0F172A] p-8 md:p-12 rounded-[2.5rem] relative overflow-hidden shadow-2xl shadow-slate-900/10 border border-slate-800">
         <div className="absolute top-0 right-0 -mt-16 -mr-16 text-white/5 pointer-events-none">
           <Scale className="w-96 h-96" />
@@ -137,7 +132,6 @@ export const ClientDashboard = () => {
         </div>
       </div>
 
-      {/* Advogados Recomendados */}
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -166,7 +160,6 @@ export const ClientDashboard = () => {
         )}
       </div>
 
-      {/* Histórico e Salvos */}
       <div className="pt-4">
         <Tabs defaultValue="recentes" className="w-full">
           <TabsList className="h-14 mb-8 bg-slate-100/50 p-1 border border-slate-200/60 rounded-2xl w-full max-w-md">
