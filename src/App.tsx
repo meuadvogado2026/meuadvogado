@@ -25,6 +25,7 @@ import { AdminDashboard } from "./pages/dashboards/AdminDashboard";
 import { AdminApprovals } from "./pages/dashboards/AdminApprovals";
 import { AdminUsers } from "./pages/dashboards/AdminUsers";
 import { AdminPrayers } from "./pages/dashboards/AdminPrayers";
+import { AdminUrgentCalls } from "./pages/dashboards/AdminUrgentCalls";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -80,6 +81,7 @@ const App = () => (
               </ProtectedRoute>
             }>
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/urgencias" element={<AdminUrgentCalls />} />
               <Route path="/admin/aprovacoes" element={<AdminApprovals />} />
               <Route path="/admin/usuarios" element={<AdminUsers />} />
               <Route path="/admin/oracoes" element={<AdminPrayers />} />

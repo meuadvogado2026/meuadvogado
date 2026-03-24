@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
@@ -12,7 +12,8 @@ import {
   ShieldCheck,
   ChevronRight,
   HeartHandshake,
-  Loader2
+  Loader2,
+  AlertTriangle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MobileNav } from "@/components/MobileNav";
@@ -38,6 +39,35 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
   const [prayerRequest, setPrayerRequest] = useState("");
   const [isSubmittingPrayer, setIsSubmittingPrayer] = useState(false);
 
+  // Escuta chamadas urgentes em tempo real para o ADMIN
+  useEffect(() => {
+    if (role !== 'admin') return;
+
+    const channel = supabase.channel('urgent_calls_admin_alert')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'urgent_calls' }, (payload) => {
+        // Dispara um toast vermelho gigante que chama atenção
+        toast.error("🚨 NOVA CHAMADA URGENTE!", {
+          description: `O cliente ${payload.new.client_name} acabou de acionar o plantão com ${payload.new.lawyer_name}.`,
+          duration: 15000,
+          action: {
+            label: 'Ver Agora',
+            onClick: () => navigate('/admin/urgencias')
+          }
+        });
+        
+        // Opcional: Tocar um som
+        try {
+          const audio = new Audio('/alert.mp3'); // Caso você adicione um arquivo de som em public/
+          audio.play().catch(() => {});
+        } catch(e) {}
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [role, navigate]);
+
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
@@ -53,7 +83,6 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
     setIsSubmittingPrayer(true);
 
     try {
-      // Buscar nome do usuário atual
       const { data: profile } = await supabase
         .from('profiles')
         .select('name')
@@ -100,6 +129,7 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
       case 'admin':
         return [
           { icon: PieChart, label: 'Métricas', path: '/admin' },
+          { icon: AlertTriangle, label: 'Urgências', path: '/admin/urgencias' },
           { icon: ShieldCheck, label: 'Aprovações', path: '/admin/aprovacoes' },
           { icon: Users, label: 'Usuários', path: '/admin/usuarios' },
           { icon: HeartHandshake, label: 'Orações', path: '/admin/oracoes' },
@@ -151,19 +181,29 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
           {links.map((link) => {
             const isActive = location.pathname === link.path || (link.path.includes('/buscar') && location.pathname.includes('/advogado'));
             const Icon = link.icon;
+            
+            // Destaque vermelho para o botão de urgências no menu
+            const isUrgencyLink = link.path === '/admin/urgencias';
+
             return (
               <Link key={link.path} to={link.path} className="block group">
                 <div className={cn(
                   "flex items-center justify-between px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200",
                   isActive 
-                    ? "bg-blue-600/15 text-blue-400 border border-blue-500/20 shadow-inner" 
-                    : "text-slate-400 border border-transparent hover:bg-slate-900 hover:text-slate-200"
+                    ? (isUrgencyLink ? "bg-red-600/15 text-red-400 border border-red-500/20 shadow-inner" : "bg-blue-600/15 text-blue-400 border border-blue-500/20 shadow-inner") 
+                    : "text-slate-400 border border-transparent hover:bg-slate-900 hover:text-slate-200",
+                  !isActive && isUrgencyLink && "hover:text-red-400"
                 )}>
                   <div className="flex items-center gap-3">
-                    <Icon className={cn("w-5 h-5", isActive ? "text-blue-500" : "text-slate-500 group-hover:text-slate-300")} />
+                    <Icon className={cn(
+                      "w-5 h-5", 
+                      isActive 
+                        ? (isUrgencyLink ? "text-red-500" : "text-blue-500") 
+                        : (isUrgencyLink ? "text-slate-500 group-hover:text-red-400" : "text-slate-500 group-hover:text-slate-300")
+                    )} />
                     {link.label}
                   </div>
-                  {isActive && <ChevronRight className="w-4 h-4 text-blue-500/50" />}
+                  {isActive && <ChevronRight className={cn("w-4 h-4", isUrgencyLink ? "text-red-500/50" : "text-blue-500/50")} />}
                 </div>
               </Link>
             );
@@ -172,7 +212,6 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
 
         <div className="p-4 mt-auto mb-4 space-y-2">
           
-          {/* Botão de Apoio Espiritual para Clientes e Advogados */}
           {role !== 'admin' && (
             <button 
               onClick={() => setIsPrayerModalOpen(true)}

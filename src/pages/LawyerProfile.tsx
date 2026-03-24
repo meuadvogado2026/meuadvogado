@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useLocation } from "react-router-dom";
+import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,17 +22,26 @@ import {
   Mail,
   Share2,
   Info,
-  Loader2
+  Loader2,
+  AlertTriangle,
+  Siren
 } from "lucide-react";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 export const LawyerProfile = () => {
   const { id } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  
   const [lawyer, setLawyer] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isUrgencyModalOpen, setIsUrgencyModalOpen] = useState(false);
+  const [isSubmittingUrgency, setIsSubmittingUrgency] = useState(false);
 
   const basePath = location.pathname.startsWith('/painel/cliente') ? '/painel/cliente' : '';
   const searchLink = `${basePath}/buscar`;
@@ -87,6 +96,44 @@ export const LawyerProfile = () => {
 
     fetchLawyer();
   }, [id]);
+
+  const handleTriggerUrgency = async () => {
+    if (!user) {
+      toast.error("Acesso necessário", { description: "Faça login ou cadastre-se para acionar o plantão urgente." });
+      navigate('/login');
+      return;
+    }
+
+    setIsSubmittingUrgency(true);
+    try {
+      const { data: clientProfile } = await supabase
+        .from('profiles')
+        .select('name, phone')
+        .eq('id', user.id)
+        .single();
+
+      const { error } = await supabase.from('urgent_calls').insert({
+        client_id: user.id,
+        lawyer_id: lawyer.id,
+        client_name: clientProfile?.name || 'Cliente',
+        client_phone: clientProfile?.phone || 'Não informado',
+        lawyer_name: lawyer.name,
+        status: 'pending'
+      });
+
+      if (error) throw error;
+
+      toast.success("Alerta Emitido!", {
+        description: "A equipe da plataforma e o advogado foram notificados da sua urgência."
+      });
+      setIsUrgencyModalOpen(false);
+    } catch (error) {
+      console.error(error);
+      toast.error("Falha ao emitir alerta", { description: "Tente entrar em contato pelo WhatsApp." });
+    } finally {
+      setIsSubmittingUrgency(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -223,14 +270,31 @@ export const LawyerProfile = () => {
               </div>
 
               <div className="w-full lg:w-auto shrink-0 flex flex-col items-center sm:items-start lg:items-end gap-3 mt-1 lg:mt-0">
-                <WhatsAppButton 
-                  className="w-full sm:w-auto lg:w-auto h-11 md:h-12 px-6 text-sm shadow-md shadow-green-600/20 rounded-xl font-bold"
-                  phone={lawyer.phone?.replace(/\D/g, '')}
-                  message={`Olá Dr(a) ${lawyer.name}, encontrei seu perfil no Meu Advogado e gostaria de uma orientação.`} 
-                />
+                <div className="flex w-full gap-2">
+                  <WhatsAppButton 
+                    className="flex-1 lg:w-auto h-11 md:h-12 px-6 text-sm shadow-md shadow-green-600/20 rounded-xl font-bold"
+                    phone={lawyer.phone?.replace(/\D/g, '')}
+                    message={`Olá Dr(a) ${lawyer.name}, encontrei seu perfil no Meu Advogado e gostaria de uma orientação.`} 
+                  />
+                  <Button 
+                    onClick={() => {
+                      if(!user) {
+                        toast.error("Faça login para solicitar urgência.");
+                        navigate('/login');
+                        return;
+                      }
+                      setIsUrgencyModalOpen(true);
+                    }}
+                    variant="outline"
+                    className="h-11 md:h-12 w-11 md:w-12 p-0 border-red-200 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white hover:border-red-600 rounded-xl shadow-sm transition-all group shrink-0"
+                    title="Plantão / Urgência"
+                  >
+                    <Siren className="w-5 h-5 group-hover:animate-pulse" />
+                  </Button>
+                </div>
                 
                 {lawyer.showSocials && lawyer.socials && (
-                  <div className="flex flex-wrap justify-center sm:justify-start lg:justify-end gap-1.5">
+                  <div className="flex flex-wrap justify-center sm:justify-start lg:justify-end gap-1.5 w-full">
                     {Object.entries(lawyer.socials).map(([key, value]) => renderSocialIcon(key, value as string))}
                   </div>
                 )}
@@ -339,13 +403,27 @@ export const LawyerProfile = () => {
                       </div>
                     </div>
 
-                    <div className="pt-4 mt-1 border-t border-slate-100">
+                    <div className="pt-4 mt-1 border-t border-slate-100 space-y-2">
                       <WhatsAppButton 
                         fullWidth
                         className="h-12 text-sm rounded-xl shadow-md shadow-green-600/20 font-bold"
                         phone={lawyer.phone?.replace(/\D/g, '')}
                         message={`Olá Dr(a) ${lawyer.name}, encontrei seu perfil no Meu Advogado e gostaria de uma orientação.`} 
                       />
+                      <Button 
+                        onClick={() => {
+                          if(!user) {
+                            toast.error("Faça login para solicitar urgência.");
+                            navigate('/login');
+                            return;
+                          }
+                          setIsUrgencyModalOpen(true);
+                        }}
+                        variant="outline" 
+                        className="w-full h-12 text-sm rounded-xl border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 font-bold"
+                      >
+                        <Siren className="w-4 h-4 mr-2" /> Acionar Plantão Urgente
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -360,6 +438,58 @@ export const LawyerProfile = () => {
 
         </div>
       </div>
+
+      {/* MODAL DE URGÊNCIA */}
+      <Dialog open={isUrgencyModalOpen} onOpenChange={setIsUrgencyModalOpen}>
+        <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border border-red-200 shadow-2xl">
+          <div className="bg-red-600 p-6 text-center text-white relative">
+            <Siren className="w-24 h-24 absolute right-0 top-0 opacity-10 pointer-events-none -mt-4 -mr-4" />
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-black text-white flex items-center justify-center gap-2">
+                <AlertTriangle className="w-6 h-6" /> Atenção
+              </DialogTitle>
+              <DialogDescription className="text-red-100 font-medium mt-2">
+                Acionar o plantão envia um alerta sonoro para a equipe.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          
+          <div className="p-6 bg-white space-y-4">
+            <div className="bg-red-50 text-red-800 p-4 rounded-xl border border-red-100 text-sm font-medium">
+              Utilize esta opção <strong>apenas em casos de emergência real</strong>, como:
+              <ul className="list-disc ml-5 mt-2 space-y-1 text-red-700">
+                <li>Prisão em flagrante</li>
+                <li>Busca e apreensão</li>
+                <li>Risco iminente de perda de direitos críticos</li>
+              </ul>
+            </div>
+            
+            <p className="text-sm font-medium text-slate-600 text-center">
+              Tem certeza que deseja acionar o plantão urgente de <strong className="text-slate-900">{lawyer.name}</strong>?
+            </p>
+            
+            <DialogFooter className="mt-6 flex flex-col sm:flex-row gap-3 sm:space-x-0">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setIsUrgencyModalOpen(false)}
+                className="w-full rounded-xl border-slate-200 font-bold text-slate-600 hover:bg-slate-100"
+              >
+                Cancelar
+              </Button>
+              <Button 
+                type="button" 
+                onClick={handleTriggerUrgency}
+                disabled={isSubmittingUrgency}
+                className="w-full rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold"
+              >
+                {isSubmittingUrgency ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Siren className="w-4 h-4 mr-2" />}
+                Confirmar Emergência
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
