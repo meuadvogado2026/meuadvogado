@@ -43,7 +43,6 @@ export const LawyerProfile = () => {
   const [isUrgencyModalOpen, setIsUrgencyModalOpen] = useState(false);
   const [isSubmittingUrgency, setIsSubmittingUrgency] = useState(false);
 
-  // Calcula para onde o botão voltar deve mandar
   const basePath = location.pathname.startsWith('/painel/cliente') 
     ? '/painel/cliente' 
     : location.pathname.startsWith('/painel/advogado') 
@@ -101,6 +100,24 @@ export const LawyerProfile = () => {
 
     fetchLawyer();
   }, [id]);
+
+  // Registra a visualização (se não for o próprio advogado olhando o perfil)
+  useEffect(() => {
+    if (lawyer && lawyer.id !== user?.id) {
+      const recordView = async () => {
+        const viewed = sessionStorage.getItem(`viewed_${lawyer.id}`);
+        if (!viewed) {
+          await supabase.from('lawyer_events').insert({
+            lawyer_id: lawyer.id,
+            client_id: user?.id || null,
+            event_type: 'profile_view'
+          });
+          sessionStorage.setItem(`viewed_${lawyer.id}`, 'true');
+        }
+      };
+      recordView();
+    }
+  }, [lawyer, user]);
 
   const handleTriggerUrgency = async () => {
     if (!user) {
@@ -277,6 +294,7 @@ export const LawyerProfile = () => {
               <div className="w-full lg:w-auto shrink-0 flex flex-col items-center sm:items-start lg:items-end gap-3 mt-1 lg:mt-0">
                 <div className="flex w-full gap-2">
                   <WhatsAppButton 
+                    lawyerId={lawyer.id}
                     className="flex-1 lg:w-auto h-11 md:h-12 px-6 text-sm shadow-md shadow-green-600/20 rounded-xl font-bold"
                     phone={lawyer.phone?.replace(/\D/g, '')}
                     message={`Olá Dr(a) ${lawyer.name}, encontrei seu perfil no Meu Advogado e gostaria de uma orientação.`} 
@@ -411,6 +429,7 @@ export const LawyerProfile = () => {
                     <div className="pt-4 mt-1 border-t border-slate-100 space-y-2">
                       <WhatsAppButton 
                         fullWidth
+                        lawyerId={lawyer.id}
                         className="h-12 text-sm rounded-xl shadow-md shadow-green-600/20 font-bold"
                         phone={lawyer.phone?.replace(/\D/g, '')}
                         message={`Olá Dr(a) ${lawyer.name}, encontrei seu perfil no Meu Advogado e gostaria de uma orientação.`} 

@@ -2,33 +2,44 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface WhatsAppButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   message?: string;
   phone?: string;
+  lawyerId?: string; // Novo campo para rastrear qual advogado recebeu o clique
   fullWidth?: boolean;
 }
 
 export const WhatsAppButton = ({ 
   message = "Olá! Encontrei seu perfil no Meu Advogado e gostaria de uma orientação.", 
   phone = "", 
+  lawyerId,
   fullWidth = false,
   className,
   ...props 
 }: WhatsAppButtonProps) => {
+  const { user } = useAuth();
   
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    // Remove tudo que não for número
-    let cleanedPhone = phone?.replace(/\D/g, '');
+    // Rastreia o clique silenciosamente se tivermos o ID do advogado
+    if (lawyerId) {
+      supabase.from('lawyer_events').insert({
+        lawyer_id: lawyerId,
+        client_id: user?.id || null,
+        event_type: 'whatsapp_click'
+      }).then(); // Dispara sem aguardar para não atrasar a abertura da janela
+    }
     
-    // Se não tiver nenhum número, usa um fallback (para evitar erro de link vazio)
+    // Formatação do número
+    let cleanedPhone = phone?.replace(/\D/g, '');
     if (!cleanedPhone) {
       cleanedPhone = "5511999999999";
     } else if (cleanedPhone.length === 10 || cleanedPhone.length === 11) {
-      // Se tiver 10 ou 11 dígitos, é provável que seja só o (DDD) + Número. Adicionamos o "55" do Brasil.
       cleanedPhone = `55${cleanedPhone}`;
     }
 

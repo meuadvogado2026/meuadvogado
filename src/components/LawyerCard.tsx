@@ -31,7 +31,6 @@ interface LawyerCardProps {
 export const LawyerCard = ({ lawyer }: LawyerCardProps) => {
   const location = useLocation();
   
-  // Decide se estamos no painel do cliente ou do advogado para montar a URL
   const basePath = location.pathname.startsWith('/painel/cliente') 
     ? '/painel/cliente' 
     : location.pathname.startsWith('/painel/advogado') 
@@ -44,7 +43,6 @@ export const LawyerCard = ({ lawyer }: LawyerCardProps) => {
 
   return (
     <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-slate-200/60 rounded-3xl bg-white group flex flex-col h-full">
-      
       <div className="h-28 w-full relative bg-slate-800 overflow-hidden shrink-0">
         <img 
           src={coverImage} 
@@ -91,7 +89,6 @@ export const LawyerCard = ({ lawyer }: LawyerCardProps) => {
                 <Badge variant="secondary" className="bg-blue-50 text-blue-700 font-bold border-blue-100 text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5">
                   {lawyer.specialty}
                 </Badge>
-                {/* Mostra até 2 especialidades secundárias */}
                 {lawyer.secondarySpecialties && lawyer.secondarySpecialties.slice(0, 2).map((spec, i) => (
                   <Badge key={i} variant="outline" className="text-slate-500 font-medium border-slate-200 text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5">
                     {spec}
@@ -134,6 +131,7 @@ export const LawyerCard = ({ lawyer }: LawyerCardProps) => {
           </Link>
           <WhatsAppButton 
             fullWidth 
+            lawyerId={lawyer.id}
             phone={lawyer.phone}
             message={`Olá Dr(a). ${lawyer.name}, encontrei seu perfil no Meu Advogado e gostaria de uma orientação.`}
             className="h-11 rounded-xl shadow-md shadow-green-600/20 text-xs sm:text-sm"
