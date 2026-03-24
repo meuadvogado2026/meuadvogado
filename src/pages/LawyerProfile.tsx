@@ -31,6 +31,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { shareOrCopy } from "@/utils/share";
+import { fetchCepData } from "@/utils/cep";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 export const LawyerProfile = () => {
@@ -61,14 +62,25 @@ export const LawyerProfile = () => {
 
         if (pData) {
           const details = lData || {};
+          let city = pData.city || '';
+          let state = pData.state || '';
+
+          if (pData.cep) {
+            const cepData = await fetchCepData(pData.cep);
+            if (cepData && cepData.city) {
+              city = cepData.city;
+              state = cepData.state;
+            }
+          }
+
           setLawyer({
             id: pData.id,
             name: pData.name || 'Advogado(a)',
             title: details.title || details.main_specialty || '',
             specialty: details.main_specialty || 'Não informada',
             secondarySpecialties: details.secondary_specialties || [],
-            city: pData.city || '',
-            state: pData.state || '',
+            city,
+            state,
             oab: details.oab ? `${details.oab_state || ''} ${details.oab}` : 'Não informada',
             rating: details.rating || 5.0,
             reviews: details.reviews_count || 0,

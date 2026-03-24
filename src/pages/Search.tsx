@@ -237,7 +237,7 @@ export const Search = () => {
     setUserLocation(null);
   };
 
-  const FilterSidebar = () => (
+  const renderFilterSidebar = () => (
     <div className="space-y-8">
       <div>
         <h3 className="text-sm font-bold text-[#0F172A] uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -390,7 +390,7 @@ export const Search = () => {
                 <SheetTitle className="text-2xl font-black text-[#0F172A]">Filtros da Busca</SheetTitle>
               </SheetHeader>
               <div className="overflow-y-auto h-full pb-24 px-1">
-                <FilterSidebar />
+                {renderFilterSidebar()}
                 <SheetClose asChild>
                   <Button className="w-full h-14 mt-8 rounded-2xl bg-[#0F172A] text-white font-bold text-lg">
                     Ver Resultados
@@ -410,7 +410,7 @@ export const Search = () => {
                 <SlidersHorizontal className="w-5 h-5 text-[#1E3A5F]" />
                 <h2 className="text-lg font-black text-[#0F172A]">Refinar Busca</h2>
               </div>
-              <FilterSidebar />
+              {renderFilterSidebar()}
             </div>
           </aside>
 
