@@ -56,7 +56,6 @@ export const Search = () => {
           .eq('status', 'approved'); // Apenas aprovados
 
         if (profiles && details) {
-          // Filtramos apenas quem tem dados nos details (está aprovado)
           const verifiedLawyers = profiles.filter(p => details.some(d => d.id === p.id));
 
           const mappedData = verifiedLawyers.map(p => {
@@ -76,8 +75,8 @@ export const Search = () => {
               bio: d.mini_bio || d.full_bio || '',
               type: d.attendance_type || 'Híbrido (Online e Presencial)',
               phone: d.whatsapp || p.phone || '',
-              lat: p.lat ? parseFloat(p.lat) : null, // AGORA USA A COORDENADA DO BANCO DE DADOS
-              lng: p.lng ? parseFloat(p.lng) : null  // AGORA USA A COORDENADA DO BANCO DE DADOS
+              lat: p.lat ? parseFloat(p.lat) : null,
+              lng: p.lng ? parseFloat(p.lng) : null
             };
           });
           setLawyers(mappedData);
@@ -139,10 +138,11 @@ export const Search = () => {
         return;
       }
 
+      // Preenche visualmente estado e cidade para o usuário ver onde está
       setSelectedState(data.state);
       setSelectedCity(data.city);
       setSortBy("distance");
-      
+
       if (data.location && data.location.coordinates && data.location.coordinates.latitude) {
          setUserLocation({
            lat: parseFloat(data.location.coordinates.latitude),
@@ -150,6 +150,23 @@ export const Search = () => {
          });
          toast.success("Localização exata encontrada!", { description: `Buscando ao redor de ${data.street || data.neighborhood}` });
       } else {
+         // Fallback para o OpenStreetMap caso o BrasilAPI não devolva as coordenadas para esse CEP específico
+         try {
+            const osmRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&postalcode=${cleanCep}&country=Brazil`);
+            const osmData = await osmRes.json();
+            if (osmData && osmData.length > 0) {
+                setUserLocation({
+                    lat: parseFloat(osmData[0].lat),
+                    lng: parseFloat(osmData[0].lon)
+                });
+                toast.success("Região identificada com sucesso!", { description: `Buscando advogados próximos do CEP ${cep}` });
+                return;
+            }
+         } catch (e) {
+            console.error("OSM Geocoding failed", e);
+         }
+
+         // Se falhar a geolocalização do CEP, ficamos com a busca estrita por Cidade e Estado
          setUserLocation(null);
          toast.success("Região identificada!", { description: `Buscando advogados em ${data.city} - ${data.state}` });
       }
@@ -179,8 +196,17 @@ export const Search = () => {
     .filter(lawyer => {
       const matchesSearch = lawyer.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesSpecialty = selectedSpecialty === "all" || lawyer.specialty === selectedSpecialty;
-      const matchesCity = selectedCity === "" || lawyer.city.toLowerCase() === selectedCity.toLowerCase();
-      const matchesState = selectedState === "" || lawyer.state.toLowerCase() === selectedState.toLowerCase();
+      
+      let matchesCity = true;
+      let matchesState = true;
+
+      // Se não houver uma localização exata de usuário (GPS/CEP com coordenadas),
+      // a busca exige que a cidade/estado batam estritamente.
+      // Se tiver coordenadas, ignoramos os campos textuais de cidade para poder trazer de cidades vizinhas.
+      if (!userLocation) {
+        matchesCity = selectedCity === "" || lawyer.city.toLowerCase() === selectedCity.toLowerCase();
+        matchesState = selectedState === "" || lawyer.state.toLowerCase() === selectedState.toLowerCase();
+      }
       
       let matchesType = true;
       if (selectedType === "Online") matchesType = lawyer.type.includes("Online") || lawyer.type.includes("Híbrido");
@@ -190,10 +216,13 @@ export const Search = () => {
     })
     .sort((a, b) => {
       if (sortBy === "distance") {
-        const distA = a.distance ?? 999999;
+        const distA = a.distance ?? 999999; // Se não tiver lat/lng, joga pro fim da lista
         const distB = b.distance ?? 999999;
-        return distA - distB;
+        if (distA !== distB) {
+          return distA - distB; // O mais próximo aparece primeiro
+        }
       }
+      // Se não ordenou por distância, ou empatou (ex: os dois sem GPS), ordena por avaliação
       return b.rating - a.rating;
     });
 
@@ -251,7 +280,9 @@ export const Search = () => {
               onChange={(e) => {
                 setSelectedState(e.target.value);
                 setSelectedCity(""); 
-                setUserLocation(null); 
+                setUserLocation(null); // Reseta GPS para forçar filtro de texto
+                setCepParam(""); // Limpa o CEP se trocar UF manual
+                setSortBy("recommended");
               }}
               className="h-11 rounded-xl bg-slate-50 border-slate-200 col-span-1 px-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none"
             >
@@ -263,7 +294,11 @@ export const Search = () => {
             
             <select 
               value={selectedCity}
-              onChange={(e) => setSelectedCity(e.target.value)}
+              onChange={(e) => {
+                setSelectedCity(e.target.value);
+                setUserLocation(null); 
+                setCepParam("");
+              }}
               disabled={!selectedState}
               className="h-11 rounded-xl bg-slate-50 border-slate-200 col-span-2 px-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none disabled:opacity-50"
             >
