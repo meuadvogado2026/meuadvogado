@@ -25,6 +25,8 @@ export const Signup = () => {
   const [clientCity, setClientCity] = useState("");
   const [clientStreet, setClientStreet] = useState("");
   const [clientNeighborhood, setClientNeighborhood] = useState("");
+  const [clientLat, setClientLat] = useState<number | null>(null);
+  const [clientLng, setClientLng] = useState<number | null>(null);
   const [isFetchingClientCep, setIsFetchingClientCep] = useState(false);
 
   // Estados para Advogado
@@ -40,6 +42,8 @@ export const Signup = () => {
   const [lawyerCity, setLawyerCity] = useState("");
   const [lawyerStreet, setLawyerStreet] = useState("");
   const [lawyerNeighborhood, setLawyerNeighborhood] = useState("");
+  const [lawyerLat, setLawyerLat] = useState<number | null>(null);
+  const [lawyerLng, setLawyerLng] = useState<number | null>(null);
   const [isFetchingLawyerCep, setIsFetchingLawyerCep] = useState(false);
 
   const applyCepMask = (value: string) => {
@@ -62,16 +66,23 @@ export const Signup = () => {
         return;
       }
 
+      const lat = data.location?.coordinates?.latitude ? parseFloat(data.location.coordinates.latitude) : null;
+      const lng = data.location?.coordinates?.longitude ? parseFloat(data.location.coordinates.longitude) : null;
+
       if (type === 'client') {
         setClientState(data.state || "");
         setClientCity(data.city || "");
         setClientStreet(data.street || "");
         setClientNeighborhood(data.neighborhood || "");
+        setClientLat(lat);
+        setClientLng(lng);
       } else {
         setLawyerState(data.state || "");
         setLawyerCity(data.city || "");
         setLawyerStreet(data.street || "");
         setLawyerNeighborhood(data.neighborhood || "");
+        setLawyerLat(lat);
+        setLawyerLng(lng);
       }
       toast.success("Endereço preenchido!", { description: `${data.street || data.neighborhood || data.city}` });
     } catch (error) {
@@ -103,6 +114,8 @@ export const Signup = () => {
     const street = role === 'client' ? clientStreet : lawyerStreet;
     const neighborhood = role === 'client' ? clientNeighborhood : lawyerNeighborhood;
     const cep = role === 'client' ? clientCep : lawyerCep;
+    const lat = role === 'client' ? clientLat : lawyerLat;
+    const lng = role === 'client' ? clientLng : lawyerLng;
 
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -116,9 +129,9 @@ export const Signup = () => {
       if (error) throw error;
 
       if (data.session) {
-        // Atualiza campos adicionais, inclusive rua e bairro
+        // Atualiza campos adicionais, inclusive rua, bairro e as COORDENADAS GPS
         await supabase.from('profiles').update({
-          phone, city, state, street, neighborhood, cep
+          phone, city, state, street, neighborhood, cep, lat, lng
         }).eq('id', data.user!.id);
         
         toast.success("Conta criada com sucesso!");

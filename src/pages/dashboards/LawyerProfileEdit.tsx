@@ -32,6 +32,8 @@ export const LawyerProfileEdit = () => {
     state: "",
     street: "",
     neighborhood: "",
+    lat: null as number | null,
+    lng: null as number | null,
     attendanceType: "Híbrido (Online e Presencial)",
     experienceYears: "",
     mainSpecialty: "",
@@ -80,6 +82,8 @@ export const LawyerProfileEdit = () => {
             cep: pData.cep || "",
             street: pData.street || "",
             neighborhood: pData.neighborhood || "",
+            lat: pData.lat ? parseFloat(pData.lat) : null,
+            lng: pData.lng ? parseFloat(pData.lng) : null,
             avatar: pData.avatar_url || prev.avatar,
             cover: pData.cover_url || prev.cover,
             
@@ -137,8 +141,10 @@ export const LawyerProfileEdit = () => {
             city: data.city || prev.city,
             street: data.street || prev.street,
             neighborhood: data.neighborhood || prev.neighborhood,
+            lat: data.location?.coordinates?.latitude ? parseFloat(data.location.coordinates.latitude) : prev.lat,
+            lng: data.location?.coordinates?.longitude ? parseFloat(data.location.coordinates.longitude) : prev.lng
           }));
-          toast.success("Endereço preenchido automaticamente!");
+          toast.success("Endereço preenchido com coordenadas!");
         }
       } catch (error) {
         console.error(error);
@@ -197,6 +203,8 @@ export const LawyerProfileEdit = () => {
           cep: profile.cep,
           street: profile.street,
           neighborhood: profile.neighborhood,
+          lat: profile.lat,
+          lng: profile.lng,
           avatar_url: profile.avatar,
           cover_url: profile.cover
         })
@@ -230,7 +238,7 @@ export const LawyerProfileEdit = () => {
       if (lError) throw lError;
 
       toast.success("Perfil atualizado com sucesso!", {
-        description: "Suas alterações já estão salvas no banco de dados."
+        description: "Suas alterações e localização já estão salvas."
       });
 
     } catch (error: any) {

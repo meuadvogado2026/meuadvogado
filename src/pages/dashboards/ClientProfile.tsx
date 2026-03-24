@@ -23,6 +23,8 @@ export const ClientProfile = () => {
     state: "",
     street: "",
     neighborhood: "",
+    lat: null as number | null,
+    lng: null as number | null,
     password: ""
   });
 
@@ -49,7 +51,9 @@ export const ClientProfile = () => {
             city: data.city || "",
             state: data.state || "",
             street: data.street || "",
-            neighborhood: data.neighborhood || ""
+            neighborhood: data.neighborhood || "",
+            lat: data.lat ? parseFloat(data.lat) : null,
+            lng: data.lng ? parseFloat(data.lng) : null
           }));
         }
       } catch (error) {
@@ -91,8 +95,10 @@ export const ClientProfile = () => {
             city: data.city || prev.city,
             street: data.street || prev.street,
             neighborhood: data.neighborhood || prev.neighborhood,
+            lat: data.location?.coordinates?.latitude ? parseFloat(data.location.coordinates.latitude) : prev.lat,
+            lng: data.location?.coordinates?.longitude ? parseFloat(data.location.coordinates.longitude) : prev.lng
           }));
-          toast.success("Endereço atualizado pelo CEP!");
+          toast.success("Endereço preenchido com coordenadas!");
         }
       } catch (error) {
         // Silencioso em caso de erro de rede no CEP
@@ -114,7 +120,9 @@ export const ClientProfile = () => {
           city: profile.city,
           state: profile.state,
           street: profile.street,
-          neighborhood: profile.neighborhood
+          neighborhood: profile.neighborhood,
+          lat: profile.lat,
+          lng: profile.lng
         })
         .eq('id', user.id);
 
@@ -129,7 +137,9 @@ export const ClientProfile = () => {
         setProfile(prev => ({ ...prev, password: "" })); 
       }
 
-      toast.success("Dados atualizados com sucesso!");
+      toast.success("Dados atualizados com sucesso!", {
+        description: "Suas informações e localização foram salvas."
+      });
     } catch (error: any) {
       console.error(error);
       toast.error("Erro ao salvar", { description: error.message || "Tente novamente mais tarde." });

@@ -75,9 +75,9 @@ export const Search = () => {
               cover: p.cover_url || '',
               bio: d.mini_bio || d.full_bio || '',
               type: d.attendance_type || 'Híbrido (Online e Presencial)',
-              phone: d.whatsapp || p.phone || '', // Resgata o telefone
-              lat: null, 
-              lng: null
+              phone: d.whatsapp || p.phone || '',
+              lat: p.lat ? parseFloat(p.lat) : null, // AGORA USA A COORDENADA DO BANCO DE DADOS
+              lng: p.lng ? parseFloat(p.lng) : null  // AGORA USA A COORDENADA DO BANCO DE DADOS
             };
           });
           setLawyers(mappedData);
