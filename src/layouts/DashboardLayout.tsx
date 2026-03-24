@@ -178,7 +178,7 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
           Menu Principal
         </div>
 
-        <nav className="flex-1 px-4 space-y-1.5 mt-2">
+        <nav className="px-4 space-y-1.5 mt-2">
           {links.map((link) => {
             const isViewingProfile = location.pathname.includes('/advogado/') && link.path.includes('/buscar');
             const isActive = location.pathname === link.path || isViewingProfile;
@@ -212,23 +212,26 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
           })}
         </nav>
 
-        <div className="p-4 mt-auto mb-4 space-y-2">
-          
-          {role !== 'admin' && (
+        {/* Botão de oração movido para cima (logo abaixo do menu principal) */}
+        {role !== 'admin' && (
+          <div className="px-4 mt-6">
             <button 
               onClick={() => setIsPrayerModalOpen(true)}
-              className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-sm font-bold text-amber-100 bg-amber-900/20 border border-amber-500/20 hover:bg-amber-900/40 hover:border-amber-500/40 transition-all duration-200 group"
+              className="flex items-center justify-center gap-2 px-4 py-3 w-full rounded-xl text-sm font-bold text-amber-900 bg-amber-400 hover:bg-amber-500 transition-all duration-200 shadow-md shadow-amber-500/20"
             >
-              <HeartHandshake className="w-5 h-5 text-amber-500 group-hover:scale-110 transition-transform" />
+              <HeartHandshake className="w-5 h-5" />
               Pedir Oração
             </button>
-          )}
+          </div>
+        )}
 
+        {/* Botão de sair destacado no rodapé do menu desktop */}
+        <div className="p-4 mt-auto mb-4">
           <button 
             onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-sm font-medium text-slate-400 border border-transparent hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-all duration-200 group"
+            className="flex items-center justify-center gap-2 px-4 py-3 w-full rounded-xl text-sm font-bold text-red-400 bg-red-500/10 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all duration-200"
           >
-            <LogOut className="w-5 h-5 text-slate-500 group-hover:text-red-400 transition-colors" />
+            <LogOut className="w-5 h-5" />
             Sair da conta
           </button>
         </div>
@@ -242,10 +245,10 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
             <span className="font-bold text-slate-900 tracking-tight">Meu Advogado</span>
           </div>
           <Button 
-            variant="ghost" 
+            variant="outline" 
             size="sm" 
             onClick={handleLogout} 
-            className="text-slate-500 font-medium hover:text-red-600 hover:bg-red-50 transition-colors"
+            className="text-red-600 font-bold border-red-200 bg-red-50 hover:bg-red-600 hover:text-white transition-colors shadow-sm"
           >
             <LogOut className="w-4 h-4 mr-2" /> Sair
           </Button>
@@ -256,7 +259,7 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
         </main>
       </div>
 
-      <MobileNav role={role} />
+      <MobileNav role={role} onOpenPrayer={() => setIsPrayerModalOpen(true)} />
 
       {/* Modal de Pedido de Oração */}
       <Dialog open={isPrayerModalOpen} onOpenChange={setIsPrayerModalOpen}>
