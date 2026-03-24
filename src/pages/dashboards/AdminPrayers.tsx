@@ -1,13 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { HeartHandshake, CheckCircle2, Clock, Loader2, Sparkles } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { 
+  HeartHandshake, 
+  CheckCircle2, 
+  Clock, 
+  Loader2, 
+  Sparkles,
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 export const AdminPrayers = () => {
   const [prayers, setPrayers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Estados para o modal de usuário
+  const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [isLoadingUser, setIsLoadingUser] = useState(false);
 
   useEffect(() => {
     fetchPrayers();
@@ -45,6 +63,34 @@ export const AdminPrayers = () => {
     } catch (error) {
       console.error("Erro ao atualizar oração:", error);
       toast.error("Erro ao registrar a oração.");
+    }
+  };
+
+  const handleViewUser = async (userId: string) => {
+    if (!userId) {
+      toast.error("Usuário não identificado para este pedido.");
+      return;
+    }
+    
+    setIsUserModalOpen(true);
+    setIsLoadingUser(true);
+    setSelectedUser(null);
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+      setSelectedUser(data);
+    } catch (error) {
+      console.error("Erro ao buscar usuário:", error);
+      toast.error("Erro ao carregar as informações do usuário.");
+      setIsUserModalOpen(false);
+    } finally {
+      setIsLoadingUser(false);
     }
   };
 
@@ -99,7 +145,18 @@ export const AdminPrayers = () => {
                 <CardContent className="p-6 md:p-8 flex flex-col h-full">
                   <div className="flex justify-between items-start mb-4">
                     <div>
-                      <h3 className="font-black text-lg text-slate-900">{prayer.user_name}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-black text-lg text-slate-900">{prayer.user_name}</h3>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="w-7 h-7 rounded-full text-slate-400 hover:text-blue-600 hover:bg-blue-50"
+                          onClick={() => handleViewUser(prayer.user_id)}
+                          title="Ver informações do usuário"
+                        >
+                          <User className="w-4 h-4" />
+                        </Button>
+                      </div>
                       <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">{prayer.user_type}</p>
                     </div>
                     <span className="text-xs font-semibold text-slate-400 bg-slate-100 px-3 py-1 rounded-full flex items-center gap-1">
@@ -133,9 +190,20 @@ export const AdminPrayers = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {prayedPrayers.map((prayer) => (
-              <div key={prayer.id} className="bg-slate-50 p-5 rounded-2xl border border-slate-200 opacity-70">
+              <div key={prayer.id} className="bg-slate-50 p-5 rounded-2xl border border-slate-200 opacity-70 relative group">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="font-bold text-slate-700">{prayer.user_name}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-700">{prayer.user_name}</span>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="w-6 h-6 rounded-full text-slate-400 hover:text-blue-600 hover:bg-blue-50 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => handleViewUser(prayer.user_id)}
+                      title="Ver informações do usuário"
+                    >
+                      <User className="w-3 h-3" />
+                    </Button>
+                  </div>
                   <CheckCircle2 className="w-4 h-4 text-green-600" />
                 </div>
                 <p className="text-sm text-slate-500 line-clamp-2 italic">"{prayer.request}"</p>
@@ -144,6 +212,86 @@ export const AdminPrayers = () => {
           </div>
         </div>
       )}
+
+      {/* Modal de Informações do Usuário */}
+      <Dialog open={isUserModalOpen} onOpenChange={setIsUserModalOpen}>
+        <DialogContent className="sm:max-w-md rounded-[2rem] p-0 overflow-hidden border-0 shadow-2xl">
+          {isLoadingUser ? (
+            <div className="h-64 flex flex-col items-center justify-center gap-4 bg-white">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              <p className="text-slate-500 font-medium">Buscando informações...</p>
+            </div>
+          ) : selectedUser ? (
+            <>
+              <div className="bg-[#0F172A] p-8 text-white relative">
+                <User className="w-32 h-32 absolute right-0 top-0 opacity-5 -mt-4 -mr-4 pointer-events-none" />
+                <DialogHeader>
+                  <DialogTitle className="text-2xl font-black text-white">{selectedUser.name}</DialogTitle>
+                </DialogHeader>
+                <div className="flex items-center gap-3 mt-3">
+                  <Badge className="bg-white/10 hover:bg-white/20 text-white border-0">
+                    {selectedUser.role === 'lawyer' ? 'Advogado' : selectedUser.role === 'admin' ? 'Admin' : 'Cliente'}
+                  </Badge>
+                </div>
+              </div>
+              
+              <div className="p-8 space-y-6 bg-white">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 text-slate-700">
+                    <div className="p-2 bg-slate-50 rounded-lg border border-slate-100"><Mail className="w-4 h-4 text-slate-500"/></div>
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Email</p>
+                      <p className="font-bold">{selectedUser.email || 'Não informado'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 text-slate-700">
+                    <div className="p-2 bg-slate-50 rounded-lg border border-slate-100"><Phone className="w-4 h-4 text-slate-500"/></div>
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Telefone / WhatsApp</p>
+                      <p className="font-bold">{selectedUser.phone || 'Não informado'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 text-slate-700">
+                    <div className="p-2 bg-slate-50 rounded-lg border border-slate-100"><MapPin className="w-4 h-4 text-slate-500"/></div>
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Cidade</p>
+                      <p className="font-bold">
+                        {selectedUser.city ? `${selectedUser.city}, ${selectedUser.state}` : 'Não informada'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 text-slate-700">
+                    <div className="p-2 bg-slate-50 rounded-lg border border-slate-100"><Calendar className="w-4 h-4 text-slate-500"/></div>
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Membro Desde</p>
+                      <p className="font-bold">
+                        {new Date(selectedUser.created_at).toLocaleDateString('pt-BR')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                {selectedUser.phone && (
+                  <div className="pt-4 mt-2 border-t border-slate-100">
+                    <a 
+                      href={`https://wa.me/55${selectedUser.phone.replace(/\D/g, '')}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center w-full h-12 bg-green-50 text-green-700 hover:bg-green-100 font-bold rounded-xl transition-colors"
+                    >
+                      <Phone className="w-4 h-4 mr-2" /> Entrar em contato
+                    </a>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="p-8 text-center text-slate-500 bg-white">
+              Usuário não encontrado.
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
     </div>
   );
