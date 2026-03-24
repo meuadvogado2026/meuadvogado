@@ -8,6 +8,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose 
 import { toast } from "sonner";
 import { estados, cidadesPorEstado } from "@/data/locations";
 import { supabase } from "@/integrations/supabase/client";
+import { applyCepMask } from "@/utils/cep";
 
 // Função para calcular distância usando a Fórmula de Haversine
 function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
@@ -121,9 +122,7 @@ export const Search = () => {
     );
   };
 
-  const applyCepMask = (value: string) => {
-    return value.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2').slice(0, 9);
-  };
+
 
   const fetchBrasilApiCep = async (cep: string) => {
     const cleanCep = cep.replace(/\D/g, '');

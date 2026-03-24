@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,6 +8,7 @@ import { User, Briefcase, MapPin, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { estados } from "@/data/locations";
 import { supabase } from "@/integrations/supabase/client";
+import { applyCepMask, fetchCepData } from "@/utils/cep";
 
 export const Signup = () => {
   const navigate = useNavigate();
@@ -48,46 +47,34 @@ export const Signup = () => {
   const [lawyerLng, setLawyerLng] = useState<number | null>(null);
   const [isFetchingLawyerCep, setIsFetchingLawyerCep] = useState(false);
 
-  const applyCepMask = (value: string) => {
-    return value.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2').slice(0, 9);
-  };
-
   const fetchCep = async (cep: string, type: 'client' | 'lawyer') => {
-    const cleanCep = cep.replace(/\D/g, '');
-    if (cleanCep.length !== 8) return;
-
     if (type === 'client') setIsFetchingClientCep(true);
     else setIsFetchingLawyerCep(true);
 
     try {
-      const response = await fetch(`https://brasilapi.com.br/api/cep/v2/${cleanCep}`);
-      const data = await response.json();
+      const data = await fetchCepData(cep);
 
-      if (response.status !== 200 || data.errors) {
+      if (!data) {
         toast.error("CEP não encontrado", { description: "Verifique o CEP digitado e tente novamente." });
         return;
       }
 
-      const lat = data.location?.coordinates?.latitude ? parseFloat(data.location.coordinates.latitude) : null;
-      const lng = data.location?.coordinates?.longitude ? parseFloat(data.location.coordinates.longitude) : null;
-
       if (type === 'client') {
-        setClientState(data.state || "");
-        setClientCity(data.city || "");
-        setClientStreet(data.street || "");
-        setClientNeighborhood(data.neighborhood || "");
-        setClientLat(lat);
-        setClientLng(lng);
+        setClientState(data.state);
+        setClientCity(data.city);
+        setClientStreet(data.street);
+        setClientNeighborhood(data.neighborhood);
+        setClientLat(data.lat);
+        setClientLng(data.lng);
       } else {
-        setLawyerState(data.state || "");
-        setLawyerCity(data.city || "");
-        setLawyerStreet(data.street || "");
-        setLawyerNeighborhood(data.neighborhood || "");
-        setLawyerLat(lat);
-        setLawyerLng(lng);
+        setLawyerState(data.state);
+        setLawyerCity(data.city);
+        setLawyerStreet(data.street);
+        setLawyerNeighborhood(data.neighborhood);
+        setLawyerLat(data.lat);
+        setLawyerLng(data.lng);
       }
       
-      // Foca automaticamente no campo "Número" se tiver achado a rua
       if (data.street) {
         document.getElementById(`address-number-${type}`)?.focus();
       }

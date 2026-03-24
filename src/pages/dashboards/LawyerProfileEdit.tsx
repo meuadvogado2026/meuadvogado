@@ -16,6 +16,7 @@ import { estados } from "@/data/locations";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { applyCepMask, fetchCepData } from "@/utils/cep";
 
 export const LawyerProfileEdit = () => {
   const { user } = useAuth();
@@ -125,33 +126,27 @@ export const LawyerProfileEdit = () => {
   };
 
   const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const maskedCep = e.target.value.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2').slice(0, 9);
+    const maskedCep = applyCepMask(e.target.value);
     setProfile(prev => ({ ...prev, cep: maskedCep }));
 
     if (maskedCep.length === 9) {
-      const cleanCep = maskedCep.replace(/\D/g, '');
-      try {
-        const response = await fetch(`https://brasilapi.com.br/api/cep/v2/${cleanCep}`);
-        const data = await response.json();
-        if (response.status === 200 && !data.errors) {
-          setProfile(prev => ({
-            ...prev,
-            state: data.state || prev.state,
-            city: data.city || prev.city,
-            street: data.street || prev.street,
-            neighborhood: data.neighborhood || prev.neighborhood,
-            lat: data.location?.coordinates?.latitude ? parseFloat(data.location.coordinates.latitude) : prev.lat,
-            lng: data.location?.coordinates?.longitude ? parseFloat(data.location.coordinates.longitude) : prev.lng
-          }));
-          
-          if (data.street) {
-            document.getElementById('edit-address-number')?.focus();
-          }
-          
-          toast.success("Endereço atualizado com sucesso!");
+      const data = await fetchCepData(maskedCep);
+      if (data) {
+        setProfile(prev => ({
+          ...prev,
+          state: data.state || prev.state,
+          city: data.city || prev.city,
+          street: data.street || prev.street,
+          neighborhood: data.neighborhood || prev.neighborhood,
+          lat: data.lat ?? prev.lat,
+          lng: data.lng ?? prev.lng
+        }));
+        
+        if (data.street) {
+          document.getElementById('edit-address-number')?.focus();
         }
-      } catch (error) {
-        console.error(error);
+        
+        toast.success("Endereço atualizado com sucesso!");
       }
     }
   };

@@ -7,6 +7,7 @@ import { Save, User, MapPin, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { applyCepMask, fetchCepData } from "@/utils/cep";
 
 export const ClientProfile = () => {
   const { user } = useAuth();
@@ -73,38 +74,28 @@ export const ClientProfile = () => {
     setProfile(prev => ({ ...prev, [name]: value }));
   };
 
-  const applyCepMask = (value: string) => {
-    return value.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2').slice(0, 9);
-  };
-
   const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const maskedCep = applyCepMask(e.target.value);
     setProfile(prev => ({ ...prev, cep: maskedCep }));
 
     if (maskedCep.length === 9) {
-      const cleanCep = maskedCep.replace(/\D/g, '');
-      try {
-        const response = await fetch(`https://brasilapi.com.br/api/cep/v2/${cleanCep}`);
-        const data = await response.json();
-        if (response.status === 200 && !data.errors) {
-          setProfile(prev => ({
-            ...prev,
-            state: data.state || prev.state,
-            city: data.city || prev.city,
-            street: data.street || prev.street,
-            neighborhood: data.neighborhood || prev.neighborhood,
-            lat: data.location?.coordinates?.latitude ? parseFloat(data.location.coordinates.latitude) : prev.lat,
-            lng: data.location?.coordinates?.longitude ? parseFloat(data.location.coordinates.longitude) : prev.lng
-          }));
-          
-          if (data.street) {
-            document.getElementById('edit-address-number-client')?.focus();
-          }
-
-          toast.success("Endereço atualizado com sucesso!");
+      const data = await fetchCepData(maskedCep);
+      if (data) {
+        setProfile(prev => ({
+          ...prev,
+          state: data.state || prev.state,
+          city: data.city || prev.city,
+          street: data.street || prev.street,
+          neighborhood: data.neighborhood || prev.neighborhood,
+          lat: data.lat ?? prev.lat,
+          lng: data.lng ?? prev.lng
+        }));
+        
+        if (data.street) {
+          document.getElementById('edit-address-number-client')?.focus();
         }
-      } catch (error) {
-        // Silencioso em caso de erro de rede no CEP
+
+        toast.success("Endereço atualizado com sucesso!");
       }
     }
   };

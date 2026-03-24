@@ -3,24 +3,17 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
   LogOut, 
-  LayoutDashboard, 
   User, 
-  Search, 
-  Settings, 
-  PieChart, 
-  Users, 
-  ShieldCheck,
   ChevronRight,
   HeartHandshake,
-  Loader2,
-  AlertTriangle,
-  Gift
+  Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MobileNav } from "@/components/MobileNav";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { getSidebarLinks } from "@/config/navigation";
 import {
   Dialog,
   DialogContent,
@@ -110,35 +103,7 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
     }
   };
 
-  const getLinks = () => {
-    switch (role) {
-      case 'client':
-        return [
-          { icon: LayoutDashboard, label: 'Visão Geral', path: '/painel/cliente' },
-          { icon: Search, label: 'Buscar Advogados', path: '/painel/cliente/buscar' },
-          { icon: User, label: 'Meu Perfil', path: '/painel/cliente/perfil' },
-        ];
-      case 'lawyer':
-        return [
-          { icon: LayoutDashboard, label: 'Meu Desempenho', path: '/painel/advogado' },
-          { icon: Search, label: 'Buscar Colegas', path: '/painel/advogado/buscar' },
-          { icon: Gift, label: 'Benefícios', path: '/painel/advogado/beneficios' },
-          { icon: User, label: 'Editar Perfil', path: '/painel/advogado/perfil' },
-          { icon: Settings, label: 'Configurações', path: '/painel/advogado/config' },
-        ];
-      case 'admin':
-        return [
-          { icon: PieChart, label: 'Métricas', path: '/admin' },
-          { icon: AlertTriangle, label: 'Urgências', path: '/admin/urgencias' },
-          { icon: ShieldCheck, label: 'Aprovações', path: '/admin/aprovacoes' },
-          { icon: Users, label: 'Usuários', path: '/admin/usuarios' },
-          { icon: HeartHandshake, label: 'Orações', path: '/admin/oracoes' },
-          { icon: Gift, label: 'Benefícios', path: '/admin/beneficios' },
-        ];
-    }
-  };
-
-  const links = getLinks();
+  const links = getSidebarLinks(role);
   
   const roleDisplay = {
     admin: 'Administrador',

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from "react-router-dom";
-import { Search, User, LayoutDashboard, Briefcase, ShieldCheck, Settings, PieChart, AlertTriangle, HeartHandshake, Gift } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getMobileLinks } from "@/config/navigation";
 
 interface MobileNavProps {
   role?: 'public' | 'client' | 'lawyer' | 'admin';
@@ -13,40 +13,7 @@ export const MobileNav = ({ role = 'public', onOpenPrayer }: MobileNavProps) => 
 
   if (location.pathname === '/') return null;
 
-  const getLinks = () => {
-    switch (role) {
-      case 'client':
-        return [
-          { icon: Search, label: 'Buscar', path: '/painel/cliente/buscar' },
-          { icon: LayoutDashboard, label: 'Painel', path: '/painel/cliente' },
-          { icon: User, label: 'Perfil', path: '/painel/cliente/perfil' },
-          { icon: HeartHandshake, label: 'Oração', action: 'prayer' },
-        ];
-      case 'lawyer':
-        return [
-          { icon: LayoutDashboard, label: 'Painel', path: '/painel/advogado' },
-          { icon: Search, label: 'Colegas', path: '/painel/advogado/buscar' },
-          { icon: Gift, label: 'Benefícios', path: '/painel/advogado/beneficios' },
-          { icon: User, label: 'Perfil', path: '/painel/advogado/perfil' },
-          { icon: HeartHandshake, label: 'Oração', action: 'prayer' },
-        ];
-      case 'admin':
-        return [
-          { icon: PieChart, label: 'Métricas', path: '/admin' },
-          { icon: AlertTriangle, label: 'Urgências', path: '/admin/urgencias' },
-          { icon: ShieldCheck, label: 'Aprovações', path: '/admin/aprovacoes' },
-          { icon: Gift, label: 'Benefícios', path: '/admin/beneficios' },
-        ];
-      default:
-        return [
-          { icon: Search, label: 'Buscar', path: '/buscar' },
-          { icon: User, label: 'Entrar', path: '/login' },
-          { icon: Briefcase, label: 'Cadastrar', path: '/cadastro' },
-        ];
-    }
-  };
-
-  const links = getLinks();
+  const links = getMobileLinks(role);
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-2 pb-safe pt-2 z-50 flex justify-around items-center shadow-[0_-4px_12px_rgba(0,0,0,0.05)] overflow-x-auto">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Settings, 
   Globe, 
@@ -19,6 +19,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from "@/contexts/AuthContext";
+import { shareOrCopy } from "@/utils/share";
+import { supabase } from "@/integrations/supabase/client";
 
 export const LawyerSettings = () => {
   const navigate = useNavigate();
@@ -26,11 +28,51 @@ export const LawyerSettings = () => {
   
   const [settings, setSettings] = useState({
     isProfileActive: true,
-    whatsappNumber: "(11) 99999-9999",
+    whatsappNumber: "",
     whatsappMessage: "Olá! Encontrei seu perfil no Meu Advogado e gostaria de uma orientação inicial.",
-    email: "contato@carloseduardo.adv.br",
+    email: "",
     password: ""
   });
+  
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      if (!user) return;
+      
+      try {
+        // Obter email pelo profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('id', user.id)
+          .single();
+
+        // Obter configurações do lawyer_details
+        const { data: details } = await supabase
+          .from('lawyer_details')
+          .select('is_profile_active, whatsapp, whatsapp_message')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        setSettings(prev => ({
+          ...prev,
+          email: profile?.email || prev.email,
+          isProfileActive: details?.is_profile_active ?? true,
+          whatsappNumber: details?.whatsapp || prev.whatsappNumber,
+          whatsappMessage: details?.whatsapp_message || prev.whatsappMessage,
+        }));
+      } catch (error) {
+        console.error("Erro ao carregar configurações:", error);
+        toast.error("Erro ao carregar suas preferências.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSettings();
+  }, [user]);
 
   // Gera o link público real baseado no domínio atual e no ID do usuário
   const publicLink = `${window.location.origin}/advogado/${user?.id || ''}`;
@@ -44,10 +86,31 @@ export const LawyerSettings = () => {
     setSettings(prev => ({ ...prev, [name]: checked }));
   };
 
-  const handleSave = () => {
-    toast.success("Configurações salvas!", {
-      description: "Suas preferências foram atualizadas com sucesso."
-    });
+  const handleSave = async () => {
+    if (!user) return;
+    setIsSaving(true);
+    
+    try {
+      const { error } = await supabase
+        .from('lawyer_details')
+        .update({
+          is_profile_active: settings.isProfileActive,
+          whatsapp: settings.whatsappNumber,
+          whatsapp_message: settings.whatsappMessage
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      toast.success("Configurações salvas!", {
+        description: "Suas preferências foram atualizadas com sucesso."
+      });
+    } catch (error) {
+      console.error("Erro ao salvar:", error);
+      toast.error("Erro ao salvar configurações. Tente novamente.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleLogout = () => {
@@ -61,21 +124,11 @@ export const LawyerSettings = () => {
   };
 
   const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'Meu Perfil Jurídico',
-          text: 'Confira meu perfil na plataforma Meu Advogado.',
-          url: publicLink
-        });
-      } catch (error: any) {
-        if (error.name !== 'AbortError') {
-          copyLink();
-        }
-      }
-    } else {
-      copyLink();
-    }
+    await shareOrCopy({
+      title: 'Meu Perfil Jurídico',
+      text: 'Confira meu perfil na plataforma Meu Advogado.',
+      url: publicLink
+    });
   };
 
   return (
@@ -89,9 +142,9 @@ export const LawyerSettings = () => {
           </h1>
           <p className="text-sm text-slate-500">Gerencie sua conta e preferências da plataforma.</p>
         </div>
-        <Button onClick={handleSave} className="bg-primary text-white hover:bg-blue-900 shadow-lg shadow-primary/20 rounded-xl px-6 h-11">
-          <Save className="w-4 h-4 mr-2" />
-          Salvar Preferências
+        <Button onClick={handleSave} disabled={isLoading || isSaving} className="bg-primary text-white hover:bg-blue-900 shadow-lg shadow-primary/20 rounded-xl px-6 h-11">
+          <Save className={`w-4 h-4 mr-2 ${isSaving ? 'animate-spin' : ''}`} />
+          {isSaving ? "Salvando..." : "Salvar Preferências"}
         </Button>
       </div>
 

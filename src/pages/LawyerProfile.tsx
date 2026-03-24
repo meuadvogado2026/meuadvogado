@@ -30,6 +30,7 @@ import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { shareOrCopy } from "@/utils/share";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 export const LawyerProfile = () => {
@@ -157,26 +158,11 @@ export const LawyerProfile = () => {
   };
 
   const handleShareProfile = async () => {
-    const shareUrl = `${window.location.origin}/advogado/${lawyer.id}`;
-    const shareData = {
+    await shareOrCopy({
       title: `Perfil de ${lawyer.name}`,
       text: `Confira o perfil de ${lawyer.name} na plataforma Meu Advogado.`,
-      url: shareUrl
-    };
-
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-      } catch (err: any) {
-        if (err.name !== 'AbortError') {
-          navigator.clipboard.writeText(shareUrl);
-          toast.success("Link copiado para a área de transferência!");
-        }
-      }
-    } else {
-      navigator.clipboard.writeText(shareUrl);
-      toast.success("Link copiado para a área de transferência!");
-    }
+      url: `${window.location.origin}/advogado/${lawyer.id}`
+    });
   };
 
   if (isLoading) {

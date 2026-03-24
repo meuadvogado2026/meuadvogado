@@ -35,6 +35,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { subDays } from "date-fns";
+import { shareOrCopy } from "@/utils/share";
 
 const MetricCard = ({ title, value, icon: Icon, trend, trendValue, color, chartData, isLoading }: any) => (
   <Card className="border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-300 group overflow-hidden">
@@ -210,34 +211,21 @@ export const LawyerDashboard = () => {
       };
     });
   };
-
   const profileLink = `${window.location.origin}/advogado/${user?.id || ''}`;
+  const firstName = profileData?.name ? profileData.name.split(' ')[0] : 'Doutor(a)';
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(profileLink);
     toast.success("Link copiado para a área de transferência!");
   };
 
-  const firstName = profileData?.name ? profileData.name.split(' ')[0] : 'Doutor(a)';
-
   const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `Perfil de Dr(a). ${firstName}`,
-          text: 'Confira meu perfil profissional na plataforma Meu Advogado.',
-          url: profileLink
-        });
-      } catch (error: any) {
-        if (error.name !== 'AbortError') {
-          copyToClipboard();
-        }
-      }
-    } else {
-      copyToClipboard();
-    }
+    await shareOrCopy({
+      title: `Perfil de Dr(a). ${firstName}`,
+      text: 'Confira meu perfil profissional na plataforma Meu Advogado.',
+      url: profileLink
+    });
   };
-
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-12">
       {/* Header Premium */}
