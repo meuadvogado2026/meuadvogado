@@ -83,17 +83,24 @@ export const AdminApprovals = () => {
     try {
       const isVerified = newStatus === 'approved';
       
-      const { error } = await supabase
+      // O .select() no final é crucial para forçar o Supabase a retornar a linha atualizada.
+      // Se ele retornar vazio, significa que o RLS bloqueou a ação.
+      const { data, error } = await supabase
         .from('lawyer_details')
         .update({ 
           status: newStatus,
           is_verified: isVerified
         })
-        .eq('id', id);
+        .eq('id', id)
+        .select();
 
       if (error) throw error;
+      
+      if (!data || data.length === 0) {
+        throw new Error("Permissão negada. Você rodou o comando SQL de permissão do Admin?");
+      }
 
-      // Atualiza localmente
+      // Atualiza localmente só se o banco confirmou
       setApprovals(prev => prev.map(app => app.id === id ? { ...app, status: newStatus } : app));
       
       if (newStatus === 'approved') {
@@ -101,9 +108,9 @@ export const AdminApprovals = () => {
       } else {
         toast.error("Cadastro rejeitado.", { description: "O perfil do advogado foi marcado como rejeitado." });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao atualizar status:", error);
-      toast.error("Erro ao processar a aprovação.");
+      toast.error("Erro ao processar a aprovação.", { description: error.message });
     }
   };
 
