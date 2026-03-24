@@ -21,6 +21,8 @@ export const ClientProfile = () => {
     cep: "",
     city: "",
     state: "",
+    street: "",
+    neighborhood: "",
     password: ""
   });
 
@@ -45,7 +47,9 @@ export const ClientProfile = () => {
             phone: data.phone || "",
             cep: data.cep || "",
             city: data.city || "",
-            state: data.state || ""
+            state: data.state || "",
+            street: data.street || "",
+            neighborhood: data.neighborhood || ""
           }));
         }
       } catch (error) {
@@ -62,7 +66,6 @@ export const ClientProfile = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setProfile(prev => {
-      // Se mudar o estado, reseta a cidade
       if (name === 'state') return { ...prev, state: value, city: '' };
       return { ...prev, [name]: value };
     });
@@ -79,13 +82,15 @@ export const ClientProfile = () => {
     if (maskedCep.length === 9) {
       const cleanCep = maskedCep.replace(/\D/g, '');
       try {
-        const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+        const response = await fetch(`https://brasilapi.com.br/api/cep/v2/${cleanCep}`);
         const data = await response.json();
-        if (!data.erro) {
+        if (response.status === 200 && !data.errors) {
           setProfile(prev => ({
             ...prev,
-            state: data.uf,
-            city: data.localidade
+            state: data.state || prev.state,
+            city: data.city || prev.city,
+            street: data.street || prev.street,
+            neighborhood: data.neighborhood || prev.neighborhood,
           }));
           toast.success("Endereço atualizado pelo CEP!");
         }
@@ -100,7 +105,6 @@ export const ClientProfile = () => {
     setIsSaving(true);
 
     try {
-      // 1. Atualizar dados na tabela profiles
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
@@ -108,26 +112,24 @@ export const ClientProfile = () => {
           phone: profile.phone,
           cep: profile.cep,
           city: profile.city,
-          state: profile.state
+          state: profile.state,
+          street: profile.street,
+          neighborhood: profile.neighborhood
         })
         .eq('id', user.id);
 
       if (profileError) throw profileError;
 
-      // 2. Atualizar senha se foi preenchida
       if (profile.password) {
         const { error: authError } = await supabase.auth.updateUser({
           password: profile.password
         });
         
         if (authError) throw authError;
-        setProfile(prev => ({ ...prev, password: "" })); // Limpa o campo de senha após sucesso
+        setProfile(prev => ({ ...prev, password: "" })); 
       }
 
-      toast.success("Dados atualizados com sucesso!", {
-        description: "Suas informações foram salvas na plataforma."
-      });
-
+      toast.success("Dados atualizados com sucesso!");
     } catch (error: any) {
       console.error(error);
       toast.error("Erro ao salvar", { description: error.message || "Tente novamente mais tarde." });
@@ -168,7 +170,6 @@ export const ClientProfile = () => {
         </CardHeader>
         <CardContent className="p-6 md:p-8 space-y-8">
           
-          {/* Dados de Contato */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2 md:col-span-2">
               <Label className="font-bold text-slate-700">Nome Completo</Label>
@@ -203,7 +204,6 @@ export const ClientProfile = () => {
 
           <div className="w-full h-px bg-slate-100" />
 
-          {/* Localização */}
           <div>
             <h3 className="text-sm font-black uppercase tracking-wider text-slate-500 mb-4 flex items-center gap-2">
               <MapPin className="w-4 h-4 text-primary" /> Localização
@@ -251,13 +251,30 @@ export const ClientProfile = () => {
                   )}
                 </select>
               </div>
+
+              <div className="space-y-2 md:col-span-3">
+                <Label className="font-bold text-slate-700">Bairro</Label>
+                <Input 
+                  name="neighborhood" 
+                  value={profile.neighborhood} 
+                  onChange={handleChange} 
+                  className="h-12 rounded-xl bg-slate-50 border-slate-200" 
+                />
+              </div>
+              <div className="space-y-2 md:col-span-3">
+                <Label className="font-bold text-slate-700">Rua / Logradouro</Label>
+                <Input 
+                  name="street" 
+                  value={profile.street} 
+                  onChange={handleChange} 
+                  className="h-12 rounded-xl bg-slate-50 border-slate-200" 
+                />
+              </div>
             </div>
-            <p className="text-sm font-medium text-slate-500 mt-3">Usamos seu CEP e localização para recomendar advogados que atendem perto de você.</p>
           </div>
 
           <div className="w-full h-px bg-slate-100" />
 
-          {/* Segurança */}
           <div className="space-y-2 max-w-sm">
             <Label className="font-bold text-slate-700">Nova Senha</Label>
             <Input 

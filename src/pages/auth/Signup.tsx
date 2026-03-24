@@ -23,6 +23,8 @@ export const Signup = () => {
   const [clientCep, setClientCep] = useState("");
   const [clientState, setClientState] = useState("");
   const [clientCity, setClientCity] = useState("");
+  const [clientStreet, setClientStreet] = useState("");
+  const [clientNeighborhood, setClientNeighborhood] = useState("");
   const [isFetchingClientCep, setIsFetchingClientCep] = useState(false);
 
   // Estados para Advogado
@@ -36,6 +38,8 @@ export const Signup = () => {
   const [lawyerCep, setLawyerCep] = useState("");
   const [lawyerState, setLawyerState] = useState("");
   const [lawyerCity, setLawyerCity] = useState("");
+  const [lawyerStreet, setLawyerStreet] = useState("");
+  const [lawyerNeighborhood, setLawyerNeighborhood] = useState("");
   const [isFetchingLawyerCep, setIsFetchingLawyerCep] = useState(false);
 
   const applyCepMask = (value: string) => {
@@ -50,22 +54,26 @@ export const Signup = () => {
     else setIsFetchingLawyerCep(true);
 
     try {
-      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const response = await fetch(`https://brasilapi.com.br/api/cep/v2/${cleanCep}`);
       const data = await response.json();
 
-      if (data.erro) {
+      if (response.status !== 200 || data.errors) {
         toast.error("CEP não encontrado", { description: "Verifique o CEP digitado e tente novamente." });
         return;
       }
 
       if (type === 'client') {
-        setClientState(data.uf);
-        setClientCity(data.localidade);
+        setClientState(data.state || "");
+        setClientCity(data.city || "");
+        setClientStreet(data.street || "");
+        setClientNeighborhood(data.neighborhood || "");
       } else {
-        setLawyerState(data.uf);
-        setLawyerCity(data.localidade);
+        setLawyerState(data.state || "");
+        setLawyerCity(data.city || "");
+        setLawyerStreet(data.street || "");
+        setLawyerNeighborhood(data.neighborhood || "");
       }
-      toast.success("Endereço preenchido!", { description: `${data.localidade} - ${data.uf}` });
+      toast.success("Endereço preenchido!", { description: `${data.street || data.neighborhood || data.city}` });
     } catch (error) {
       toast.error("Erro ao buscar CEP", { description: "Tente preencher os dados manualmente." });
     } finally {
@@ -92,50 +100,35 @@ export const Signup = () => {
     const phone = role === 'client' ? clientPhone : lawyerPhone;
     const city = role === 'client' ? clientCity : lawyerCity;
     const state = role === 'client' ? clientState : lawyerState;
+    const street = role === 'client' ? clientStreet : lawyerStreet;
+    const neighborhood = role === 'client' ? clientNeighborhood : lawyerNeighborhood;
+    const cep = role === 'client' ? clientCep : lawyerCep;
 
     try {
-      // Cria a conta no Supabase Auth. 
-      // O gatilho (trigger) no banco de dados pegará 'name' e 'role' e criará o Profile.
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: {
-            name,
-            role,
-            phone,
-            city,
-            state
-          }
+          data: { name, role, phone, city, state }
         }
       });
 
       if (error) throw error;
 
-      // Se a sessão for criada diretamente (sem confirmação de email requerida)
       if (data.session) {
-        // Atualiza campos adicionais na tabela profiles
+        // Atualiza campos adicionais, inclusive rua e bairro
         await supabase.from('profiles').update({
-          phone,
-          city,
-          state,
+          phone, city, state, street, neighborhood, cep
         }).eq('id', data.user!.id);
         
-        toast.success("Conta criada com sucesso!", {
-          description: "Redirecionando para o seu painel...",
-        });
+        toast.success("Conta criada com sucesso!");
         navigate(role === 'lawyer' ? '/painel/advogado' : '/painel/cliente');
       } else {
-        // Se a confirmação de e-mail estiver ativada no Supabase
-        toast.success("Cadastro realizado!", {
-          description: "Verifique seu e-mail para confirmar a conta antes de fazer login."
-        });
+        toast.success("Cadastro realizado!", { description: "Verifique seu e-mail para confirmar a conta." });
         navigate('/login');
       }
     } catch (error: any) {
-      toast.error("Erro ao criar conta", {
-        description: error.message || "Verifique os dados e tente novamente."
-      });
+      toast.error("Erro ao criar conta", { description: error.message || "Verifique os dados." });
     } finally {
       setIsLoading(false);
     }
@@ -240,6 +233,17 @@ export const Signup = () => {
                           )}
                         </select>
                       </div>
+
+                      {/* Logradouro e Bairro */}
+                      <div className="sm:col-span-3">
+                        <Label className="text-slate-700 font-bold">Bairro</Label>
+                        <Input required value={clientNeighborhood} onChange={(e) => setClientNeighborhood(e.target.value)} className="mt-1 h-12 rounded-xl bg-white border-slate-200" />
+                      </div>
+                      <div className="sm:col-span-3">
+                        <Label className="text-slate-700 font-bold">Rua / Logradouro</Label>
+                        <Input required value={clientStreet} onChange={(e) => setClientStreet(e.target.value)} className="mt-1 h-12 rounded-xl bg-white border-slate-200" />
+                      </div>
+
                     </div>
                   </div>
 
@@ -348,6 +352,15 @@ export const Signup = () => {
                             <option value={lawyerCity}>{lawyerCity}</option>
                           )}
                         </select>
+                      </div>
+
+                      <div className="sm:col-span-3">
+                        <Label className="text-slate-700 font-bold">Bairro</Label>
+                        <Input required value={lawyerNeighborhood} onChange={(e) => setLawyerNeighborhood(e.target.value)} className="mt-1 h-12 rounded-xl bg-white border-slate-200" />
+                      </div>
+                      <div className="sm:col-span-3">
+                        <Label className="text-slate-700 font-bold">Rua / Logradouro</Label>
+                        <Input required value={lawyerStreet} onChange={(e) => setLawyerStreet(e.target.value)} className="mt-1 h-12 rounded-xl bg-white border-slate-200" />
                       </div>
                     </div>
                     

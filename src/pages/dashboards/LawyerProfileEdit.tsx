@@ -30,6 +30,8 @@ export const LawyerProfileEdit = () => {
     cep: "",
     city: "",
     state: "",
+    street: "",
+    neighborhood: "",
     attendanceType: "Híbrido (Online e Presencial)",
     experienceYears: "",
     mainSpecialty: "",
@@ -76,6 +78,8 @@ export const LawyerProfileEdit = () => {
             city: pData.city || "",
             state: pData.state || "",
             cep: pData.cep || "",
+            street: pData.street || "",
+            neighborhood: pData.neighborhood || "",
             avatar: pData.avatar_url || prev.avatar,
             cover: pData.cover_url || prev.cover,
             
@@ -117,12 +121,36 @@ export const LawyerProfileEdit = () => {
     });
   };
 
+  const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const maskedCep = e.target.value.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2').slice(0, 9);
+    setProfile(prev => ({ ...prev, cep: maskedCep }));
+
+    if (maskedCep.length === 9) {
+      const cleanCep = maskedCep.replace(/\D/g, '');
+      try {
+        const response = await fetch(`https://brasilapi.com.br/api/cep/v2/${cleanCep}`);
+        const data = await response.json();
+        if (response.status === 200 && !data.errors) {
+          setProfile(prev => ({
+            ...prev,
+            state: data.state || prev.state,
+            city: data.city || prev.city,
+            street: data.street || prev.street,
+            neighborhood: data.neighborhood || prev.neighborhood,
+          }));
+          toast.success("Endereço preenchido automaticamente!");
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  };
+
   const handleMainSpecialtyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newMain = e.target.value;
     setProfile(prev => ({
       ...prev,
       mainSpecialty: newMain,
-      // Remove a nova especialidade principal das secundárias, caso estivesse lá
       secondarySpecialties: prev.secondarySpecialties.filter(s => s !== newMain)
     }));
   };
@@ -167,6 +195,8 @@ export const LawyerProfileEdit = () => {
           city: profile.city,
           state: profile.state,
           cep: profile.cep,
+          street: profile.street,
+          neighborhood: profile.neighborhood,
           avatar_url: profile.avatar,
           cover_url: profile.cover
         })
@@ -222,7 +252,6 @@ export const LawyerProfileEdit = () => {
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-12 relative">
       
-      {/* Header Sticky com Ação */}
       <div className="sticky top-0 z-30 bg-slate-50/80 backdrop-blur-md py-4 border-b border-slate-200/60 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 -mx-4 px-4 md:-mx-8 md:px-8">
         <div>
           <h1 className="text-2xl font-black text-slate-950">Editar Perfil</h1>
@@ -240,10 +269,8 @@ export const LawyerProfileEdit = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        {/* Formulário (Esquerda) */}
         <div className="lg:col-span-8 space-y-6">
           
-          {/* 1. Imagens e Personalização Visual */}
           <Card className="border-slate-200/60 shadow-sm rounded-3xl overflow-hidden">
             <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4">
               <CardTitle className="text-lg flex items-center gap-2">
@@ -252,7 +279,6 @@ export const LawyerProfileEdit = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              {/* Capa */}
               <div className="relative h-48 bg-slate-200 group overflow-hidden">
                 <img src={profile.cover} alt="Capa" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 
@@ -270,7 +296,6 @@ export const LawyerProfileEdit = () => {
                 </label>
               </div>
               
-              {/* Foto de Perfil */}
               <div className="px-8 pb-8 flex flex-col sm:flex-row items-start sm:items-end gap-6 -mt-12 relative z-10">
                 <div className="relative group">
                   <img 
@@ -297,7 +322,6 @@ export const LawyerProfileEdit = () => {
             </CardContent>
           </Card>
 
-          {/* 2. Informações Principais e Localização */}
           <Card className="border-slate-200/60 shadow-sm rounded-3xl">
             <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4 rounded-t-3xl">
               <CardTitle className="text-lg flex items-center gap-2">
@@ -336,7 +360,7 @@ export const LawyerProfileEdit = () => {
               <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                 <div className="space-y-2 md:col-span-2">
                   <Label className="font-bold text-slate-700">CEP do Escritório</Label>
-                  <Input name="cep" value={profile.cep} onChange={handleChange} maxLength={9} className="h-11 rounded-xl bg-slate-50" />
+                  <Input name="cep" value={profile.cep} onChange={handleCepChange} maxLength={9} className="h-11 rounded-xl bg-slate-50" />
                 </div>
                 <div className="space-y-2 md:col-span-4">
                   <Label className="font-bold text-slate-700">Formato de Atendimento</Label>
@@ -384,11 +408,19 @@ export const LawyerProfileEdit = () => {
                     )}
                   </select>
                 </div>
+
+                <div className="space-y-2 md:col-span-3">
+                  <Label className="font-bold text-slate-700">Bairro</Label>
+                  <Input name="neighborhood" value={profile.neighborhood} onChange={handleChange} className="h-11 rounded-xl bg-slate-50" />
+                </div>
+                <div className="space-y-2 md:col-span-3">
+                  <Label className="font-bold text-slate-700">Rua / Logradouro</Label>
+                  <Input name="street" value={profile.street} onChange={handleChange} className="h-11 rounded-xl bg-slate-50" />
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* 3. Apresentação e Áreas de Atuação */}
           <Card className="border-slate-200/60 shadow-sm rounded-3xl">
             <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4 rounded-t-3xl">
               <CardTitle className="text-lg flex items-center gap-2">
@@ -428,11 +460,8 @@ export const LawyerProfileEdit = () => {
                 <Label className="font-bold text-slate-700">Especialidades Secundárias</Label>
                 <div className="flex flex-wrap gap-2">
                   {specialties.map(spec => {
-                    // Não mostra a especialidade se ela já for a principal
                     if (profile.mainSpecialty === spec) return null;
-                    
                     const isSelected = profile.secondarySpecialties.includes(spec);
-
                     return (
                       <button
                         key={spec}
@@ -453,9 +482,6 @@ export const LawyerProfileEdit = () => {
                     )
                   })}
                 </div>
-                <p className="text-xs font-medium text-slate-500">
-                  Selecione as áreas complementares de sua atuação. Elas aparecerão no seu perfil e nos filtros de busca.
-                </p>
               </div>
 
               <div className="space-y-2">
@@ -474,7 +500,6 @@ export const LawyerProfileEdit = () => {
             </CardContent>
           </Card>
 
-          {/* 4. Contato e Redes Sociais */}
           <Card className="border-slate-200/60 shadow-sm rounded-3xl">
             <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4 rounded-t-3xl">
               <CardTitle className="text-lg flex items-center gap-2">
@@ -496,7 +521,6 @@ export const LawyerProfileEdit = () => {
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2 font-bold text-slate-700"><Mail className="w-4 h-4 text-slate-500"/> E-mail</Label>
                   <Input name="email" value={profile.email} onChange={handleChange} disabled className="h-11 rounded-xl bg-slate-100 text-slate-500 cursor-not-allowed" />
-                  <p className="text-[10px] text-slate-400">Alterável nas Configurações</p>
                 </div>
               </div>
 
@@ -532,7 +556,6 @@ export const LawyerProfileEdit = () => {
           </Card>
         </div>
 
-        {/* Preview Sidebar (Direita - Sticky) */}
         <div className="lg:col-span-4 hidden lg:block">
           <div className="sticky top-28 space-y-4">
             <h3 className="text-sm font-black text-slate-400 uppercase tracking-wider mb-2">Preview do Perfil</h3>
@@ -552,7 +575,6 @@ export const LawyerProfileEdit = () => {
                     alt="Avatar Preview" 
                     className="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-md bg-white relative z-10"
                   />
-                  {/* Simulando selo de verificação baseado se preencheu OAB */}
                   {profile.oab && profile.oabState && (
                     <Badge className="bg-blue-50 text-blue-700 font-bold border border-blue-200 flex gap-1 h-6 mb-2">
                       <ShieldCheck className="w-3.5 h-3.5" /> Verificado

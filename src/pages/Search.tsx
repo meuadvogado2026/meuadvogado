@@ -45,13 +45,11 @@ export const Search = () => {
     const fetchLawyers = async () => {
       setIsLoadingLawyers(true);
       try {
-        // Busca profiles que são advogados
         const { data: profiles, error: pErr } = await supabase
           .from('profiles')
           .select('*')
           .eq('role', 'lawyer');
 
-        // Busca os detalhes profissionais
         const { data: details, error: dErr } = await supabase
           .from('lawyer_details')
           .select('*');
@@ -73,7 +71,7 @@ export const Search = () => {
               cover: p.cover_url || '',
               bio: d.mini_bio || d.full_bio || '',
               type: d.attendance_type || 'Híbrido (Online e Presencial)',
-              lat: null, // Futuramente podemos integrar geocodificação real
+              lat: null, // Pode ser preenchido futuramente com os dados exatos do advogado
               lng: null
             };
           });
@@ -122,25 +120,36 @@ export const Search = () => {
     return value.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2').slice(0, 9);
   };
 
-  const fetchViaCep = async (cep: string) => {
+  const fetchBrasilApiCep = async (cep: string) => {
     const cleanCep = cep.replace(/\D/g, '');
     if (cleanCep.length !== 8) return;
 
     setIsFetchingCep(true);
     try {
-      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const response = await fetch(`https://brasilapi.com.br/api/cep/v2/${cleanCep}`);
       const data = await response.json();
 
-      if (data.erro) {
+      if (response.status !== 200 || data.errors) {
         toast.error("CEP não encontrado", { description: "Verifique o número e tente novamente." });
         return;
       }
 
-      setUserLocation(null);
-      setSelectedState(data.uf);
-      setSelectedCity(data.localidade);
+      setSelectedState(data.state);
+      setSelectedCity(data.city);
       setSortBy("distance");
-      toast.success("Região identificada!", { description: `Buscando advogados em ${data.localidade} - ${data.uf}` });
+      
+      // Se a Brasil API V2 retornar as coordenadas geográficas exatas do CEP
+      if (data.location && data.location.coordinates && data.location.coordinates.latitude) {
+         setUserLocation({
+           lat: parseFloat(data.location.coordinates.latitude),
+           lng: parseFloat(data.location.coordinates.longitude)
+         });
+         toast.success("Localização exata encontrada!", { description: `Buscando ao redor de ${data.street || data.neighborhood}` });
+      } else {
+         setUserLocation(null);
+         toast.success("Região identificada!", { description: `Buscando advogados em ${data.city} - ${data.state}` });
+      }
+      
     } catch (error) {
       toast.error("Erro na busca do CEP", { description: "Tente selecionar o estado e cidade manualmente." });
     } finally {
@@ -151,10 +160,9 @@ export const Search = () => {
   const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const maskedCep = applyCepMask(e.target.value);
     setCepParam(maskedCep);
-    if (maskedCep.length === 9) fetchViaCep(maskedCep);
+    if (maskedCep.length === 9) fetchBrasilApiCep(maskedCep);
   };
 
-  // 1. Calcular as distâncias
   const processedLawyers = lawyers.map(lawyer => {
     let distance = lawyer.distance; 
     if (userLocation && lawyer.lat && lawyer.lng) {
@@ -163,7 +171,6 @@ export const Search = () => {
     return { ...lawyer, distance };
   });
 
-  // 2. Filtrar
   const filteredLawyers = processedLawyers
     .filter(lawyer => {
       const matchesSearch = lawyer.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -358,7 +365,6 @@ export const Search = () => {
         {/* Results layout */}
         <div className="flex flex-col md:flex-row gap-8">
           
-          {/* Sidebar Filters (Desktop) */}
           <aside className="hidden md:block w-[300px] shrink-0">
             <div className="bg-white p-6 rounded-3xl border border-slate-200/60 shadow-sm sticky top-24">
               <div className="flex items-center gap-2 mb-8">
