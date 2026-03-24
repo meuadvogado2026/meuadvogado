@@ -140,61 +140,77 @@ export const AdminBenefits = () => {
       </Card>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-2xl rounded-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-black text-slate-900">{formData.id ? 'Editar' : 'Novo'} Benefício</DialogTitle>
+        <DialogContent className="sm:max-w-2xl rounded-2xl p-0 overflow-hidden flex flex-col max-h-[90vh]">
+          
+          <DialogHeader className="p-6 pb-4 border-b border-slate-100 bg-white z-10 shrink-0">
+            <DialogTitle className="text-2xl font-black text-slate-900">
+              {formData.id ? 'Editar' : 'Novo'} Benefício
+            </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSave} className="space-y-4 mt-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="font-bold text-slate-700">Nome da Empresa</Label>
-                <Input required value={formData.company} onChange={e => setFormData({...formData, company: e.target.value})} placeholder="Ex: Dell, Gympass" className="h-11 rounded-xl bg-slate-50" />
+
+          <form onSubmit={handleSave} className="flex flex-col overflow-hidden">
+            {/* O corpo do formulário ganha overflow e scroll */}
+            <div className="p-6 space-y-4 overflow-y-auto flex-1 bg-white">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="font-bold text-slate-700">Nome da Empresa</Label>
+                  <Input required value={formData.company} onChange={e => setFormData({...formData, company: e.target.value})} placeholder="Ex: Dell, Gympass" className="h-11 rounded-xl bg-slate-50" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-bold text-slate-700">Título da Oferta</Label>
+                  <Input required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="Ex: Desconto em Notebooks" className="h-11 rounded-xl bg-slate-50" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-bold text-slate-700">Desconto (Texto)</Label>
+                  <Input required value={formData.discount} onChange={e => setFormData({...formData, discount: e.target.value})} placeholder="Ex: 20% OFF ou R$ 50" className="h-11 rounded-xl bg-slate-50" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-bold text-slate-700">Categoria</Label>
+                  <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <option value="Tecnologia">Tecnologia</option>
+                    <option value="Educação">Educação</option>
+                    <option value="Saúde">Saúde</option>
+                    <option value="Livraria">Livraria</option>
+                    <option value="Serviços">Serviços</option>
+                    <option value="Geral">Geral</option>
+                  </select>
+                </div>
               </div>
+
               <div className="space-y-2">
-                <Label className="font-bold text-slate-700">Título da Oferta</Label>
-                <Input required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="Ex: Desconto em Notebooks" className="h-11 rounded-xl bg-slate-50" />
+                <Label className="font-bold text-slate-700">Descrição Comercial (Opcional)</Label>
+                <Textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="rounded-xl bg-slate-50 resize-none h-20" />
               </div>
+              
               <div className="space-y-2">
-                <Label className="font-bold text-slate-700">Desconto (Texto)</Label>
-                <Input required value={formData.discount} onChange={e => setFormData({...formData, discount: e.target.value})} placeholder="Ex: 20% OFF ou R$ 50" className="h-11 rounded-xl bg-slate-50" />
+                <Label className="font-bold text-slate-700">Instruções de Resgate</Label>
+                <Textarea required value={formData.instructions} onChange={e => setFormData({...formData, instructions: e.target.value})} placeholder="Ex: Acesse o link abaixo e use o cupom ADVOGADO20" className="rounded-xl bg-slate-50 resize-none h-24" />
               </div>
-              <div className="space-y-2">
-                <Label className="font-bold text-slate-700">Categoria</Label>
-                <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
-                  <option value="Tecnologia">Tecnologia</option>
-                  <option value="Educação">Educação</option>
-                  <option value="Saúde">Saúde</option>
-                  <option value="Livraria">Livraria</option>
-                  <option value="Serviços">Serviços</option>
-                  <option value="Geral">Geral</option>
-                </select>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="font-bold text-slate-700">Link da Parceria (Opcional)</Label>
+                  <Input type="url" value={formData.link} onChange={e => setFormData({...formData, link: e.target.value})} placeholder="https://..." className="h-11 rounded-xl bg-slate-50" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-bold text-slate-700">URL do Logo (Opcional)</Label>
+                  <Input type="url" value={formData.image_url} onChange={e => setFormData({...formData, image_url: e.target.value})} placeholder="https://..." className="h-11 rounded-xl bg-slate-50" />
+                </div>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label className="font-bold text-slate-700">Descrição Comercial (Opcional)</Label>
-              <Textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="rounded-xl bg-slate-50 resize-none h-20" />
-            </div>
-            <div className="space-y-2">
-              <Label className="font-bold text-slate-700">Instruções de Resgate</Label>
-              <Textarea required value={formData.instructions} onChange={e => setFormData({...formData, instructions: e.target.value})} placeholder="Ex: Acesse o link abaixo e use o cupom ADVOGADO20" className="rounded-xl bg-slate-50 resize-none h-24" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="font-bold text-slate-700">Link da Parceria (Opcional)</Label>
-                <Input type="url" value={formData.link} onChange={e => setFormData({...formData, link: e.target.value})} placeholder="https://..." className="h-11 rounded-xl bg-slate-50" />
-              </div>
-              <div className="space-y-2">
-                <Label className="font-bold text-slate-700">URL do Logo (Opcional)</Label>
-                <Input type="url" value={formData.image_url} onChange={e => setFormData({...formData, image_url: e.target.value})} placeholder="https://..." className="h-11 rounded-xl bg-slate-50" />
-              </div>
-            </div>
-            <div className="pt-4 flex justify-end gap-3 border-t border-slate-100">
-              <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
+
+            {/* Rodapé fixo com os botões */}
+            <div className="p-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3 shrink-0">
+              <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>
+                Cancelar
+              </Button>
               <Button type="submit" disabled={isSaving} className="bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl px-6">
-                {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2"/> : null} Salvar Benefício
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2"/> : null} 
+                Salvar Benefício
               </Button>
             </div>
           </form>
+
         </DialogContent>
       </Dialog>
     </div>
