@@ -42,8 +42,8 @@ export const Landing = () => {
             <a href="#proposito" className="hover:text-white transition-colors">Propósito</a>
           </div>
           <div className="flex items-center gap-3">
-            <Link to="/login" className="hidden sm:inline-flex px-5 py-2 text-sm font-bold text-slate-300 hover:text-white transition-colors">
-              Login
+            <Link to="/login" className="px-3 sm:px-5 py-2 text-sm font-bold text-slate-300 hover:text-white transition-colors">
+              Entrar
             </Link>
             <Link to="/cadastro">
               <Button className="rounded-full bg-[#0066FF] hover:bg-blue-500 text-white font-bold h-10 px-8 border-none shadow-[0_0_20px_rgba(0,102,255,0.4)] hover:shadow-[0_0_30px_rgba(0,102,255,0.6)] transition-all">
