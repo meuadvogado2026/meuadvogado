@@ -1,18 +1,25 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Gift, ExternalLink, Info, Loader2, Building, Tag, Sparkles } from "lucide-react";
+import { Gift, ExternalLink, Info, Loader2, Building, Tag, Sparkles, Maximize2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { VipCard } from "@/components/VipCard";
 
 export const LawyerBenefits = () => {
+  const { user } = useAuth();
   const [benefits, setBenefits] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedBenefit, setSelectedBenefit] = useState<any>(null);
+  const [showFullscreenCard, setShowFullscreenCard] = useState(false);
+  const [profileData, setProfileData] = useState<any>({});
 
   useEffect(() => {
     fetchBenefits();
+    fetchProfile();
   }, []);
 
   const fetchBenefits = async () => {
@@ -24,6 +31,21 @@ export const LawyerBenefits = () => {
       console.error(error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchProfile = async () => {
+    if (!user) return;
+    try {
+      const { data: lData } = await supabase.from('lawyer_details').select('oab, oab_state').eq('id', user.id).maybeSingle();
+      const { data: pData } = await supabase.from('profiles').select('name').eq('id', user.id).single();
+      setProfileData({
+        name: pData?.name || '',
+        oab: lData?.oab || '',
+        oab_state: lData?.oab_state || ''
+      });
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -48,6 +70,38 @@ export const LawyerBenefits = () => {
           <p className="text-amber-100 font-medium max-w-2xl text-lg">
             Aproveite descontos e vantagens exclusivas em softwares, livros, saúde e bem-estar, pensados para o seu crescimento.
           </p>
+        </div>
+      </div>
+
+      {/* VIP Card Section */}
+      <div className="bg-gradient-to-br from-[#000B21] via-[#001433] to-[#00040A] rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden border border-[#0066FF]/20 shadow-xl">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.15] mix-blend-overlay"></div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[#0066FF]/10 rounded-full blur-[80px] pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-amber-500/5 rounded-full blur-[60px] pointer-events-none"></div>
+        
+        <div className="relative z-10 flex flex-col lg:flex-row items-center gap-10">
+          <div className="flex-1 text-center lg:text-left">
+            <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight mb-3">
+              Seu Cartão <span className="text-amber-400">VIP</span>
+            </h2>
+            <p className="text-white/50 font-medium max-w-md text-sm leading-relaxed mb-6">
+              Apresente este cartão no estabelecimento parceiro para resgatar seu benefício exclusivo. Ele identifica você como membro verificado do Clube.
+            </p>
+            <Button 
+              onClick={() => setShowFullscreenCard(true)}
+              className="bg-[#0066FF] hover:bg-blue-500 text-white font-bold rounded-full h-12 px-8 shadow-[0_0_25px_rgba(0,102,255,0.3)] transition-all"
+            >
+              <Maximize2 className="w-4 h-4 mr-2" /> Apresentar Cartão em Tela Cheia
+            </Button>
+          </div>
+          
+          <div className="w-full max-w-[420px] shrink-0">
+            <VipCard 
+              name={profileData?.name || ''} 
+              oab={profileData?.oab || ''} 
+              oabState={profileData?.oab_state || ''} 
+            />
+          </div>
         </div>
       </div>
 
@@ -139,6 +193,34 @@ export const LawyerBenefits = () => {
             </div>
           </DialogContent>
         )}
+      </Dialog>
+
+      {/* Fullscreen VIP Card Presentation */}
+      <Dialog open={showFullscreenCard} onOpenChange={setShowFullscreenCard}>
+        <DialogContent className="max-w-none w-screen h-screen p-0 m-0 border-none bg-[#000B21] flex items-center justify-center [&>button]:text-white [&>button]:opacity-70 [&>button]:hover:opacity-100 [&>button]:top-6 [&>button]:right-6">
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-[#0066FF]/10 rounded-full blur-[120px]"></div>
+            <div className="absolute bottom-0 left-0 w-[40vw] h-[40vw] bg-amber-500/5 rounded-full blur-[100px]"></div>
+          </div>
+          <div className="relative z-10 w-full max-w-[600px] px-6 flex flex-col items-center gap-8">
+            <div className="text-center">
+              <p className="text-amber-400 font-black text-xs uppercase tracking-[0.3em] mb-2">Cartão de Membro VIP</p>
+              <p className="text-white/40 text-[11px] font-medium">Apresente este cartão no local do benefício para resgatar</p>
+            </div>
+            <VipCard 
+              name={profileData?.name || ''} 
+              oab={profileData?.oab || ''} 
+              oabState={profileData?.oab_state || ''} 
+            />
+            <Button 
+              onClick={() => setShowFullscreenCard(false)} 
+              variant="outline"
+              className="border-white/10 text-white/60 hover:text-white hover:bg-white/10 rounded-full px-8 h-10 font-bold text-xs"
+            >
+              Fechar
+            </Button>
+          </div>
+        </DialogContent>
       </Dialog>
     </div>
   );

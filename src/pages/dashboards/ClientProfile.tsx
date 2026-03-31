@@ -1,13 +1,16 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Save, User, MapPin, Loader2 } from "lucide-react";
+import { Save, User, MapPin, Loader2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { applyCepMask, fetchCepData } from "@/utils/cep";
+import { specialties } from "@/data/mock";
+import { cn } from "@/lib/utils";
 
 export const ClientProfile = () => {
   const { user } = useAuth();
@@ -26,7 +29,8 @@ export const ClientProfile = () => {
     addressNumber: "",
     lat: null as number | null,
     lng: null as number | null,
-    password: ""
+    password: "",
+    preferred_specialties: [] as string[]
   });
 
   useEffect(() => {
@@ -55,7 +59,8 @@ export const ClientProfile = () => {
             neighborhood: data.neighborhood || "",
             addressNumber: data.address_number || "",
             lat: data.lat ? parseFloat(data.lat) : null,
-            lng: data.lng ? parseFloat(data.lng) : null
+            lng: data.lng ? parseFloat(data.lng) : null,
+            preferred_specialties: data.preferred_specialties || []
           }));
         }
       } catch (error) {
@@ -72,6 +77,15 @@ export const ClientProfile = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setProfile(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleToggleSpecialty = (spec: string) => {
+    setProfile(prev => ({
+      ...prev,
+      preferred_specialties: prev.preferred_specialties.includes(spec) 
+        ? prev.preferred_specialties.filter(s => s !== spec) 
+        : [...prev.preferred_specialties, spec]
+    }));
   };
 
   const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -117,7 +131,8 @@ export const ClientProfile = () => {
           neighborhood: profile.neighborhood,
           address_number: profile.addressNumber,
           lat: profile.lat,
-          lng: profile.lng
+          lng: profile.lng,
+          preferred_specialties: profile.preferred_specialties
         })
         .eq('id', user.id);
 
@@ -275,6 +290,38 @@ export const ClientProfile = () => {
                   className="h-12 rounded-xl bg-white border-slate-300 shadow-sm focus:border-blue-500" 
                 />
               </div>
+            </div>
+          </div>
+
+          <div className="w-full h-px bg-slate-100" />
+
+          <div className="space-y-4">
+            <h3 className="text-sm font-black uppercase tracking-wider text-slate-500 flex items-center gap-2">
+              <Check className="w-4 h-4 text-primary" /> Especialidades Desejadas
+            </h3>
+            <p className="text-xs text-slate-500 font-medium">Isto irá redefinir o seu "Match" automático na página inicial.</p>
+            <div className="flex flex-wrap gap-2">
+              {specialties.map(spec => {
+                const isSelected = profile.preferred_specialties.includes(spec);
+                return (
+                  <button
+                    key={spec}
+                    type="button"
+                    onClick={() => handleToggleSpecialty(spec)}
+                    className={cn(
+                      "px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 border",
+                      isSelected 
+                        ? "bg-blue-50 border-blue-300 text-blue-700 shadow-sm" 
+                        : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300"
+                    )}
+                  >
+                    <span className="flex items-center gap-1">
+                      {isSelected && <Check className="w-3.5 h-3.5" />}
+                      {spec}
+                    </span>
+                  </button>
+                )
+              })}
             </div>
           </div>
 

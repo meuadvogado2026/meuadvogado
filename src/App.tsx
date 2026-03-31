@@ -39,8 +39,8 @@ const App = () => (
         <AuthProvider>
           <Routes>
             {/* Public Routes */}
+            <Route path="/" element={<Landing />} />
             <Route element={<MainLayout />}>
-              <Route path="/" element={<Landing />} />
               <Route path="/buscar" element={<Search />} />
               <Route path="/advogado/:id" element={<LawyerProfile />} />
             </Route>

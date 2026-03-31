@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 export interface NavLink {
-  icon: any;
+  icon: React.ElementType;
   label: string;
   path: string;
   /** Se definido, a mobile nav dispara uma ação ao invés de navegar. */

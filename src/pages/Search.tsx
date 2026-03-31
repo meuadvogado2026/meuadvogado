@@ -1,462 +1,254 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Search as SearchIcon, MapPin, SlidersHorizontal, X, Navigation, LocateFixed, Loader2 } from "lucide-react";
-import { specialties } from "@/data/mock";
+import { MapPin, Navigation, Loader2, Users, AlertCircle } from "lucide-react";
 import { LawyerCard } from "@/components/LawyerCard";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
-import { toast } from "sonner";
-import { estados, cidadesPorEstado } from "@/data/locations";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { applyCepMask } from "@/utils/cep";
-
-// Função para calcular distância usando a Fórmula de Haversine
-function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
-  const R = 6371;
-  const dLat = deg2rad(lat2 - lat1);
-  const dLon = deg2rad(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
-
-function deg2rad(deg: number) {
-  return deg * (Math.PI / 180);
-}
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 export const Search = () => {
-  const [lawyers, setLawyers] = useState<any[]>([]);
-  const [isLoadingLawyers, setIsLoadingLawyers] = useState(true);
-
-  const [searchTerm, setSearchTerm] = useState("");
-  const [cepParam, setCepParam] = useState("");
-  const [selectedSpecialty, setSelectedSpecialty] = useState("all");
-  const [selectedCity, setSelectedCity] = useState("");
-  const [selectedState, setSelectedState] = useState("");
-  const [selectedType, setSelectedType] = useState("all");
-  const [sortBy, setSortBy] = useState("recommended");
+  const { user } = useAuth();
+  const [userRole, setUserRole] = useState<'client'|'lawyer'|null>(null);
+  const [profileComplete, setProfileComplete] = useState(true);
   
-  const [isFetchingCep, setIsFetchingCep] = useState(false);
-  const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null);
+  // Client Data
+  const [idealMatch, setIdealMatch] = useState<any | null>(null);
+  
+  // Lawyer Data
+  const [colleagues, setColleagues] = useState<any[]>([]);
+  
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchLawyers = async () => {
-      setIsLoadingLawyers(true);
+    const fetchSearchData = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+      setIsLoading(true);
       try {
-        const { data: profiles, error: pErr } = await supabase
+        const { data: profile } = await supabase
           .from('profiles')
-          .select('*')
-          .eq('role', 'lawyer');
+          .select('role, lat, lng, preferred_specialties, city, state')
+          .eq('id', user.id)
+          .single();
 
-        const { data: details, error: dErr } = await supabase
-          .from('lawyer_details')
-          .select('*')
-          .eq('status', 'approved'); // Apenas aprovados
+        if (profile) {
+          setUserRole(profile.role);
+          
+          if (profile.role === 'client') {
+            const hasLocation = profile.lat && profile.lng;
+            const hasSpecs = profile.preferred_specialties && profile.preferred_specialties.length > 0;
+            
+            if (!hasLocation || !hasSpecs) {
+              setProfileComplete(false);
+            } else {
+              setProfileComplete(true);
+              const { data: matchData, error: matchError } = await supabase.rpc('get_ideal_lawyer', {
+                user_lat: parseFloat(profile.lat),
+                user_lng: parseFloat(profile.lng),
+                user_specs: profile.preferred_specialties
+              });
+              
+              if (!matchError && matchData && matchData.length > 0) {
+                const matchId = matchData[0].id;
+                const { data: pData } = await supabase.from('profiles').select('*').eq('id', matchId).single();
+                const { data: dData } = await supabase.from('lawyer_details').select('*').eq('id', matchId).single();
+                
+                if (pData && dData) {
+                  setIdealMatch({
+                    id: pData.id,
+                    name: pData.name || 'Advogado(a)',
+                    specialty: dData.main_specialty || 'Não informada',
+                    secondarySpecialties: dData.secondary_specialties || [],
+                    city: pData.city || '',
+                    state: pData.state || '',
+                    cep: pData.cep || '',
+                    street: pData.street || '',
+                    neighborhood: pData.neighborhood || '',
+                    address_number: pData.address_number || '',
+                    lat: parseFloat(pData.lat) || undefined,
+                    lng: parseFloat(pData.lng) || undefined,
+                    rating: dData.rating || 5.0,
+                    reviews: dData.reviews_count || 0,
+                    verified: dData.is_verified || false,
+                    image: pData.avatar_url || '',
+                    cover: pData.cover_url || '',
+                    bio: dData.mini_bio || dData.full_bio || '',
+                    type: dData.attendance_type || 'Híbrido',
+                    phone: dData.whatsapp || pData.phone || '',
+                    googleMapsUrl: dData.office_link || '',
+                    distance: matchData[0].distance_km
+                  });
+                }
+              }
+            }
+            
+          } else if (profile.role === 'lawyer') {
+            setProfileComplete(true);
+            // Fetch all approved colleagues except self
+            const { data: profilesData } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('role', 'lawyer')
+              .neq('id', user.id);
 
-        if (profiles && details) {
-          const verifiedLawyers = profiles.filter(p => details.some(d => d.id === p.id));
+            const { data: detailsData } = await supabase
+              .from('lawyer_details')
+              .select('*')
+              .eq('status', 'approved');
 
-          const mappedData = verifiedLawyers.map(p => {
-            const d = details.find(x => x.id === p.id) || {};
-            return {
-              id: p.id,
-              name: p.name || 'Advogado(a)',
-              specialty: d.main_specialty || 'Não informada',
-              secondarySpecialties: d.secondary_specialties || [], // Adicionando especialidades secundárias
-              city: p.city || '',
-              state: p.state || '',
-              cep: p.cep || '',
-              rating: d.rating || 5.0,
-              reviews: d.reviews_count || 0,
-              verified: d.is_verified || false,
-              image: p.avatar_url || '',
-              cover: p.cover_url || '',
-              bio: d.mini_bio || d.full_bio || '',
-              type: d.attendance_type || 'Híbrido (Online e Presencial)',
-              phone: d.whatsapp || p.phone || '',
-              lat: p.lat ? parseFloat(p.lat) : null,
-              lng: p.lng ? parseFloat(p.lng) : null
-            };
-          });
-          setLawyers(mappedData);
+            if (profilesData && detailsData) {
+              const verifiedColleagues = profilesData.filter(p => detailsData.some(d => d.id === p.id));
+              
+              const mappedData = verifiedColleagues.map(p => {
+                const d = detailsData.find(x => x.id === p.id) || {};
+                return {
+                  id: p.id,
+                  name: p.name || 'Advogado(a)',
+                  specialty: d.main_specialty || 'Não informada',
+                  secondarySpecialties: d.secondary_specialties || [],
+                  city: p.city || '',
+                  state: p.state || '',
+                  cep: p.cep || '',
+                  street: p.street || '',
+                  neighborhood: p.neighborhood || '',
+                  address_number: p.address_number || '',
+                  lat: parseFloat(p.lat) || undefined,
+                  lng: parseFloat(p.lng) || undefined,
+                  rating: d.rating || 5.0,
+                  reviews: d.reviews_count || 0,
+                  verified: d.is_verified || false,
+                  image: p.avatar_url || '',
+                  cover: p.cover_url || '',
+                  bio: d.mini_bio || d.full_bio || '',
+                  type: d.attendance_type || 'Híbrido',
+                  phone: d.whatsapp || p.phone || '',
+                  googleMapsUrl: d.office_link || ''
+                };
+              });
+              setColleagues(mappedData);
+            }
+          }
         }
       } catch (error) {
-        console.error("Erro ao buscar advogados:", error);
-        toast.error("Erro ao carregar lista de advogados.");
+         console.error("Erro no Search:", error);
       } finally {
-        setIsLoadingLawyers(false);
+        setIsLoading(false);
       }
     };
 
-    fetchLawyers();
-  }, []);
+    fetchSearchData();
+  }, [user]);
 
-  const handleUseLocation = () => {
-    if (!navigator.geolocation) {
-      toast.error("Geolocalização não suportada", { description: "Seu navegador não suporta este recurso." });
-      return;
-    }
-
-    toast.loading("Buscando sua localização exata...", { id: "loc" });
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        setUserLocation({ lat: latitude, lng: longitude });
-        setCepParam("");
-        setSelectedCity("");
-        setSelectedState("");
-        setSortBy("distance");
-        toast.success("Localização encontrada com sucesso!", { id: "loc" });
-      },
-      (error) => {
-        toast.error("Erro ao acessar localização", { 
-          id: "loc", 
-          description: "Permissão negada ou sinal fraco. Use o CEP." 
-        });
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50/50 flex flex-col items-center justify-center py-20">
+        <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
+        <p className="text-slate-500 font-bold">Carregando dados na rede...</p>
+      </div>
     );
-  };
+  }
 
-
-
-  const fetchBrasilApiCep = async (cep: string) => {
-    const cleanCep = cep.replace(/\D/g, '');
-    if (cleanCep.length !== 8) return;
-
-    setIsFetchingCep(true);
-    try {
-      const response = await fetch(`https://brasilapi.com.br/api/cep/v2/${cleanCep}`);
-      const data = await response.json();
-
-      if (response.status !== 200 || data.errors) {
-        toast.error("CEP não encontrado", { description: "Verifique o número e tente novamente." });
-        return;
-      }
-
-      // Preenche visualmente estado e cidade para o usuário ver onde está
-      setSelectedState(data.state);
-      setSelectedCity(data.city);
-      setSortBy("distance");
-
-      if (data.location && data.location.coordinates && data.location.coordinates.latitude) {
-         setUserLocation({
-           lat: parseFloat(data.location.coordinates.latitude),
-           lng: parseFloat(data.location.coordinates.longitude)
-         });
-         toast.success("Localização exata encontrada!", { description: `Buscando ao redor de ${data.street || data.neighborhood}` });
-      } else {
-         // Fallback para o OpenStreetMap caso o BrasilAPI não devolva as coordenadas para esse CEP específico
-         try {
-            const osmRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&postalcode=${cleanCep}&country=Brazil`);
-            const osmData = await osmRes.json();
-            if (osmData && osmData.length > 0) {
-                setUserLocation({
-                    lat: parseFloat(osmData[0].lat),
-                    lng: parseFloat(osmData[0].lon)
-                });
-                toast.success("Região identificada com sucesso!", { description: `Buscando advogados próximos do CEP ${cep}` });
-                return;
-            }
-         } catch (e) {
-            console.error("OSM Geocoding failed", e);
-         }
-
-         // Se falhar a geolocalização do CEP, ficamos com a busca estrita por Cidade e Estado
-         setUserLocation(null);
-         toast.success("Região identificada!", { description: `Buscando advogados em ${data.city} - ${data.state}` });
-      }
-      
-    } catch (error) {
-      toast.error("Erro na busca do CEP", { description: "Tente selecionar o estado e cidade manualmente." });
-    } finally {
-      setIsFetchingCep(false);
-    }
-  };
-
-  const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const maskedCep = applyCepMask(e.target.value);
-    setCepParam(maskedCep);
-    if (maskedCep.length === 9) fetchBrasilApiCep(maskedCep);
-  };
-
-  const processedLawyers = lawyers.map(lawyer => {
-    let distance = lawyer.distance; 
-    if (userLocation && lawyer.lat && lawyer.lng) {
-      distance = getDistanceFromLatLonInKm(userLocation.lat, userLocation.lng, lawyer.lat, lawyer.lng);
-    }
-    return { ...lawyer, distance };
-  });
-
-  const filteredLawyers = processedLawyers
-    .filter(lawyer => {
-      const matchesSearch = lawyer.name.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      // Checa tanto a especialidade principal quanto as secundárias
-      const matchesSpecialty = selectedSpecialty === "all" || 
-                               lawyer.specialty === selectedSpecialty || 
-                               (lawyer.secondarySpecialties && lawyer.secondarySpecialties.includes(selectedSpecialty));
-      
-      let matchesCity = true;
-      let matchesState = true;
-
-      if (!userLocation) {
-        matchesCity = selectedCity === "" || lawyer.city.toLowerCase() === selectedCity.toLowerCase();
-        matchesState = selectedState === "" || lawyer.state.toLowerCase() === selectedState.toLowerCase();
-      }
-      
-      let matchesType = true;
-      if (selectedType === "Online") matchesType = lawyer.type.includes("Online") || lawyer.type.includes("Híbrido");
-      if (selectedType === "Presencial") matchesType = lawyer.type.includes("Presencial") || lawyer.type.includes("Híbrido");
-
-      return matchesSearch && matchesSpecialty && matchesCity && matchesState && matchesType;
-    })
-    .sort((a, b) => {
-      if (sortBy === "distance") {
-        const distA = a.distance ?? 999999; 
-        const distB = b.distance ?? 999999;
-        if (distA !== distB) {
-          return distA - distB; 
-        }
-      }
-      return b.rating - a.rating;
-    });
-
-  const clearFilters = () => {
-    setSearchTerm("");
-    setCepParam("");
-    setSelectedSpecialty("all");
-    setSelectedCity("");
-    setSelectedState("");
-    setSelectedType("all");
-    setSortBy("recommended");
-    setUserLocation(null);
-  };
-
-  const renderFilterSidebar = () => (
-    <div className="space-y-8">
-      <div>
-        <h3 className="text-sm font-bold text-[#0F172A] uppercase tracking-wider mb-4 flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-[#1E3A5F]" /> Localização
-        </h3>
-        
-        <div className="space-y-4">
-          <Button 
-            variant={userLocation ? "default" : "outline"}
-            onClick={handleUseLocation}
-            className={`w-full h-11 font-bold rounded-xl ${userLocation ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-blue-50/50 border-blue-200 text-blue-700 hover:bg-blue-100'}`}
-          >
-            <LocateFixed className="w-4 h-4 mr-2" /> 
-            {userLocation ? "Localização GPS Ativa" : "Usar minha localização GPS"}
-          </Button>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-slate-200" /></div>
-            <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-slate-400 font-bold">Ou informe a região</span></div>
+  // --- VISÃO DO CLIENTE (Módulo de Motor Exclusivo 1x1) ---
+  if (userRole === 'client') {
+    return (
+      <div className="min-h-screen bg-slate-50/50 py-12">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <div className="mb-10 text-center">
+            <h1 className="text-3xl md:text-5xl font-black text-[#0F172A] mb-4 tracking-tight">Seu Especialista Exclusivo</h1>
+            <p className="text-lg text-slate-500 max-w-2xl mx-auto font-medium">
+              Nossa inteligência artificial cruzou sua localização exata e suas necessidades jurídicas para encontrar o profissional perfeito para o seu caso.
+            </p>
           </div>
 
-          <div className="relative">
-            <Input 
-              placeholder="Digite seu CEP" 
-              value={cepParam}
-              onChange={handleCepChange}
-              maxLength={9}
-              className="h-11 rounded-xl bg-slate-50 border-slate-200 pr-10"
-            />
-            {isFetchingCep && (
-              <div className="absolute right-3 top-3.5">
-                <Loader2 className="w-4 h-4 animate-spin text-[#1E3A5F]" />
+          {!profileComplete ? (
+            <div className="text-center py-20 bg-amber-50 rounded-3xl border border-amber-200 shadow-sm">
+              <div className="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <AlertCircle className="w-10 h-10 text-amber-500" />
               </div>
-            )}
-          </div>
-          
-          <div className="grid grid-cols-3 gap-2">
-            <select 
-              value={selectedState}
-              onChange={(e) => {
-                setSelectedState(e.target.value);
-                setSelectedCity(""); 
-                setUserLocation(null); 
-                setCepParam(""); 
-                setSortBy("recommended");
-              }}
-              className="h-11 rounded-xl bg-slate-50 border-slate-200 col-span-1 px-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none"
-            >
-              <option value="">UF</option>
-              {estados.map(estado => (
-                <option key={estado.sigla} value={estado.sigla}>{estado.sigla}</option>
-              ))}
-            </select>
-            
-            <select 
-              value={selectedCity}
-              onChange={(e) => {
-                setSelectedCity(e.target.value);
-                setUserLocation(null); 
-                setCepParam("");
-              }}
-              disabled={!selectedState}
-              className="h-11 rounded-xl bg-slate-50 border-slate-200 col-span-2 px-2 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none disabled:opacity-50"
-            >
-              <option value="">Cidade</option>
-              {selectedState && cidadesPorEstado[selectedState]?.map(city => (
-                <option key={city} value={city}>{city}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div className="w-full h-px bg-slate-100" />
-
-      <div>
-        <h3 className="text-sm font-bold text-[#0F172A] uppercase tracking-wider mb-4">Especialidade</h3>
-        <select 
-          value={selectedSpecialty} 
-          onChange={(e) => setSelectedSpecialty(e.target.value)}
-          className="w-full h-11 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm focus:ring-2 focus:ring-[#1E3A5F] focus:outline-none font-medium"
-        >
-          <option value="all">Todas as áreas</option>
-          {specialties.map(spec => (
-            <option key={spec} value={spec}>{spec}</option>
-          ))}
-        </select>
-      </div>
-
-      <div className="w-full h-px bg-slate-100" />
-
-      <div>
-        <h3 className="text-sm font-bold text-[#0F172A] uppercase tracking-wider mb-4">Modalidade de Atendimento</h3>
-        <div className="space-y-3">
-          {[
-            { id: 'all', label: 'Qualquer formato' },
-            { id: 'Presencial', label: 'Apenas Presencial (Próximos)' },
-            { id: 'Online', label: 'Online (Todo Brasil)' }
-          ].map(type => (
-            <label key={type.id} className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border border-transparent hover:bg-slate-50 hover:border-slate-200 transition-colors">
-              <input 
-                type="radio" 
-                name="attendanceType" 
-                value={type.id}
-                checked={selectedType === type.id}
-                onChange={() => setSelectedType(type.id)}
-                className="w-4 h-4 text-[#1E3A5F] focus:ring-[#1E3A5F] border-slate-300" 
-              />
-              <span className="text-sm font-semibold text-slate-700">
-                {type.label}
-              </span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <Button variant="ghost" onClick={clearFilters} className="w-full h-11 rounded-xl text-slate-500 font-bold hover:bg-slate-100 hover:text-slate-700">
-        <X className="w-4 h-4 mr-2" /> Limpar Filtros
-      </Button>
-    </div>
-  );
-
-  return (
-    <div className="min-h-screen bg-slate-50/50 py-8">
-      <div className="container mx-auto px-4 max-w-7xl">
-        
-        {/* Header Search Area */}
-        <div className="bg-[#0F172A] p-6 rounded-3xl shadow-xl shadow-slate-900/10 mb-8 flex flex-col md:flex-row gap-4 items-center border border-slate-800 relative overflow-hidden">
-          <div className="absolute right-0 top-0 opacity-5 pointer-events-none -mt-10 -mr-10"><MapPin className="w-64 h-64 text-white" /></div>
-          
-          <div className="relative flex-1 w-full z-10">
-            <SearchIcon className="absolute left-4 top-4 h-5 w-5 text-slate-400" />
-            <Input 
-              placeholder="Buscar por nome ou palavra-chave..." 
-              className="pl-12 h-14 text-base rounded-2xl bg-white/10 border-white/20 text-white placeholder:text-slate-400 focus-visible:ring-white/30"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          
-          {/* Mobile Filter Trigger */}
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button className="w-full md:hidden h-14 rounded-2xl bg-white text-[#0F172A] font-black hover:bg-slate-100 z-10">
-                <SlidersHorizontal className="w-5 h-5 mr-2" /> Filtros e Localização
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="bottom" className="h-[90vh] rounded-t-[2rem]">
-              <SheetHeader className="mb-6">
-                <SheetTitle className="text-2xl font-black text-[#0F172A]">Filtros da Busca</SheetTitle>
-              </SheetHeader>
-              <div className="overflow-y-auto h-full pb-24 px-1">
-                {renderFilterSidebar()}
-                <SheetClose asChild>
-                  <Button className="w-full h-14 mt-8 rounded-2xl bg-[#0F172A] text-white font-bold text-lg">
-                    Ver Resultados
-                  </Button>
-                </SheetClose>
-              </div>
-            </SheetContent>
-          </Sheet>
-        </div>
-
-        {/* Results layout */}
-        <div className="flex flex-col md:flex-row gap-8">
-          
-          <aside className="hidden md:block w-[300px] shrink-0">
-            <div className="bg-white p-6 rounded-3xl border border-slate-200/60 shadow-sm sticky top-24">
-              <div className="flex items-center gap-2 mb-8">
-                <SlidersHorizontal className="w-5 h-5 text-[#1E3A5F]" />
-                <h2 className="text-lg font-black text-[#0F172A]">Refinar Busca</h2>
-              </div>
-              {renderFilterSidebar()}
+              <h3 className="text-2xl font-black text-[#0F172A] mb-3 tracking-tight">Precisamos de mais dados!</h3>
+              <p className="text-slate-600 max-w-md mx-auto mb-8 font-medium">Você precisa definir um CEP válido e pelo menos 1 (uma) Especialidade em seu perfil para que a inteligência artificial faça o Match com um advogado.</p>
+              <Link to="/painel/cliente/perfil">
+                <Button className="rounded-xl font-bold bg-[#1E3A5F] hover:bg-[#0F172A] h-14 px-8 shadow-lg shadow-[#1E3A5F]/20 transition-all hover:scale-105">
+                  Completar Meu Perfil Agora
+                </Button>
+              </Link>
             </div>
-          </aside>
-
-          {/* List */}
-          <div className="flex-1">
-            <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <h2 className="text-lg font-medium text-slate-600">
-                {isLoadingLawyers ? (
-                  <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin"/> Buscando...</span>
-                ) : (
-                  <>Exibindo <span className="font-black text-[#0F172A]">{filteredLawyers.length}</span> advogados</>
-                )}
-              </h2>
-
-              <div className="flex items-center gap-2 text-sm">
-                <span className="font-semibold text-slate-500">Ordenar por:</span>
-                <select 
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="bg-transparent font-bold text-[#0F172A] focus:outline-none cursor-pointer"
-                >
-                  <option value="recommended">Recomendados</option>
-                  <option value="distance">Mais Próximos</option>
-                </select>
+          ) : idealMatch ? (
+            <div className="space-y-6 animate-in slide-in-from-bottom-5 fade-in duration-500">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2 bg-blue-50/50 p-4 rounded-2xl border border-blue-100">
+                <span className="font-black text-[#0F172A] uppercase tracking-widest text-[#1E3A5F] flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-blue-600 shrink-0" /> MATCH ABSOLUTO ENCONTRADO
+                </span>
+                <span className="px-4 py-1.5 bg-white text-green-700 font-black rounded-lg text-xs uppercase tracking-widest shadow-sm">
+                  {idealMatch.distance !== null && idealMatch.distance !== undefined 
+                    ? `A ${idealMatch.distance < 1 ? '< 1' : idealMatch.distance.toFixed(1)} km da sua região` 
+                    : 'Na sua região'}
+                </span>
               </div>
-            </div>
-
-            <div className="space-y-6">
-              {!isLoadingLawyers && filteredLawyers.map(lawyer => (
-                <LawyerCard key={lawyer.id} lawyer={lawyer} />
-              ))}
               
-              {!isLoadingLawyers && filteredLawyers.length === 0 && (
-                <div className="text-center py-20 bg-white rounded-3xl border border-slate-200">
-                  <Navigation className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                  <h3 className="text-2xl font-black text-[#0F172A] mb-2">Nenhum profissional encontrado</h3>
-                  <p className="text-slate-500 max-w-md mx-auto mb-6">Tente remover alguns filtros ou buscar em outras regiões para encontrar especialistas.</p>
-                  <Button onClick={clearFilters} className="rounded-xl font-bold bg-[#1E3A5F] hover:bg-[#0F172A] h-12 px-6">
-                    Limpar Filtros e Tentar Novamente
-                  </Button>
+              <div className="relative p-[3px] rounded-[1.6rem] bg-gradient-to-tr from-[#1E3A5F] via-blue-600 to-indigo-400 shadow-2xl shadow-blue-500/20 group hover:shadow-blue-500/30 transition-shadow duration-500">
+                <div className="bg-white rounded-[1.5rem] overflow-hidden">
+                  <LawyerCard lawyer={idealMatch} />
                 </div>
-              )}
+              </div>
+              
+              <div className="text-center pt-8">
+                <p className="text-slate-500 mb-4 text-sm font-medium">Deseja buscar por outra especialidade ou cadastrou o CEP errado?</p>
+                <Link to="/painel/cliente/perfil">
+                  <Button variant="outline" className="border-slate-300 text-slate-700 font-bold rounded-xl h-12 px-8 hover:bg-slate-100 transition-colors">
+                    Atualizar Minhas Preferências de Busca
+                  </Button>
+                </Link>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="text-center py-20 bg-white rounded-3xl border border-slate-200 shadow-sm">
+              <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Navigation className="w-10 h-10 text-slate-300" />
+              </div>
+              <h3 className="text-2xl font-black text-[#0F172A] mb-3 tracking-tight">Nenhum profissional na sua região ativa</h3>
+              <p className="text-slate-500 max-w-md mx-auto mb-8 font-medium">Ainda não temos um advogado aprovado com as características exatas que você procura próximo ao seu CEP. Tente expandir suas áreas de interesse no perfil.</p>
+              <Link to="/painel/cliente/perfil">
+                <Button className="rounded-xl font-bold bg-[#1E3A5F] hover:bg-[#0F172A] h-14 px-8 shadow-lg shadow-[#1E3A5F]/20 transition-all hover:scale-105">
+                  Editar Minhas Preferências
+                </Button>
+              </Link>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // --- VISÃO DO ADVOGADO (Lista de Colegas Verificados) ---
+  return (
+    <div className="min-h-screen bg-slate-50/50 py-12">
+      <div className="container mx-auto px-4 max-w-6xl">
+        <div className="mb-10 text-center">
+          <h1 className="text-3xl md:text-5xl font-black text-[#0F172A] mb-4 tracking-tight">Colegas de Profissão</h1>
+          <p className="text-lg text-slate-500 max-w-2xl mx-auto font-medium">
+            Rede de advogados aprovados na plataforma "Meu Advogado". Crie parcerias e expanda seus horizontes profissionais.
+          </p>
         </div>
 
+        {colleagues.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 animate-in fade-in duration-500">
+            {colleagues.map(lawyer => (
+              <LawyerCard key={lawyer.id} lawyer={lawyer} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-20 bg-white rounded-3xl border border-slate-200 shadow-sm max-w-4xl mx-auto">
+            <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Users className="w-10 h-10 text-slate-300" />
+            </div>
+            <h3 className="text-2xl font-black text-[#0F172A] mb-3 tracking-tight">Nenhum colega aprovado ainda</h3>
+            <p className="text-slate-500 max-w-md mx-auto font-medium">Os advogados parceiros que passarem pela nossa checagem OAB irão aparecer aqui.</p>
+          </div>
+        )}
       </div>
     </div>
   );

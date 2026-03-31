@@ -19,6 +19,11 @@ interface LawyerCardProps {
     city: string;
     state: string;
     cep?: string;
+    street?: string;
+    neighborhood?: string;
+    address_number?: string;
+    lat?: number;
+    lng?: number;
     region?: string;
     distance?: number;
     rating: number;
@@ -29,6 +34,7 @@ interface LawyerCardProps {
     bio: string;
     type?: string;
     phone?: string;
+    googleMapsUrl?: string;
   };
 }
 
@@ -128,43 +134,67 @@ export const LawyerCard = ({ lawyer }: LawyerCardProps) => {
                   <h3 className="text-lg sm:text-xl font-black text-[#0F172A] leading-tight line-clamp-1 flex items-center gap-1.5">
                     {lawyer.name}
                     {lawyer.verified && (
-                      <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 shrink-0" title="Perfil Verificado" />
+                      <span title="Perfil Verificado"><ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 shrink-0" /></span>
                     )}
                   </h3>
                 </Link>
                 
                 <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                  <Badge variant="secondary" className="bg-blue-50 text-blue-700 font-bold border-blue-100 text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5">
-                    {lawyer.specialty}
-                  </Badge>
-                  {lawyer.secondarySpecialties && lawyer.secondarySpecialties.slice(0, 2).map((spec, i) => (
+                  {lawyer.specialty && lawyer.specialty !== 'Não informada' && (
+                    <Badge variant="secondary" className="bg-blue-50 text-blue-700 font-bold border-blue-100 text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5">
+                      {lawyer.specialty}
+                    </Badge>
+                  )}
+                  {lawyer.secondarySpecialties && lawyer.secondarySpecialties.slice(0, 3).map((spec, i) => (
                     <Badge key={i} variant="outline" className="text-slate-500 font-medium border-slate-200 text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5">
                       {spec}
                     </Badge>
                   ))}
-                  {lawyer.secondarySpecialties && lawyer.secondarySpecialties.length > 2 && (
-                    <span className="text-[10px] font-bold text-slate-400">+{lawyer.secondarySpecialties.length - 2}</span>
+                  {lawyer.secondarySpecialties && lawyer.secondarySpecialties.length > 3 && (
+                    <span className="text-[10px] font-bold text-slate-400">+{lawyer.secondarySpecialties.length - 3}</span>
+                  )}
+                </div>
+              </div>
+
+            </div>
+          </div>
+          
+          <div className="flex flex-col gap-2 mt-5 text-xs font-medium text-slate-600 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+              <div className="flex items-start gap-2 max-w-[70%]">
+                <MapPin className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" /> 
+                <div className="flex flex-col gap-0.5 leading-tight">
+                  <span className="text-slate-700 font-bold line-clamp-2">
+                    {lawyer.street ? `${lawyer.street}, ${lawyer.address_number || 'S/N'}` : `${lawyer.city}, ${lawyer.state}`}
+                  </span>
+                  {lawyer.neighborhood && <span className="text-[10px] text-slate-500">{lawyer.neighborhood} - {lawyer.city}/{lawyer.state}{lawyer.cep ? ` - CEP: ${lawyer.cep}` : ''}</span>}
+                  {lawyer.type?.includes("Online") && (
+                    <span className="text-green-700 font-bold mt-1 max-w-max flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> Híbrido/Online
+                    </span>
                   )}
                 </div>
               </div>
               
-              <div className="flex items-center gap-1 bg-amber-50 px-2 sm:px-2.5 py-1.5 rounded-xl text-xs font-bold shadow-sm shrink-0 border border-amber-100/50">
-                <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                <span className="text-amber-700">{lawyer.rating}</span>
-              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-8 shadow-sm border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-600 hover:text-white rounded-lg px-3 flex-1 sm:flex-none transition-all shrink-0 w-full sm:w-auto mt-2 sm:mt-0"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (lawyer.googleMapsUrl) {
+                    window.open(lawyer.googleMapsUrl, '_blank');
+                  } else if (lawyer.lat && lawyer.lng) {
+                    window.open(`https://www.google.com/maps/dir/?api=1&destination=${lawyer.lat},${lawyer.lng}`, '_blank');
+                  } else {
+                    const query = encodeURIComponent(`${lawyer.street || ''} ${lawyer.address_number || ''} ${lawyer.neighborhood || ''} ${lawyer.city || ''} ${lawyer.state || ''}`);
+                    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+                  }
+                }}
+              >
+                Como Chegar
+              </Button>
             </div>
-          </div>
-          
-          <div className="flex flex-wrap items-center gap-3 mt-5 text-xs font-medium text-slate-500">
-            <span className="flex items-center gap-1.5">
-              <MapPin className="w-4 h-4 text-slate-400" /> 
-              {lawyer.city}, {lawyer.state}
-            </span>
-            {lawyer.type?.includes("Online") && (
-              <span className="text-green-700 font-bold bg-green-50 px-2 py-0.5 rounded-md border border-green-200/60 flex items-center">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5 animate-pulse"></span> Atende Online
-              </span>
-            )}
           </div>
           
           <p className="text-sm text-slate-600 mt-3 line-clamp-2 flex-1 leading-relaxed">

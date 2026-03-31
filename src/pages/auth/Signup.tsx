@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Briefcase, MapPin, Loader2 } from "lucide-react";
+import { User, Briefcase, MapPin, Loader2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { estados } from "@/data/locations";
+import { specialties } from "@/data/mock";
 import { supabase } from "@/integrations/supabase/client";
 import { applyCepMask, fetchCepData } from "@/utils/cep";
+import { cn } from "@/lib/utils";
 
 export const Signup = () => {
   const navigate = useNavigate();
@@ -27,6 +29,7 @@ export const Signup = () => {
   const [clientAddressNumber, setClientAddressNumber] = useState("");
   const [clientLat, setClientLat] = useState<number | null>(null);
   const [clientLng, setClientLng] = useState<number | null>(null);
+  const [clientSpecialties, setClientSpecialties] = useState<string[]>([]);
   const [isFetchingClientCep, setIsFetchingClientCep] = useState(false);
 
   // Estados para Advogado
@@ -96,6 +99,12 @@ export const Signup = () => {
     if (maskedCep.length === 9) fetchCep(maskedCep, type);
   };
 
+  const handleToggleClientSpecialty = (spec: string) => {
+    setClientSpecialties(prev => 
+      prev.includes(spec) ? prev.filter(s => s !== spec) : [...prev, spec]
+    );
+  };
+
   const handleRegister = (role: 'client' | 'lawyer') => async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -113,6 +122,12 @@ export const Signup = () => {
     const lng = role === 'client' ? clientLng : lawyerLng;
     const address_number = role === 'client' ? clientAddressNumber : lawyerAddressNumber;
 
+    if (role === 'client' && clientSpecialties.length === 0) {
+      toast.error("Atenção", { description: "Por favor, selecione pelo menos uma especialidade de interesse." });
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -126,17 +141,22 @@ export const Signup = () => {
 
       if (data.session) {
         await supabase.from('profiles').update({
-          phone, city, state, street, neighborhood, cep, lat, lng, address_number
+          phone, city, state, street, neighborhood, cep, lat, lng, address_number,
+          preferred_specialties: role === 'client' ? clientSpecialties : undefined
         }).eq('id', data.user!.id);
         
+        if (role === 'lawyer') {
+          localStorage.setItem('showVipWelcome', 'true');
+        }
+
         toast.success("Conta criada com sucesso!");
         navigate(role === 'lawyer' ? '/painel/advogado' : '/painel/cliente');
       } else {
         toast.success("Cadastro realizado!", { description: "Verifique seu e-mail para confirmar a conta." });
         navigate('/login');
       }
-    } catch (error: any) {
-      toast.error("Erro ao criar conta", { description: error.message || "Verifique os dados." });
+    } catch (error: unknown) {
+      toast.error("Erro ao criar conta", { description: error instanceof Error ? error.message : "Verifique os dados." });
     } finally {
       setIsLoading(false);
     }
@@ -258,7 +278,35 @@ export const Signup = () => {
                     </div>
                   </div>
 
-                  <div>
+                  <div className="space-y-3 pt-2 border-t border-slate-100">
+                    <Label className="font-bold text-slate-700">Áreas de Interesse Jurídico</Label>
+                    <p className="text-xs text-slate-500 font-medium">Selecione o tipo de caso (pode ser mais de um):</p>
+                    <div className="flex flex-wrap gap-2">
+                      {specialties.map(spec => {
+                        const isSelected = clientSpecialties.includes(spec);
+                        return (
+                          <button
+                            key={spec}
+                            type="button"
+                            onClick={() => handleToggleClientSpecialty(spec)}
+                            className={cn(
+                              "px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 border",
+                              isSelected 
+                                ? "bg-blue-50 border-blue-300 text-blue-700 shadow-sm" 
+                                : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300"
+                            )}
+                          >
+                            <span className="flex items-center gap-1">
+                              {isSelected && <Check className="w-3.5 h-3.5" />}
+                              {spec}
+                            </span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100">
                     <Label className="text-slate-700 font-bold">Senha</Label>
                     <Input type="password" required value={clientPassword} onChange={(e) => setClientPassword(e.target.value)} className="mt-1 h-12 rounded-xl bg-slate-50" />
                   </div>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
 import { 
   Eye, 
@@ -14,12 +15,18 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   LayoutDashboard,
-  Loader2
+  Loader2,
+  Award,
+  HeartHandshake,
+  Sparkles,
+  Maximize2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { VipCard } from "@/components/VipCard";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { 
   AreaChart, 
   Area, 
@@ -98,6 +105,15 @@ export const LawyerDashboard = () => {
   
   const [chartData, setChartData] = useState<any[]>([]);
   const [profileCompleteness, setProfileCompleteness] = useState(0);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [showFullscreenCard, setShowFullscreenCard] = useState(false);
+
+  useEffect(() => {
+    if (localStorage.getItem('showVipWelcome') === 'true') {
+      setShowWelcome(true);
+      localStorage.removeItem('showVipWelcome');
+    }
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -226,6 +242,11 @@ export const LawyerDashboard = () => {
       url: profileLink
     });
   };
+
+  const handlePrayerRequest = () => {
+    toast.success("Seu pedido de oração foi recebido com muito carinho e sigilo. Nossa equipe estará intercedendo por você!");
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-12">
       {/* Header Premium */}
@@ -391,57 +412,145 @@ export const LawyerDashboard = () => {
 
         {/* Sidebar de Ações e Dicas */}
         <div className="lg:col-span-4 space-y-6">
-          {/* Link Público Card */}
-          <Card className="border-none bg-primary text-white rounded-3xl shadow-xl shadow-primary/20 overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-8 opacity-10">
-              <TrendingUp className="w-32 h-32" />
-            </div>
-            <CardContent className="p-8 relative z-10">
-              <h3 className="text-xl font-bold mb-2">Seu Cartão de Visitas</h3>
-              <p className="text-blue-100/70 text-sm mb-6">Compartilhe seu perfil otimizado e receba contatos diretos.</p>
-              
-              <div 
-                className="bg-white/10 backdrop-blur-md rounded-2xl p-4 flex items-center justify-between border border-white/20 mb-6 group cursor-pointer" 
-                onClick={copyToClipboard}
-                title="Copiar link"
-              >
-                <span className="text-xs font-mono truncate mr-4">
-                  {isLoading ? "..." : profileLink}
-                </span>
-                <Copy className="w-4 h-4 shrink-0 group-hover:scale-110 transition-transform" />
+          
+          {/* VIP Card Digital */}
+          <div className="relative group cursor-pointer w-full flex flex-col items-center gap-4" title="Clique para copiar seu Link do Perfil">
+            <div className="relative w-full flex justify-center" onClick={copyToClipboard}>
+              <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 to-[#0066FF] rounded-[1.7rem] blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+              <VipCard 
+                name={isLoading ? '...' : (profileData?.name || '')} 
+                oab={profileData?.oab || ''} 
+                oabState={profileData?.oab_state || ''} 
+              />
+              {/* Overlay hint */}
+              <div className="absolute inset-0 bg-black/40 rounded-[1.5rem] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
+                <div className="bg-white/10 p-3 rounded-full flex items-center gap-2 border border-white/20 shadow-xl">
+                   <Copy className="w-5 h-5 text-white" />
+                   <span className="text-white font-bold text-sm">Copiar Link</span>
+                </div>
               </div>
-              
-              <Button onClick={handleShare} className="w-full bg-white text-primary hover:bg-blue-50 font-bold h-12 rounded-xl">
-                Compartilhar agora
-              </Button>
-            </CardContent>
-          </Card>
+            </div>
+            <Button 
+              onClick={() => setShowFullscreenCard(true)}
+              variant="outline"
+              className="w-full h-10 rounded-xl border-[#0066FF]/30 bg-[#000B21] hover:bg-[#001433] text-amber-400 hover:text-amber-300 font-bold text-xs transition-all shadow-lg shadow-[#000B21]/30"
+            >
+              <Maximize2 className="w-4 h-4 mr-2" /> Apresentar Cartão em Tela Cheia
+            </Button>
+          </div>
 
-          {/* Dicas Card */}
-          <Card className="border-slate-200/60 shadow-sm rounded-3xl">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Lightbulb className="w-5 h-5 text-amber-500" />
-                Estratégias de Crescimento
+          {/* Benefícios & Pedido de Oração */}
+          <Card className="border-slate-200/60 shadow-sm rounded-[2rem] overflow-hidden bg-gradient-to-b from-white to-slate-50">
+            <CardHeader className="border-b border-slate-100 bg-white pb-5">
+              <CardTitle className="text-lg flex items-center gap-2 font-black text-slate-800">
+                <HeartHandshake className="w-5 h-5 text-rose-500 drop-shadow-sm" />
+                Espaço do Advogado
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {[
-                { title: "Foto Profissional", desc: "Fotos em ambientes neutros e iluminados convertem 3x mais clientes.", icon: ChevronRight },
-                { title: "Atendimento Rápido", desc: "Responder ao cliente no WhatsApp em menos de 5 minutos garante 80% de fechamento.", icon: ChevronRight },
-                { title: "Bio Resumida", desc: "Foque nos problemas reais que você resolve logo no 1º parágrafo.", icon: ChevronRight }
-              ].map((dica, i) => (
-                <div key={i} className="group flex items-start justify-between p-3 rounded-2xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
-                  <div className="flex-1">
-                    <h4 className="text-sm font-bold text-slate-900 group-hover:text-primary transition-colors">{dica.title}</h4>
-                    <p className="text-xs text-slate-500 mt-0.5">{dica.desc}</p>
-                  </div>
+            <CardContent className="p-6 space-y-7">
+              <div>
+                <h4 className="text-sm font-bold tracking-tight text-slate-900 mb-3 flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-amber-500" /> Seus Benefícios Exclusivos
+                </h4>
+                <ul className="space-y-3">
+                  {[
+                    "Prioridade máxima no Algoritmo de Match",
+                    "Página de alta conversão para clientes",
+                    "Recebimento de honorários direto via WhatsApp"
+                  ].map((benefit, i) => (
+                    <li key={i} className="flex items-start gap-2.5 text-sm text-slate-600 font-medium">
+                      <div className="mt-0.5 bg-green-100 p-0.5 rounded-full">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-green-600 shrink-0" />
+                      </div>
+                      {benefit}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="p-5 bg-gradient-to-br from-rose-50 to-pink-50/50 border border-rose-100 rounded-2xl relative overflow-hidden group shadow-inner">
+                <div className="absolute right-0 top-0 opacity-5 -mt-6 -mr-6 group-hover:scale-110 transition-transform duration-500">
+                  <Heart className="w-32 h-32 text-rose-500" />
                 </div>
-              ))}
+                <h4 className="text-[15px] font-black text-rose-900 mb-1.5 relative z-10 tracking-tight">Precisa de um abraço espiritual?</h4>
+                <p className="text-xs text-rose-700/80 font-medium mb-5 relative z-10 leading-relaxed">
+                  A advocacia exige muito de nós. Temos uma equipe pronta para orar e interceder pelas suas vitórias e desafios diários.
+                </p>
+                <Button 
+                  onClick={handlePrayerRequest} 
+                  className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl relative z-10 shadow-md shadow-rose-600/20 active:scale-95 transition-all"
+                >
+                  <Heart className="w-4 h-4 mr-2" /> Fazer Pedido de Oração
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
       </div>
+
+      <Dialog open={showWelcome} onOpenChange={setShowWelcome}>
+        <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden bg-white rounded-3xl border-none shadow-2xl">
+          <div className="bg-gradient-to-br from-[#0F172A] via-slate-900 to-[#1e293b] p-6 sm:p-8 relative">
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay"></div>
+            
+            <div className="relative z-10 w-full flex justify-center scale-95 sm:scale-100 origin-top">
+              <VipCard 
+                name={profileData?.name || ''} 
+                oab={profileData?.oab || ''} 
+                oabState={profileData?.oab_state || ''} 
+              />
+            </div>
+          </div>
+          
+          <div className="p-6 bg-gradient-to-b from-rose-50 to-white relative overflow-hidden">
+            <div className="absolute right-0 bottom-0 opacity-5 -mb-6 -mr-6">
+              <Heart className="w-32 h-32 text-rose-500" />
+            </div>
+            <DialogHeader className="text-left space-y-3">
+              <DialogTitle className="text-lg flex items-center gap-2 font-black text-slate-800 tracking-tight">
+                <HeartHandshake className="w-5 h-5 text-rose-500 drop-shadow-sm" />
+                Espaço Espiritual Apoiador
+              </DialogTitle>
+              <DialogDescription className="text-[13px] font-medium text-slate-600 pt-1 leading-relaxed">
+                Sabemos o peso emocional que a advocacia traz. Acreditamos fortemente no poder da fé. Se a qualquer momento você, sua família ou suas causas judiciais precisarem de um apoio extra, nossa equipe intercessora estará de prontidão para orar por você em nosso Espaço do Advogado no painel.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-6">
+              <Button onClick={() => setShowWelcome(false)} className="w-full bg-slate-900 text-white hover:bg-slate-800 rounded-xl h-12 font-bold shadow-lg shadow-slate-900/20 active:scale-95 transition-all">
+                Acessar Meu Painel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Fullscreen VIP Card Presentation */}
+      <Dialog open={showFullscreenCard} onOpenChange={setShowFullscreenCard}>
+        <DialogContent className="max-w-none w-screen h-screen p-0 m-0 border-none bg-[#000B21] flex items-center justify-center [&>button]:text-white [&>button]:opacity-70 [&>button]:hover:opacity-100 [&>button]:top-6 [&>button]:right-6">
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-[#0066FF]/10 rounded-full blur-[120px]"></div>
+            <div className="absolute bottom-0 left-0 w-[40vw] h-[40vw] bg-amber-500/5 rounded-full blur-[100px]"></div>
+          </div>
+          <div className="relative z-10 w-full max-w-[600px] px-6 flex flex-col items-center gap-8">
+            <div className="text-center">
+              <p className="text-amber-400 font-black text-xs uppercase tracking-[0.3em] mb-2">Cartão de Membro VIP</p>
+              <p className="text-white/40 text-[11px] font-medium">Apresente este cartão no local do benefício para resgatar</p>
+            </div>
+            <VipCard 
+              name={profileData?.name || ''} 
+              oab={profileData?.oab || ''} 
+              oabState={profileData?.oab_state || ''} 
+            />
+            <Button 
+              onClick={() => setShowFullscreenCard(false)} 
+              variant="outline"
+              className="border-white/10 text-white/60 hover:text-white hover:bg-white/10 rounded-full px-8 h-10 font-bold text-xs"
+            >
+              Fechar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

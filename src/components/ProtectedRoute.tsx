@@ -26,7 +26,7 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
   }
 
   // Se estiver logado, mas não tiver a permissão (role) correta
-  if (allowedRoles && role && !allowedRoles.includes(role as any)) {
+  if (allowedRoles && role && !allowedRoles.includes(role as "client" | "lawyer" | "admin")) {
     if (role === 'admin') return <Navigate to="/admin" replace />;
     if (role === 'lawyer') return <Navigate to="/painel/advogado" replace />;
     return <Navigate to="/painel/cliente" replace />;

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
 import { 
   Camera, MapPin, Briefcase, ShieldCheck, Save,
@@ -563,9 +564,10 @@ export const LawyerProfileEdit = () => {
                   <Label className="flex items-center gap-2 font-bold text-slate-700"><Globe className="w-4 h-4 text-slate-600"/> Site Próprio</Label>
                   <Input name="website" value={profile.website} onChange={handleChange} placeholder="www.seusite.com.br" className="h-11 rounded-xl bg-slate-50" />
                 </div>
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2 font-bold text-slate-700"><Building2 className="w-4 h-4 text-indigo-600"/> Link do Escritório</Label>
-                  <Input name="officeLink" value={profile.officeLink} onChange={handleChange} placeholder="Site ou Google Maps" className="h-11 rounded-xl bg-slate-50" />
+                <div className="space-y-2 md:col-span-2">
+                  <Label className="flex items-center gap-2 font-bold text-slate-700"><MapPin className="w-4 h-4 text-red-500"/> Link do Google Maps (Localização Exata)</Label>
+                  <Input name="officeLink" value={profile.officeLink} onChange={handleChange} placeholder="Cole aqui o link do Google Maps do seu escritório" className="h-11 rounded-xl bg-slate-50" />
+                  <p className="text-xs font-medium text-slate-500">Abra o Google Maps, busque seu escritório, clique em "Compartilhar" e cole o link aqui. Esse link será usado no botão "Como Chegar".</p>
                 </div>
               </div>
 
@@ -603,9 +605,19 @@ export const LawyerProfileEdit = () => {
                   <h3 className="text-xl font-black text-[#0F172A] leading-tight">{profile.name || "Seu Nome"}</h3>
                   <p className="text-xs font-bold text-primary mt-1 line-clamp-1">{profile.title || "Seu Título Profissional"}</p>
                   
-                  <div className="flex flex-wrap gap-2 text-xs font-medium text-slate-500 mt-3">
-                    <div className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-md">
-                      <MapPin className="w-3.5 h-3.5" /> {profile.city || "Cidade"}
+                  <div className="flex flex-wrap gap-2 text-xs font-medium text-slate-500 mt-3 w-full">
+                    <div className="flex items-start gap-1.5 bg-slate-50 px-2.5 py-2 rounded-md w-full border border-slate-100">
+                      <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-slate-400" />
+                      <div className="flex flex-col flex-1">
+                        <span className="text-slate-700 font-bold">
+                          {profile.street ? `${profile.street}${profile.addressNumber ? `, ${profile.addressNumber}` : ''}` : (profile.city || "Cidade")}
+                        </span>
+                        {profile.street && (
+                           <span className="text-[10px] text-slate-500 mt-0.5 leading-tight">
+                             {profile.neighborhood ? `${profile.neighborhood} - ` : ''}{profile.city}, {profile.state} <br/> CEP: {profile.cep}
+                           </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

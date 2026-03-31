@@ -46,14 +46,13 @@ export const Login = () => {
       else if (role === 'lawyer') navigate('/painel/advogado');
       else navigate('/painel/cliente');
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : "";
       toast.error("Erro no login", {
-        description: error.message === "Invalid login credentials" 
+        description: msg === "Invalid login credentials" 
           ? "E-mail ou senha incorretos." 
-          : error.message,
-      });
-    } finally {
-      setIsLoading(false);
+          : msg || "Não foi possível entrar na sua conta."
+      });setIsLoading(false);
     }
   };
 

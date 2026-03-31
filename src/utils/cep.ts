@@ -1,19 +1,16 @@
 /**
  * Utilitário centralizado para máscara e auto-preenchimento de CEP.
- * Utiliza a BrasilAPI para geocodificação.
+ * Utiliza a BrasilAPI para buscar RUA/BAIRRO e o OpenStreetMap (Nominatim) para garantir a Latitude/Longitude.
  */
 
-/** Aplica a máscara de CEP (XXXXX-XXX) */
 export const applyCepMask = (value: string): string => {
   return value.replace(/\D/g, '').replace(/(\d{5})(\d)/, '$1-$2').slice(0, 9);
 };
 
-/** Remove a máscara e retorna apenas os dígitos */
 export const cleanCep = (cep: string): string => {
   return cep.replace(/\D/g, '');
 };
 
-/** Dados retornados pela BrasilAPI v2 */
 export interface CepData {
   state: string;
   city: string;
@@ -23,31 +20,51 @@ export interface CepData {
   lng: number | null;
 }
 
-/**
- * Busca dados de endereço a partir de um CEP limpo (8 dígitos).
- * Retorna null se houver erro ou CEP inválido.
- */
 export const fetchCepData = async (rawCep: string): Promise<CepData | null> => {
   const clean = cleanCep(rawCep);
   if (clean.length !== 8) return null;
 
   try {
-    const response = await fetch(`https://brasilapi.com.br/api/cep/v2/${clean}`);
+    // 1. Busca os dados de endereço na BrasilAPI v1 (mais estável para endereços)
+    const response = await fetch(`https://brasilapi.com.br/api/cep/v1/${clean}`);
     const data = await response.json();
 
     if (response.status !== 200 || data.errors) return null;
+
+    let lat = null;
+    let lng = null;
+
+    // 2. Busca as coordenadas no OpenStreetMap (Garante que nunca fique nulo e quebre o Match)
+    try {
+      // Tenta pelo endereço completo
+      const query = encodeURIComponent(`${data.street ? data.street + ',' : ''} ${data.city}, ${data.state}, Brazil`);
+      const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`);
+      const geoData = await geoRes.json();
+      
+      if (geoData && geoData.length > 0) {
+        lat = parseFloat(geoData[0].lat);
+        lng = parseFloat(geoData[0].lon);
+      } else {
+        // Fallback: Busca apenas pela Cidade e Estado
+        const queryCity = encodeURIComponent(`${data.city}, ${data.state}, Brazil`);
+        const geoCityRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${queryCity}&limit=1`);
+        const geoCityData = await geoCityRes.json();
+        if (geoCityData && geoCityData.length > 0) {
+          lat = parseFloat(geoCityData[0].lat);
+          lng = parseFloat(geoCityData[0].lon);
+        }
+      }
+    } catch (e) {
+       console.error("Geocoding fallback failed", e);
+    }
 
     return {
       state: data.state || '',
       city: data.city || '',
       street: data.street || '',
       neighborhood: data.neighborhood || '',
-      lat: data.location?.coordinates?.latitude
-        ? parseFloat(data.location.coordinates.latitude)
-        : null,
-      lng: data.location?.coordinates?.longitude
-        ? parseFloat(data.location.coordinates.longitude)
-        : null,
+      lat,
+      lng,
     };
   } catch {
     return null;

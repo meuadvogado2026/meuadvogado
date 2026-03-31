@@ -12,8 +12,8 @@ export const shareOrCopy = async (data: {
     try {
       await navigator.share(data);
       return;
-    } catch (err: any) {
-      if (err.name === 'AbortError') return;
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') return;
       // Fallback para clipboard se o share falhar
     }
   }

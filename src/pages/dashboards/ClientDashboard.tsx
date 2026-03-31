@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from 'react';
 import { LawyerCard } from "@/components/LawyerCard";
-import { Search, Sparkles, Clock, Bookmark, Scale, MapPin, Loader2 } from "lucide-react";
+import { Search, Sparkles, Clock, Bookmark, Scale, MapPin, Loader2, Target } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,7 +12,7 @@ import { toast } from "sonner";
 export const ClientDashboard = () => {
   const { user } = useAuth();
   const [clientData, setClientData] = useState({ name: 'Cliente', city: '', state: '' });
-  const [recommendedLawyers, setRecommendedLawyers] = useState<any[]>([]);
+  const [idealMatch, setIdealMatch] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -22,9 +23,11 @@ export const ClientDashboard = () => {
       try {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('name, city, state')
+          .select('name, city, state, lat, lng, preferred_specialties')
           .eq('id', user.id)
           .single();
+
+        let matchId: string | null = null;
 
         if (profile) {
           setClientData({
@@ -32,44 +35,49 @@ export const ClientDashboard = () => {
             city: profile.city || '',
             state: profile.state || ''
           });
+
+          if (profile.lat && profile.lng && profile.preferred_specialties && profile.preferred_specialties.length > 0) {
+            const { data: matchData, error: matchError } = await supabase.rpc('get_ideal_lawyer', {
+              user_lat: parseFloat(profile.lat),
+              user_lng: parseFloat(profile.lng),
+              user_specs: profile.preferred_specialties
+            });
+            
+            if (!matchError && matchData && matchData.length > 0) {
+              matchId = matchData[0].id;
+              
+              const { data: pData } = await supabase.from('profiles').select('*').eq('id', matchId).single();
+              const { data: dData } = await supabase.from('lawyer_details').select('*').eq('id', matchId).single();
+              
+              if (pData && dData) {
+                setIdealMatch({
+                  id: pData.id,
+                  name: pData.name || 'Advogado(a)',
+                  specialty: dData.main_specialty || 'Não informada',
+                  secondarySpecialties: dData.secondary_specialties || [],
+                  city: pData.city || '',
+                  state: pData.state || '',
+                  cep: pData.cep || '',
+                  street: pData.street || '',
+                  neighborhood: pData.neighborhood || '',
+                  address_number: pData.address_number || '',
+                  lat: parseFloat(pData.lat) || undefined,
+                  lng: parseFloat(pData.lng) || undefined,
+                  rating: dData.rating || 5.0,
+                  reviews: dData.reviews_count || 0,
+                  verified: dData.is_verified || false,
+                  image: pData.avatar_url || '',
+                  cover: pData.cover_url || '',
+                  bio: dData.mini_bio || dData.full_bio || '',
+                  type: dData.attendance_type || 'Híbrido',
+                  phone: dData.whatsapp || pData.phone || '',
+                  googleMapsUrl: dData.office_link || '',
+                  distance: matchData[0].distance_km
+                });
+              }
+            }
+          }
         }
-
-        const { data: profilesData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('role', 'lawyer')
-          .limit(4);
-
-        const { data: detailsData } = await supabase
-          .from('lawyer_details')
-          .select('*')
-          .eq('is_verified', true);
-
-        if (profilesData && detailsData) {
-          const verifiedLawyers = profilesData.filter(p => detailsData.some(d => d.id === p.id));
-          
-          const mappedData = verifiedLawyers.map(p => {
-            const d = detailsData.find(x => x.id === p.id) || {};
-            return {
-              id: p.id,
-              name: p.name || 'Advogado(a)',
-              specialty: d.main_specialty || 'Não informada',
-              city: p.city || '',
-              state: p.state || '',
-              rating: d.rating || 5.0,
-              reviews: d.reviews_count || 0,
-              verified: d.is_verified || false,
-              image: p.avatar_url || '',
-              cover: p.cover_url || '',
-              bio: d.mini_bio || d.full_bio || '',
-              type: d.attendance_type || 'Híbrido',
-              phone: d.whatsapp || p.phone || '' // Passando o telefone real pro Card
-            };
-          });
-
-          setRecommendedLawyers(mappedData.slice(0, 2));
-        }
-
       } catch (error) {
         console.error("Erro ao carregar dashboard:", error);
       } finally {
@@ -132,62 +140,38 @@ export const ClientDashboard = () => {
         </div>
       </div>
 
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-amber-100 text-amber-600 rounded-xl">
-              <Sparkles className="w-6 h-6" />
+      {idealMatch && (
+        <div className="space-y-6 relative z-10 transition-all duration-500 animate-in slide-in-from-bottom-5 fade-in">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-blue-100 text-blue-600 rounded-2xl shadow-inner">
+                <Target className="w-7 h-7" />
+              </div>
+              <h2 className="text-2xl font-black text-[#0F172A] leading-tight">Match Ideal (Mais Próximo)</h2>
             </div>
-            <h2 className="text-2xl font-black text-[#0F172A]">Recomendados na plataforma</h2>
+            <span className="hidden sm:inline-flex px-3 py-1 bg-blue-50 text-blue-700 text-xs font-black rounded-lg border border-blue-200 uppercase tracking-widest shadow-sm">
+              Combinação 100%
+            </span>
           </div>
-          <Link to="/painel/cliente/buscar" className="text-sm font-bold text-blue-600 hover:text-blue-800 hidden sm:block">
-            Ver todos profissionais
-          </Link>
+          
+          <div className="relative p-[2px] rounded-[1.6rem] bg-gradient-to-tr from-blue-500 via-indigo-500 to-purple-500 shadow-2xl shadow-blue-500/20 group">
+            <div className="absolute top-0 right-8 bg-[#0F172A] text-white text-xs font-black px-4 py-2 rounded-b-xl z-20 shadow-xl flex items-center gap-2 group-hover:bg-blue-600 transition-colors">
+              <MapPin className="w-3.5 h-3.5" /> Apenas {idealMatch.distance ? idealMatch.distance.toFixed(1) : '< 1'} km de você
+            </div>
+            <div className="bg-white rounded-[1.5rem] overflow-hidden">
+              <LawyerCard lawyer={idealMatch} />
+            </div>
+          </div>
         </div>
-        
-        {recommendedLawyers.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {recommendedLawyers.map(lawyer => (
-              <LawyerCard key={lawyer.id} lawyer={lawyer} />
-            ))}
-          </div>
-        ) : (
-          <EmptyState 
-            icon={Sparkles} 
-            title="Nenhum advogado verificado ainda" 
-            description="Estamos cadastrando os melhores profissionais. Faça uma busca para ver todos os perfis disponíveis."
-          />
-        )}
-      </div>
-
-      <div className="pt-4">
-        <Tabs defaultValue="recentes" className="w-full">
-          <TabsList className="h-14 mb-8 bg-slate-100/50 p-1 border border-slate-200/60 rounded-2xl w-full max-w-md">
-            <TabsTrigger value="recentes" className="rounded-xl h-11 text-base font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-[#0F172A] flex-1">
-              <Clock className="w-4 h-4 mr-2" /> Vistos Recentemente
-            </TabsTrigger>
-            <TabsTrigger value="salvos" className="rounded-xl h-11 text-base font-bold data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-[#0F172A] flex-1">
-              <Bookmark className="w-4 h-4 mr-2" /> Salvos
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="recentes" className="space-y-6 outline-none">
-            <EmptyState 
-              icon={Clock} 
-              title="Nenhum perfil visto" 
-              description="Os advogados que você visitar recentemente aparecerão aqui para fácil acesso."
-            />
-          </TabsContent>
-
-          <TabsContent value="salvos" className="space-y-6 outline-none">
-            <EmptyState 
-              icon={Bookmark} 
-              title="Nenhum advogado salvo" 
-              description="Em breve você poderá salvar os perfis que mais gostou para entrar em contato no momento certo."
-            />
-          </TabsContent>
-        </Tabs>
-      </div>
+      )}
+      
+      {!idealMatch && !isLoading && (
+        <EmptyState 
+          icon={Search} 
+          title="Buscando o Match Ideal" 
+          description="Ainda não encontramos um especialista com o perfil exato das suas áreas de interesse na sua região. Edite suas preferências!"
+        />
+      )}
 
     </div>
   );

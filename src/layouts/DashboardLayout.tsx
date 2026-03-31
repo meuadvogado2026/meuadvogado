@@ -50,7 +50,7 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
         try {
           const audio = new Audio('/alert.mp3'); 
           audio.play().catch(() => {});
-        } catch(e) {}
+        } catch(e) { console.error("Error playing audio", e); }
       })
       .subscribe();
 

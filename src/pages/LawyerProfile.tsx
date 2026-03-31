@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -65,11 +66,16 @@ export const LawyerProfile = () => {
           let city = pData.city || '';
           let state = pData.state || '';
 
+          let address = pData.address || '';
+          let neighborhood = pData.neighborhood || '';
+
           if (pData.cep) {
             const cepData = await fetchCepData(pData.cep);
             if (cepData && cepData.city) {
               city = cepData.city;
               state = cepData.state;
+              if (!address && cepData.street) address = cepData.street;
+              if (!neighborhood && cepData.neighborhood) neighborhood = cepData.neighborhood;
             }
           }
 
@@ -81,6 +87,10 @@ export const LawyerProfile = () => {
             secondarySpecialties: details.secondary_specialties || [],
             city,
             state,
+            address,
+            address_number: pData.address_number || '',
+            neighborhood,
+            cep: pData.cep || '',
             oab: details.oab ? `${details.oab_state || ''} ${details.oab}` : 'Não informada',
             rating: details.rating || 5.0,
             reviews: details.reviews_count || 0,
@@ -88,6 +98,7 @@ export const LawyerProfile = () => {
             type: details.attendance_type || 'Híbrido (Online e Presencial)',
             phone: details.whatsapp || pData.phone || '',
             email: pData.email || '',
+            googleMapsUrl: details.office_link || '',
             bio: details.full_bio || details.mini_bio || 'Este profissional ainda não adicionou uma biografia.',
             image: pData.avatar_url,
             cover: pData.cover_url,
@@ -366,17 +377,37 @@ export const LawyerProfile = () => {
 
             <Card className="border-0 shadow-sm rounded-2xl border border-slate-200/50 bg-white">
               <CardContent className="p-5 md:p-6">
-                <h2 className="text-lg font-black text-[#0F172A] mb-4 flex items-center gap-2">
+                <h2 className="text-lg font-black text-[#0F172A] mb-5 flex items-center gap-2">
                   <Briefcase className="w-5 h-5 text-green-600" />
                   Áreas de Atuação
                 </h2>
-                <div className="flex flex-wrap gap-3">
-                  {[lawyer.specialty, ...(lawyer.secondarySpecialties || [])].filter(Boolean).map((spec: string, index: number) => (
-                    <div key={index} className="flex items-center gap-2.5 bg-slate-50 border border-slate-100 px-4 py-2.5 rounded-xl text-sm hover:border-slate-200 transition-colors">
-                      <Scale className="w-4 h-4 text-primary" />
-                      <span className="font-bold text-slate-800">{spec}</span>
+                
+                <div className="flex flex-col gap-5">
+                  {/* Especialidade Principal */}
+                  {lawyer.specialty && lawyer.specialty !== 'Não informada' && (
+                    <div>
+                      <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2.5">Especialidade Principal</h3>
+                      <div className="inline-flex items-center gap-2.5 bg-blue-50/50 border border-blue-100 px-4 py-3 rounded-xl text-sm shadow-sm ring-1 ring-blue-50">
+                        <Scale className="w-5 h-5 text-blue-600" />
+                        <span className="font-black text-blue-900">{lawyer.specialty}</span>
+                      </div>
                     </div>
-                  ))}
+                  )}
+
+                  {/* Especialidades Secundárias */}
+                  {lawyer.secondarySpecialties && lawyer.secondarySpecialties.length > 0 && (
+                    <div>
+                      <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2.5">Atuações Secundárias</h3>
+                      <div className="flex flex-wrap gap-2.5">
+                        {lawyer.secondarySpecialties.map((spec: string, index: number) => (
+                          <div key={index} className="flex items-center gap-2 bg-slate-50 border border-slate-200/60 px-3.5 py-2 rounded-lg text-sm hover:border-slate-300 transition-colors shadow-sm">
+                            <Briefcase className="w-4 h-4 text-slate-400" />
+                            <span className="font-bold text-slate-700">{spec}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -436,13 +467,21 @@ export const LawyerProfile = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 group">
+                    <div className="flex items-start gap-3 group">
                       <div className="w-10 h-10 bg-slate-100 text-slate-600 rounded-lg flex items-center justify-center group-hover:bg-slate-200 transition-colors shrink-0">
                         <MapPin className="w-4 h-4" />
                       </div>
-                      <div>
-                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Localização</p>
-                        <p className="font-bold text-slate-800 text-sm">{lawyer.city}, {lawyer.state}</p>
+                      <div className="w-full pr-2">
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Endereço de Atendimento</p>
+                        <p className="font-bold text-slate-800 text-sm">
+                          {lawyer.address ? `${lawyer.address}${lawyer.address_number ? `, ${lawyer.address_number}` : ''}` : `${lawyer.city}, ${lawyer.state}`}
+                        </p>
+                        {lawyer.address && (
+                          <p className="font-medium text-slate-500 text-[11px] mt-0.5 leading-tight">
+                            {lawyer.neighborhood && `${lawyer.neighborhood} - `}{lawyer.city}, {lawyer.state}<br/>
+                            CEP: {lawyer.cep}
+                          </p>
+                        )}
                       </div>
                     </div>
 
