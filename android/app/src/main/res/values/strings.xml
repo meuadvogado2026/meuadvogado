@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Meu Advogado</string>
+    <string name="title_activity_main">Meu Advogado</string>
+    <string name="package_name">com.meuadvogado.app</string>
+    <string name="custom_url_scheme">com.meuadvogado.app</string>
+</resources>

@@ -38,7 +38,7 @@ export const SpecialtyPicker: React.FC<SpecialtyPickerProps> = ({ open, onConfir
   return (
     <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent
-        className="sm:max-w-lg p-0 rounded-[2rem] overflow-hidden border-0 shadow-2xl [&>button]:hidden"
+        className="sm:max-w-lg p-0 rounded-[2rem] border-0 shadow-2xl [&>button]:hidden flex flex-col max-h-[95vh] overflow-hidden"
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
@@ -60,8 +60,9 @@ export const SpecialtyPicker: React.FC<SpecialtyPickerProps> = ({ open, onConfir
           </div>
         </div>
 
-        {/* Specialty Grid */}
-        <div className="p-6 bg-white">
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto p-6 bg-white custom-scrollbar">
+          {/* Specialty Grid */}
           <div className="grid grid-cols-3 gap-3">
             {SPECIALTY_CONFIG.map(({ name, icon: Icon, color, lightBg, lightText, borderActive }) => {
               const isActive = selected.includes(name);
@@ -124,24 +125,26 @@ export const SpecialtyPicker: React.FC<SpecialtyPickerProps> = ({ open, onConfir
               </a>
             </div>
           </div>
+        </div>
 
-          {/* Confirm Button */}
+        {/* Sticky Footer for Button */}
+        <div className="p-6 pt-2 bg-white border-t border-slate-100 sticky bottom-0">
           <Button
             onClick={() => onConfirm(selected)}
-            disabled={selected.length === 0 || isLoading}
+            disabled={isLoading}
             className={cn(
-              "w-full h-14 mt-6 text-base font-black rounded-2xl shadow-lg transition-all",
+              "w-full h-14 text-base font-black rounded-2xl shadow-lg transition-all",
               selected.length > 0
                 ? "bg-[#0066FF] hover:bg-blue-500 shadow-blue-500/30"
-                : "bg-slate-200 text-slate-400 shadow-none cursor-not-allowed"
+                : "bg-[#0F172A] hover:bg-slate-800 text-white shadow-slate-900/20"
             )}
           >
             {isLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
             ) : selected.length > 0 ? (
-              `Confirmar ${selected.length} ${selected.length === 1 ? 'área' : 'áreas'} selecionada${selected.length === 1 ? '' : 's'}`
+              `Confirmar ${selected.length} ${selected.length === 1 ? 'área' : 'áreas'} e prosseguir`
             ) : (
-              "Selecione pelo menos uma área"
+              "Prosseguir para o Painel"
             )}
           </Button>
         </div>
