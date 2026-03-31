@@ -298,17 +298,14 @@ export const LawyerProfile = () => {
                   <div className="flex items-center gap-1.5 bg-white border border-slate-200/60 px-2.5 py-1 rounded-md shadow-sm">
                     <MapPin className="w-3.5 h-3.5 text-slate-400" /> {lawyer.city}, {lawyer.state}
                   </div>
-                  <div className="flex items-center gap-1.5 text-amber-700 bg-amber-50 border border-amber-100/50 px-2.5 py-1 rounded-md shadow-sm">
-                    <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" /> 
-                    <span className="font-bold">{lawyer.rating}</span> 
-                    <span className="text-amber-700/60 font-medium">({lawyer.reviews})</span>
-                  </div>
                 </div>
 
                 <div className="flex flex-wrap justify-center sm:justify-start gap-1.5 pt-2.5">
-                  <Badge className="px-3 py-1 bg-[#1E3A5F] hover:bg-[#0F172A] text-white font-bold border-0 text-[10px] md:text-xs rounded-md shadow-sm">
-                    {lawyer.specialty}
-                  </Badge>
+                  {lawyer.specialty && lawyer.specialty !== 'Não informada' && (
+                    <Badge className="px-3 py-1 bg-[#1E3A5F] hover:bg-[#0F172A] text-white font-bold border-0 text-[10px] md:text-xs rounded-md shadow-sm">
+                      {lawyer.specialty}
+                    </Badge>
+                  )}
                   {lawyer.secondarySpecialties?.map((spec: string) => (
                     <Badge key={spec} variant="outline" className="px-3 py-1 bg-white border-slate-200 text-slate-600 font-medium rounded-md text-[10px] md:text-xs shadow-sm">
                       {spec}
@@ -412,31 +409,7 @@ export const LawyerProfile = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-sm rounded-2xl border border-slate-200/50 bg-white">
-              <CardContent className="p-5 md:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="text-center sm:text-left">
-                  <h2 className="text-lg font-black text-[#0F172A] flex items-center justify-center sm:justify-start gap-2 mb-1.5">
-                    <Star className="w-5 h-5 fill-amber-500 text-amber-500" />
-                    Avaliações de Clientes
-                  </h2>
-                  <p className="text-slate-500 text-xs font-medium flex items-center justify-center sm:justify-start gap-1.5">
-                    <Info className="w-3.5 h-3.5 shrink-0" /> Somente clientes verificados podem avaliar.
-                  </p>
-                </div>
-                
-                <div className="flex items-center gap-3 bg-amber-50 px-5 py-2.5 rounded-xl border border-amber-100/50 shrink-0">
-                  <div className="text-3xl font-black text-amber-600">{lawyer.rating}</div>
-                  <div className="flex flex-col">
-                    <div className="flex gap-0.5 text-amber-400">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className={`w-4 h-4 ${i < Math.round(lawyer.rating) ? 'fill-amber-500 text-amber-500' : 'fill-slate-200 text-slate-200'}`} />
-                      ))}
-                    </div>
-                    <span className="font-bold text-slate-500 text-[10px] uppercase tracking-wider mt-0.5">{lawyer.reviews} avaliações</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+
           </div>
 
           <div className="lg:col-span-1">

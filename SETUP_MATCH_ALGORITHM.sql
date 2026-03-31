@@ -44,14 +44,16 @@ BEGIN
     AND d.status = 'approved'
     -- Filtra os advogados cruzando a especialidade escolhida pelo cliente
     AND (
-      d.main_specialty = ANY(user_specs) 
+      (d.main_specialty IS NOT NULL AND d.main_specialty != '' AND d.main_specialty = ANY(user_specs))
       OR 
-      d.secondary_specialties && user_specs
+      (d.secondary_specialties IS NOT NULL AND d.secondary_specialties && user_specs)
     )
-    -- Garante que o advogado tem as coordenadas instaladas (remove o != '' que causava crash)
+    -- Garante que o advogado tem coordenadas válidas (evita 0,0 ou nulos)
     AND p.lat IS NOT NULL 
     AND p.lng IS NOT NULL
-  ORDER BY distance_km ASC
-  LIMIT 1; -- Força matematicamente o sistema a trazer APENAS 1 Advogado (o mais próximo globalmente)
+    AND p.lat != '0'
+    AND p.lng != '0'
+  ORDER BY distance_km ASC NULLS LAST
+  LIMIT 1;
 END;
 $$;
