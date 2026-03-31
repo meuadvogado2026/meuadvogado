@@ -14,8 +14,10 @@ export default defineConfig(() => ({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['logo.png', 'pwa-192x192.png', 'pwa-512x512.png', 'robots.txt', 'favicon.ico'],
+      includeAssets: ['logo.png', 'pwa-192x192.png', 'pwa-512x512.png', 'robots.txt', 'favicon.ico', 'screenshot1.png', 'screenshot2.png'],
       manifest: {
+        id: '/',
+        start_url: '/',
         name: 'Meu Advogado',
         short_name: 'Meu Advogado',
         description: 'Encontre o advogado ideal para o seu caso com rapidez e total segurança.',
@@ -26,41 +28,29 @@ export default defineConfig(() => ({
         categories: ['productivity', 'business', 'legal'],
         icons: [
           {
-            src: '/pwa-192x192.png',
+            src: 'pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png',
-            purpose: 'any'
+            purpose: 'any maskable'
           },
           {
-            src: '/pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png',
-            purpose: 'maskable'
-          },
-          {
-            src: '/pwa-512x512.png',
+            src: 'pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any'
-          },
-          {
-            src: '/pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'maskable'
+            purpose: 'any maskable'
           }
         ],
         screenshots: [
           {
-            src: '/screenshot1.png',
-            sizes: '1080x1920',
+            src: 'screenshot1.png',
+            sizes: '390x844',
             type: 'image/png',
             form_factor: 'narrow',
             label: 'Encontre especialistas próximos a você'
           },
           {
-            src: '/screenshot2.png',
-            sizes: '1080x1920',
+            src: 'screenshot2.png',
+            sizes: '390x844',
             type: 'image/png',
             form_factor: 'narrow',
             label: 'Segurança e agilidade no seu atendimento'
