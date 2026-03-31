@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Briefcase, MapPin, Loader2, Check } from "lucide-react";
 import { toast } from "sonner";
@@ -16,6 +17,7 @@ import { SpecialtyPicker } from "@/components/SpecialtyPicker";
 export const Signup = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   // Estados para Cliente
   const [clientName, setClientName] = useState("");
@@ -106,6 +108,10 @@ export const Signup = () => {
 
   const handleRegister = (role: 'client' | 'lawyer') => async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!acceptedTerms) {
+      toast.error("Termos de Uso", { description: "Você precisa aceitar os termos para continuar." });
+      return;
+    }
     setIsLoading(true);
 
     const email = role === 'client' ? clientEmail : lawyerEmail;
@@ -281,7 +287,20 @@ export const Signup = () => {
                     <Input type="password" required value={clientPassword} onChange={(e) => setClientPassword(e.target.value)} className="mt-1 h-12 rounded-xl bg-slate-50" />
                   </div>
                 </div>
-                <Button type="submit" disabled={isLoading} className="w-full h-14 mt-6 text-base font-black rounded-2xl shadow-lg shadow-primary/20">
+
+                <div className="flex items-center space-x-2 p-4 bg-slate-50 border border-slate-100 rounded-2xl">
+                  <Checkbox 
+                    id="terms-client" 
+                    checked={acceptedTerms} 
+                    onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
+                    className="border-slate-300 shadow-none"
+                  />
+                  <Label htmlFor="terms-client" className="text-xs sm:text-sm text-slate-600 font-medium leading-tight cursor-pointer">
+                    Li e concordo com os <Link to="/termos" className="text-blue-600 hover:underline font-bold">Termos de Uso</Link> e a <Link to="/privacidade" className="text-blue-600 hover:underline font-bold">Política de Privacidade</Link>.
+                  </Label>
+                </div>
+
+                <Button type="submit" disabled={isLoading} className="w-full h-14 mt-6 bg-[#0066FF] hover:bg-blue-600 text-white text-base font-black rounded-2xl shadow-xl shadow-blue-500/20 transition-all">
                   {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Criar conta grátis"}
                 </Button>
               </form>
@@ -412,6 +431,19 @@ export const Signup = () => {
                     <Input type="password" required value={lawyerPassword} onChange={(e) => setLawyerPassword(e.target.value)} className="mt-1 h-12 rounded-xl bg-slate-50" />
                   </div>
                 </div>
+
+                <div className="flex items-center space-x-2 p-4 bg-slate-50 border border-slate-200 rounded-2xl mt-4">
+                  <Checkbox 
+                    id="terms-lawyer" 
+                    checked={acceptedTerms} 
+                    onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
+                    className="border-slate-300"
+                  />
+                  <Label htmlFor="terms-lawyer" className="text-sm text-slate-600 font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    Li e concordo com os <Link to="/termos" className="text-blue-600 hover:underline">Termos de Uso</Link> e a <Link to="/privacidade" className="text-blue-600 hover:underline">Política de Privacidade</Link>.
+                  </Label>
+                </div>
+
                 <Button type="submit" disabled={isLoading} className="w-full h-14 mt-6 bg-[#0F172A] hover:bg-slate-800 text-white text-base font-black rounded-2xl shadow-xl shadow-slate-900/20">
                   {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Cadastrar Perfil Profissional"}
                 </Button>

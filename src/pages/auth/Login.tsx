@@ -124,10 +124,14 @@ export const Login = () => {
             </Button>
           </form>
           
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center space-y-3">
             <p className="text-sm font-medium text-slate-600">
               Não tem uma conta? <Link to="/cadastro" className="font-bold text-blue-600 hover:text-blue-800 transition-colors">Cadastre-se</Link>
             </p>
+            <div className="flex justify-center gap-4 pt-2 border-t border-slate-100">
+              <Link to="/privacidade" className="text-xs font-bold text-slate-400 hover:text-[#0F172A] transition-colors">Privacidade</Link>
+              <Link to="/termos" className="text-xs font-bold text-slate-400 hover:text-[#0F172A] transition-colors">Termos</Link>
+            </div>
           </div>
         </div>
       </div>

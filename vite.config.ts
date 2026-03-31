@@ -14,24 +14,56 @@ export default defineConfig(() => ({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['logo.png', 'pwa-192x192.png', 'pwa-512x512.png'],
+      includeAssets: ['logo.png', 'pwa-192x192.png', 'pwa-512x512.png', 'robots.txt', 'favicon.ico'],
       manifest: {
         name: 'Meu Advogado',
         short_name: 'Meu Advogado',
-        description: 'A plataforma ideal para encontrar seu advogado com rapidez e confiança.',
+        description: 'Encontre o advogado ideal para o seu caso com rapidez e total segurança.',
         theme_color: '#0F172A',
-        background_color: '#F4F6F8',
+        background_color: '#F8FAFC',
         display: 'standalone',
+        orientation: 'portrait',
+        categories: ['productivity', 'business', 'legal'],
         icons: [
           {
             src: '/pwa-192x192.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: '/pwa-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'maskable'
           },
           {
             src: '/pwa-512x512.png',
             sizes: '512x512',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: '/pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
+          }
+        ],
+        screenshots: [
+          {
+            src: '/screenshot1.png',
+            sizes: '1080x1920',
+            type: 'image/png',
+            form_factor: 'narrow',
+            label: 'Encontre especialistas próximos a você'
+          },
+          {
+            src: '/screenshot2.png',
+            sizes: '1080x1920',
+            type: 'image/png',
+            form_factor: 'narrow',
+            label: 'Segurança e agilidade no seu atendimento'
           }
         ]
       }

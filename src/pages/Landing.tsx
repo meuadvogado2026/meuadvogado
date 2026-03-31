@@ -283,7 +283,11 @@ export const Landing = () => {
           <Scale className="w-5 h-5 text-slate-500" />
           <span className="text-xl font-black text-slate-400 tracking-tighter">Meu Advogado</span>
         </div>
-        <p className="text-sm font-medium text-slate-600">
+        <div className="flex flex-wrap justify-center gap-6 mb-6">
+          <Link to="/privacidade" className="text-sm font-bold text-slate-500 hover:text-white transition-colors">Política de Privacidade</Link>
+          <Link to="/termos" className="text-sm font-bold text-slate-500 hover:text-white transition-colors">Termos de Uso</Link>
+        </div>
+        <p className="text-xs font-medium text-slate-600">
           © {new Date().getFullYear()} Plataforma Meu Advogado. Todos os direitos reservados.
         </p>
       </footer>

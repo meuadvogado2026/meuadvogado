@@ -27,7 +27,10 @@ import { AdminUsers } from "./pages/dashboards/AdminUsers";
 import { AdminPrayers } from "./pages/dashboards/AdminPrayers";
 import { AdminUrgentCalls } from "./pages/dashboards/AdminUrgentCalls";
 import { AdminBenefits } from "./pages/dashboards/AdminBenefits";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfUse from "./pages/TermsOfUse";
 import NotFound from "./pages/NotFound";
+
 
 const queryClient = new QueryClient();
 
@@ -40,6 +43,8 @@ const App = () => (
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Landing />} />
+            <Route path="/privacidade" element={<PrivacyPolicy />} />
+            <Route path="/termos" element={<TermsOfUse />} />
             <Route element={<MainLayout />}>
               <Route path="/buscar" element={<Search />} />
               <Route path="/advogado/:id" element={<LawyerProfile />} />
