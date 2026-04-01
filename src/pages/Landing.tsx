@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Scale, ShieldCheck, MessageCircle, CheckCircle2, Briefcase, Users, Sparkles, ChevronRight, UserPlus, LogIn, Gift, HeartHandshake, Star, Search, MessageSquare, ArrowRight } from "lucide-react";
+import { ShieldCheck, MessageCircle, CheckCircle2, Briefcase, Users, Sparkles, ChevronRight, UserPlus, LogIn, Gift, HeartHandshake, Star, Search, MessageSquare, ArrowRight } from "lucide-react";
 
 export const Landing = () => {
   const [scrollY, setScrollY] = useState(0);
@@ -31,10 +31,10 @@ export const Landing = () => {
       <header className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-7xl">
         <div className="flex items-center justify-between px-6 py-4 bg-[#000814]/80 backdrop-blur-xl border border-white/5 rounded-full shadow-[0_20px_40px_rgba(0,0,0,0.4)]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0066FF] to-blue-900 flex items-center justify-center shadow-lg shadow-[#0066FF]/20">
-              <Scale className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-[#0a1628] shadow-lg shadow-[#0066FF]/20">
+              <img src="/logo.png" alt="Advogado 2.0" className="w-full h-full object-cover scale-[1.3]" />
             </div>
-            <span className="text-xl font-black tracking-tighter text-white">Meu Advogado</span>
+            <span className="text-xl font-black tracking-tighter text-white">Advogado 2.0</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
             <a href="#beneficios" className="hover:text-white transition-colors">Benefícios</a>
@@ -165,7 +165,7 @@ export const Landing = () => {
                 {[
                   { title: "Vitrine Premium", desc: "Destaque suas vitórias, área jurídica e transmita máxima autoridade na sua cidade." },
                   { title: "Clube de Vantagens", desc: "Descontos reais em softwares parceiros, viagens e estética." },
-                  { title: "Leads Exclusivos", desc: "A inteligência do Meu Advogado mapeia sua geolocalização exata para fechar matches 1x1." }
+                  { title: "Leads Exclusivos", desc: "A inteligência do Advogado 2.0 mapeia sua geolocalização exata para fechar matches 1x1." }
                 ].map((item, idx) => (
                   <div key={idx} className="group flex gap-6 p-6 rounded-3xl bg-[#000814]/50 border border-white/5 hover:border-[#0066FF]/30 transition-all">
                     <div className="w-1 h-auto bg-[#0066FF] rounded-full scale-y-50 group-hover:scale-y-100 transition-transform origin-top"></div>
@@ -254,7 +254,9 @@ export const Landing = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#00040A] z-0" />
         <div className="mx-auto max-w-5xl px-6 lg:px-8 relative z-10 text-center">
           
-          <Scale className="w-16 h-16 text-[#0066FF] mx-auto mb-8" />
+          <div className="w-20 h-20 rounded-2xl overflow-hidden bg-[#0a1628] mx-auto mb-8 shadow-xl shadow-[#0066FF]/20 border-2 border-white/10">
+            <img src="/logo.png" alt="Advogado 2.0" className="w-full h-full object-cover scale-[1.2]" />
+          </div>
           
           <h2 className="text-5xl md:text-7xl font-black text-white tracking-tighter mb-8 leading-[1.1]">
             A Justiça <br/>
@@ -280,15 +282,17 @@ export const Landing = () => {
       {/* FOOTER */}
       <footer className="relative z-20 py-10 bg-[#00040A] border-t border-white/5 flex flex-col items-center">
         <div className="flex items-center gap-2 mb-4">
-          <Scale className="w-5 h-5 text-slate-500" />
-          <span className="text-xl font-black text-slate-400 tracking-tighter">Meu Advogado</span>
+          <div className="w-9 h-9 rounded-xl overflow-hidden bg-[#0a1628]">
+            <img src="/logo.png" alt="Advogado 2.0" className="w-full h-full object-cover scale-[1.2]" />
+          </div>
+          <span className="text-xl font-black text-slate-400 tracking-tighter">Advogado 2.0</span>
         </div>
         <div className="flex flex-wrap justify-center gap-6 mb-6">
           <Link to="/privacidade" className="text-sm font-bold text-slate-500 hover:text-white transition-colors">Política de Privacidade</Link>
           <Link to="/termos" className="text-sm font-bold text-slate-500 hover:text-white transition-colors">Termos de Uso</Link>
         </div>
         <p className="text-xs font-medium text-slate-600">
-          © {new Date().getFullYear()} Plataforma Meu Advogado. Todos os direitos reservados.
+          © {new Date().getFullYear()} Plataforma Advogado 2.0. Todos os direitos reservados.
         </p>
       </footer>
     </div>

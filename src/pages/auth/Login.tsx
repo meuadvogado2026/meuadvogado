@@ -61,12 +61,12 @@ export const Login = () => {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-lg h-[400px] bg-blue-600/20 blur-[100px] rounded-full pointer-events-none" />
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 mt-10">
-        <div className="bg-white pt-14 pb-8 px-6 shadow-2xl sm:rounded-[2rem] sm:px-10 relative">
+        <div className="bg-white pt-20 pb-8 px-6 shadow-2xl sm:rounded-[2rem] sm:px-10 relative">
           
-          <div className="absolute -top-12 left-1/2 -translate-x-1/2">
+          <div className="absolute -top-16 left-1/2 -translate-x-1/2">
             <Link to="/">
-              <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-xl border-[6px] border-[#0F172A] hover:scale-105 transition-transform duration-300 overflow-hidden">
-                <img src="/logo.png" alt="Meu Advogado" className="h-16 w-16 object-contain" />
+              <div className="w-28 h-28 rounded-3xl flex items-center justify-center shadow-xl border-[5px] border-[#0F172A] hover:scale-105 transition-transform duration-300 overflow-hidden bg-[#0a1628]">
+                <img src="/logo.png" alt="Advogado 2.0" className="w-full h-full object-cover scale-[1.15]" />
               </div>
             </Link>
           </div>

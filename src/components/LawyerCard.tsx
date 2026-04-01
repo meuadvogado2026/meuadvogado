@@ -210,7 +210,7 @@ export const LawyerCard = ({ lawyer }: LawyerCardProps) => {
             <WhatsAppButton 
               lawyerId={lawyer.id}
               phone={lawyer.phone}
-              message={`Olá Dr(a). ${lawyer.name}, encontrei seu perfil no Meu Advogado e gostaria de uma orientação.`}
+              message={`Olá Dr(a). ${lawyer.name}, encontrei seu perfil no Advogado 2.0 e gostaria de uma orientação.`}
               className="flex-[2] sm:flex-[2] h-11 rounded-xl shadow-md shadow-green-600/20 text-xs sm:text-sm px-2"
             />
             <Button 

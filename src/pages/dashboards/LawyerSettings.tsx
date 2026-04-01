@@ -29,7 +29,7 @@ export const LawyerSettings = () => {
   const [settings, setSettings] = useState({
     isProfileActive: true,
     whatsappNumber: "",
-    whatsappMessage: "Olá! Encontrei seu perfil no Meu Advogado e gostaria de uma orientação inicial.",
+    whatsappMessage: "Olá! Encontrei seu perfil no Advogado 2.0 e gostaria de uma orientação inicial.",
     email: "",
     password: ""
   });
@@ -126,7 +126,7 @@ export const LawyerSettings = () => {
   const handleShare = async () => {
     await shareOrCopy({
       title: 'Meu Perfil Jurídico',
-      text: 'Confira meu perfil na plataforma Meu Advogado.',
+      text: 'Confira meu perfil na plataforma Advogado 2.0.',
       url: publicLink
     });
   };

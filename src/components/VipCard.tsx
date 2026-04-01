@@ -31,7 +31,7 @@ export const VipCard: React.FC<VipCardProps> = ({ name, oab, oabState, memberSin
         <div className="flex justify-between items-start w-full">
           <div className="flex flex-col">
             <span className="font-black tracking-[0.2em] uppercase text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 text-[10px] sm:text-xs tracking-widest">
-              MEU ADVOGADO VIP
+              ADVOGADO 2.0 VIP
             </span>
             <span className="text-white/40 text-[8px] sm:text-[10px] tracking-widest mt-1">BENEFITS CLUB MEMBER</span>
           </div>

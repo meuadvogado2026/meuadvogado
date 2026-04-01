@@ -168,7 +168,9 @@ export const Signup = () => {
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <Link to="/" className="inline-flex items-center justify-center gap-2 mb-6">
-          <img src="/logo.png" alt="Meu Advogado" className="h-20 w-auto object-contain drop-shadow-sm" />
+          <div className="h-20 w-20 rounded-2xl overflow-hidden bg-[#0a1628] shadow-lg mx-auto">
+            <img src="/logo.png" alt="Advogado 2.0" className="w-full h-full object-cover scale-[1.15]" />
+          </div>
         </Link>
         <h2 className="text-3xl font-black text-[#0F172A] tracking-tight">
           Crie sua conta

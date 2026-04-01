@@ -28,14 +28,14 @@ const TermsOfUse = () => {
           <section>
             <h2 className="text-xl font-bold text-[#0F172A] mb-3">1. Aceitação dos Termos</h2>
             <p>
-              Ao utilizar a Plataforma Meu Advogado, você concorda em cumprir estes Termos de Uso. Caso não concorde com qualquer disposição, você não deve utilizar o serviço.
+              Ao utilizar a Plataforma Advogado 2.0, você concorda em cumprir estes Termos de Uso. Caso não concorde com qualquer disposição, você não deve utilizar o serviço.
             </p>
           </section>
 
           <section>
             <h2 className="text-xl font-bold text-[#0F172A] mb-3">2. Natureza do Serviço</h2>
             <p>
-              O Meu Advogado é uma plataforma de conexão entre clientes e profissionais do direito. **Não somos um escritório de advocacia e não prestamos serviços jurídicos diretos.**
+              O Advogado 2.0 é uma plataforma de conexão entre clientes e profissionais do direito. **Não somos um escritório de advocacia e não prestamos serviços jurídicos diretos.**
             </p>
             <p>
               A contratação de honorários, prazos e responsabilidades técnicas ocorre diretamente entre o cliente e o advogado através do WhatsApp ou outros meios de comunicação externa, sem intermediação da Plataforma.

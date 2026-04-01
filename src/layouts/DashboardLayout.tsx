@@ -120,10 +120,10 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
         
         <div className="h-20 flex items-center px-6 mb-2 mt-4">
           <Link to="/" className="flex items-center gap-3 transition-opacity hover:opacity-80">
-            <div className="bg-white p-1.5 rounded-xl shadow-lg">
-              <img src="/logo.png" alt="Meu Advogado" className="h-6 w-6 object-contain" />
+            <div className="rounded-2xl overflow-hidden shadow-lg">
+              <img src="/logo.png" alt="Advogado 2.0" className="h-9 w-9 object-cover scale-[1.2]" />
             </div>
-            <span className="font-bold text-xl tracking-tight text-white">Meu Advogado</span>
+            <span className="font-bold text-xl tracking-tight text-white">Advogado 2.0</span>
           </Link>
         </div>
         
@@ -205,8 +205,10 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
         
         <header className="md:hidden h-16 bg-white/80 backdrop-blur-xl border-b border-slate-200 flex items-center px-4 justify-between sticky top-0 z-40 shadow-sm">
           <div className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="Meu Advogado" className="h-7 w-7 object-contain" />
-            <span className="font-bold text-slate-900 tracking-tight">Meu Advogado</span>
+            <div className="h-8 w-8 rounded-xl overflow-hidden bg-[#0a1628] shadow-sm">
+              <img src="/logo.png" alt="Advogado 2.0" className="w-full h-full object-cover scale-[1.2]" />
+            </div>
+            <span className="font-bold text-slate-900 tracking-tight">Advogado 2.0</span>
           </div>
           <Button 
             variant="outline" 

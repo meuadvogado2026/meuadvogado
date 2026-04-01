@@ -230,7 +230,7 @@ export const Search = () => {
         <div className="mb-10 text-center">
           <h1 className="text-3xl md:text-5xl font-black text-[#0F172A] mb-4 tracking-tight">Colegas de Profissão</h1>
           <p className="text-lg text-slate-500 max-w-2xl mx-auto font-medium">
-            Rede de advogados aprovados na plataforma "Meu Advogado". Crie parcerias e expanda seus horizontes profissionais.
+            Rede de advogados aprovados na plataforma "Advogado 2.0". Crie parcerias e expanda seus horizontes profissionais.
           </p>
         </div>
 

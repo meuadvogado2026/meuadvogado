@@ -18,8 +18,10 @@ export const MainLayout = () => {
       <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="Meu Advogado" className="h-8 w-8 object-contain" />
-            <span className="font-bold text-xl tracking-tight text-slate-900">Meu Advogado</span>
+            <div className="h-9 w-9 rounded-2xl overflow-hidden bg-[#0a1628] shadow-sm">
+              <img src="/logo.png" alt="Advogado 2.0" className="w-full h-full object-cover scale-[1.2]" />
+            </div>
+            <span className="font-bold text-xl tracking-tight text-slate-900">Advogado 2.0</span>
           </Link>
           
           <nav className="hidden md:flex items-center gap-4">
@@ -41,8 +43,10 @@ export const MainLayout = () => {
               <SheetContent side="right" className="flex flex-col border-slate-200 w-[300px]">
                 <SheetHeader className="text-left mb-6 mt-4">
                   <SheetTitle className="flex items-center gap-2.5 font-bold text-xl text-slate-900">
-                    <img src="/logo.png" alt="Meu Advogado" className="h-6 w-6 object-contain" />
-                    Meu Advogado
+                    <div className="h-7 w-7 rounded-xl overflow-hidden bg-[#0a1628]">
+                      <img src="/logo.png" alt="Advogado 2.0" className="w-full h-full object-cover scale-[1.2]" />
+                    </div>
+                    Advogado 2.0
                   </SheetTitle>
                 </SheetHeader>
                 <nav className="flex flex-col gap-3">
@@ -76,10 +80,10 @@ export const MainLayout = () => {
           
           {/* Logo e Nome */}
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="bg-white p-1 rounded-lg">
-              <img src="/logo.png" alt="Meu Advogado" className="h-5 w-5 object-contain" />
+            <div className="p-0.5 rounded-xl overflow-hidden bg-[#0a1628]">
+              <img src="/logo.png" alt="Advogado 2.0" className="h-6 w-6 object-cover scale-[1.2]" />
             </div>
-            <span className="font-bold text-lg text-white">Meu Advogado</span>
+            <span className="font-bold text-lg text-white">Advogado 2.0</span>
           </Link>
 
           {/* Links Essenciais */}
@@ -93,7 +97,7 @@ export const MainLayout = () => {
         
         {/* Direitos Autorais */}
         <div className="container mx-auto px-4 max-w-5xl mt-8 pt-6 border-t border-slate-800/50 text-xs text-center text-slate-500">
-          © {new Date().getFullYear()} Meu Advogado. Todos os direitos reservados.
+          © {new Date().getFullYear()} Advogado 2.0. Todos os direitos reservados.
         </div>
       </footer>
 

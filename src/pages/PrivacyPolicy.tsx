@@ -28,7 +28,7 @@ const PrivacyPolicy = () => {
           <section>
             <h2 className="text-xl font-bold text-[#0F172A] mb-3">1. Introdução</h2>
             <p>
-              A Plataforma Meu Advogado ("nós", "nosso" ou "Plataforma") está comprometida em proteger a sua privacidade. Esta Política de Privacidade explica como coletamos, usamos, tratamos e protegemos as suas informações pessoais ao utilizar os nossos serviços.
+              A Plataforma Advogado 2.0 ("nós", "nosso" ou "Plataforma") está comprometida em proteger a sua privacidade. Esta Política de Privacidade explica como coletamos, usamos, tratamos e protegemos as suas informações pessoais ao utilizar os nossos serviços.
             </p>
           </section>
 
@@ -52,7 +52,7 @@ const PrivacyPolicy = () => {
           <section>
             <h2 className="text-xl font-bold text-[#0F172A] mb-3">4. Compartilhamento de Dados</h2>
             <p>
-              O Meu Advogado não vende seus dados pessoais a terceiros. Os dados de contato (como WhatsApp) de advogados são exibidos publicamente ou para clientes interessados para facilitar a contratação direta.
+              O Advogado 2.0 não vende seus dados pessoais a terceiros. Os dados de contato (como WhatsApp) de advogados são exibidos publicamente ou para clientes interessados para facilitar a contratação direta.
             </p>
           </section>
 
@@ -73,7 +73,7 @@ const PrivacyPolicy = () => {
           <section>
             <h2 className="text-xl font-bold text-[#0F172A] mb-3">7. Contato</h2>
             <p>
-              Caso tenha dúvidas sobre esta política, entre em contato através do e-mail: suporte@meuadvogado.com.br
+              Caso tenha dúvidas sobre esta política, entre em contato através do suporte disponível na plataforma.
             </p>
           </section>
         </div>

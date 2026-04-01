@@ -211,22 +211,23 @@ export const LawyerDashboard = () => {
       }
     };
 
+    const generateMiniChart = (data: any[]) => {
+      const now = new Date();
+      return [5, 4, 3, 2, 1, 0].map(block => {
+        const start = subDays(now, (block + 1) * 5);
+        const end = subDays(now, block * 5);
+        return {
+          value: data.filter(e => {
+            const d = new Date(e.created_at);
+            return d >= start && d < end;
+          }).length
+        };
+      });
+    };
+
     fetchDashboardData();
   }, [user]);
 
-  const generateMiniChart = (data: any[]) => {
-    const now = new Date();
-    return [5, 4, 3, 2, 1, 0].map(block => {
-      const start = subDays(now, (block + 1) * 5);
-      const end = subDays(now, block * 5);
-      return {
-        value: data.filter(e => {
-          const d = new Date(e.created_at);
-          return d >= start && d < end;
-        }).length
-      };
-    });
-  };
   const profileLink = `${window.location.origin}/advogado/${user?.id || ''}`;
   const firstName = profileData?.name ? profileData.name.split(' ')[0] : 'Doutor(a)';
 
@@ -238,7 +239,7 @@ export const LawyerDashboard = () => {
   const handleShare = async () => {
     await shareOrCopy({
       title: `Perfil de Dr(a). ${firstName}`,
-      text: 'Confira meu perfil profissional na plataforma Meu Advogado.',
+      text: 'Confira meu perfil profissional na plataforma Advogado 2.0.',
       url: profileLink
     });
   };

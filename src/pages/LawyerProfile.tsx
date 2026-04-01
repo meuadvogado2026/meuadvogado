@@ -183,7 +183,7 @@ export const LawyerProfile = () => {
   const handleShareProfile = async () => {
     await shareOrCopy({
       title: `Perfil de ${lawyer.name}`,
-      text: `Confira o perfil de ${lawyer.name} na plataforma Meu Advogado.`,
+      text: `Confira o perfil de ${lawyer.name} na plataforma Advogado 2.0.`,
       url: `${window.location.origin}/advogado/${lawyer.id}`
     });
   };
@@ -325,7 +325,7 @@ export const LawyerProfile = () => {
                     lawyerId={lawyer.id}
                     className="flex-1 lg:w-auto h-11 md:h-12 px-6 text-sm shadow-md shadow-green-600/20 rounded-xl font-bold"
                     phone={lawyer.phone?.replace(/\D/g, '')}
-                    message={`Olá Dr(a) ${lawyer.name}, encontrei seu perfil no Meu Advogado e gostaria de uma orientação.`} 
+                    message={`Olá Dr(a) ${lawyer.name}, encontrei seu perfil no Advogado 2.0 e gostaria de uma orientação.`} 
                   />
                   <Button 
                     onClick={() => {
@@ -464,7 +464,7 @@ export const LawyerProfile = () => {
                         lawyerId={lawyer.id}
                         className="h-12 text-sm rounded-xl shadow-md shadow-green-600/20 font-bold"
                         phone={lawyer.phone?.replace(/\D/g, '')}
-                        message={`Olá Dr(a) ${lawyer.name}, encontrei seu perfil no Meu Advogado e gostaria de uma orientação.`} 
+                        message={`Olá Dr(a) ${lawyer.name}, encontrei seu perfil no Advogado 2.0 e gostaria de uma orientação.`} 
                       />
                       <Button 
                         onClick={() => {

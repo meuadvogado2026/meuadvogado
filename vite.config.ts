@@ -18,8 +18,8 @@ export default defineConfig(() => ({
       manifest: {
         id: '/',
         start_url: '/',
-        name: 'Meu Advogado',
-        short_name: 'Meu Advogado',
+        name: 'Advogado 2.0',
+        short_name: 'Advogado 2.0',
         description: 'Encontre o advogado ideal para o seu caso com rapidez e total segurança.',
         theme_color: '#0F172A',
         background_color: '#F8FAFC',

@@ -13,7 +13,7 @@ interface WhatsAppButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEleme
 }
 
 export const WhatsAppButton = ({ 
-  message = "Olá! Encontrei seu perfil no Meu Advogado e gostaria de uma orientação.", 
+  message = "Olá! Encontrei seu perfil no Advogado 2.0 e gostaria de uma orientação.", 
   phone = "", 
   lawyerId,
   fullWidth = false,
