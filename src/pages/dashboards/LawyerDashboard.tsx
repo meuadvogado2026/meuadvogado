@@ -26,7 +26,8 @@ import { VipCard } from "@/components/VipCard";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   AreaChart, 
   Area, 
@@ -107,6 +108,9 @@ export const LawyerDashboard = () => {
   const [profileCompleteness, setProfileCompleteness] = useState(0);
   const [showWelcome, setShowWelcome] = useState(false);
   const [showFullscreenCard, setShowFullscreenCard] = useState(false);
+  const [showPrayerModal, setShowPrayerModal] = useState(false);
+  const [prayerText, setPrayerText] = useState('');
+  const [isSendingPrayer, setIsSendingPrayer] = useState(false);
 
   useEffect(() => {
     if (localStorage.getItem('showVipWelcome') === 'true') {
@@ -244,8 +248,34 @@ export const LawyerDashboard = () => {
     });
   };
 
-  const handlePrayerRequest = () => {
-    toast.success("Seu pedido de oração foi recebido com muito carinho e sigilo. Nossa equipe estará intercedendo por você!");
+  const handlePrayerRequest = async () => {
+    if (!prayerText.trim()) {
+      toast.error("Por favor, escreva seu pedido de oração.");
+      return;
+    }
+    if (!user) return;
+
+    setIsSendingPrayer(true);
+    try {
+      const { error } = await supabase.from('prayer_requests').insert({
+        user_id: user.id,
+        user_name: profileData?.name || 'Anônimo',
+        user_type: 'Advogado',
+        request: prayerText.trim(),
+        status: 'pending'
+      });
+
+      if (error) throw error;
+
+      toast.success("Seu pedido de oração foi recebido com muito carinho e sigilo. Nossa equipe estará intercedendo por você!");
+      setPrayerText('');
+      setShowPrayerModal(false);
+    } catch (error) {
+      console.error('Erro ao enviar pedido de oração:', error);
+      toast.error("Erro ao enviar pedido", { description: "Tente novamente em alguns instantes." });
+    } finally {
+      setIsSendingPrayer(false);
+    }
   };
 
   return (
@@ -478,7 +508,7 @@ export const LawyerDashboard = () => {
                   A advocacia exige muito de nós. Temos uma equipe pronta para orar e interceder pelas suas vitórias e desafios diários.
                 </p>
                 <Button 
-                  onClick={handlePrayerRequest} 
+                  onClick={() => setShowPrayerModal(true)} 
                   className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl relative z-10 shadow-md shadow-rose-600/20 active:scale-95 transition-all"
                 >
                   <Heart className="w-4 h-4 mr-2" /> Fazer Pedido de Oração
@@ -549,6 +579,60 @@ export const LawyerDashboard = () => {
             >
               Fechar
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Pedido de Oração */}
+      <Dialog open={showPrayerModal} onOpenChange={setShowPrayerModal}>
+        <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden bg-white rounded-3xl border-none shadow-2xl">
+          <div className="bg-gradient-to-br from-rose-50 to-pink-50 p-6 sm:p-8 border-b border-rose-100 relative overflow-hidden">
+            <div className="absolute right-0 top-0 opacity-5 -mt-8 -mr-8">
+              <Heart className="w-40 h-40 text-rose-500" />
+            </div>
+            <DialogHeader className="text-left space-y-2">
+              <DialogTitle className="text-xl flex items-center gap-2 font-black text-rose-900 tracking-tight">
+                <HeartHandshake className="w-5 h-5 text-rose-500" />
+                Pedido de Oração
+              </DialogTitle>
+              <DialogDescription className="text-sm font-medium text-rose-700/70 leading-relaxed">
+                Escreva aqui o que está no seu coração. Seu pedido será tratado com total sigilo e carinho pela nossa equipe de intercessão.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          
+          <div className="p-6 sm:p-8 space-y-6">
+            <Textarea
+              placeholder="Descreva seu pedido de oração aqui... Pode ser pela sua família, por uma causa judicial, pela sua saúde ou qualquer necessidade."
+              value={prayerText}
+              onChange={(e) => setPrayerText(e.target.value)}
+              className="min-h-[140px] resize-none rounded-2xl border-slate-200 bg-slate-50 text-sm font-medium placeholder:text-slate-400 focus:border-rose-300 focus:ring-rose-200"
+              maxLength={1000}
+            />
+            <p className="text-xs text-slate-400 text-right font-medium">{prayerText.length}/1000 caracteres</p>
+            
+            <DialogFooter className="flex flex-col sm:flex-row gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowPrayerModal(false)}
+                className="w-full sm:w-auto rounded-xl border-slate-200 text-slate-600 font-bold hover:bg-slate-50"
+                disabled={isSendingPrayer}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handlePrayerRequest}
+                disabled={isSendingPrayer || !prayerText.trim()}
+                className="w-full sm:w-auto bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl shadow-md shadow-rose-600/20 active:scale-95 transition-all"
+              >
+                {isSendingPrayer ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Heart className="w-4 h-4 mr-2" />
+                )}
+                {isSendingPrayer ? 'Enviando...' : 'Enviar Pedido'}
+              </Button>
+            </DialogFooter>
           </div>
         </DialogContent>
       </Dialog>

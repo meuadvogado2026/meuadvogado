@@ -6,12 +6,21 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { 
   Users, 
   Search,
   Eye,
-  Ban,
-  CheckCircle,
   Trash2,
   Mail,
   Phone,
@@ -30,6 +39,7 @@ export const AdminUsers = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -74,10 +84,34 @@ export const AdminUsers = () => {
     return matchSearch && matchType;
   });
 
-  const showFeatureToast = () => {
-    toast.info("Ação restrita", {
-      description: "Por segurança, a exclusão de usuários deve ser feita pelo painel raiz do Supabase."
-    });
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    setDeletingUserId(userId);
+    try {
+      const { data, error } = await supabase.rpc('delete_user_admin', {
+        target_user_id: userId
+      });
+
+      if (error) throw error;
+
+      const result = data as any;
+      if (result?.success) {
+        toast.success("Usuário excluído", {
+          description: result.message || `${userName} foi removido da plataforma.`
+        });
+        setUsers(prev => prev.filter(u => u.id !== userId));
+      } else {
+        toast.error("Erro ao excluir", {
+          description: result?.error || "Não foi possível excluir o usuário."
+        });
+      }
+    } catch (error: any) {
+      console.error("Erro ao excluir usuário:", error);
+      toast.error("Erro ao excluir usuário", {
+        description: error?.message || "Tente novamente."
+      });
+    } finally {
+      setDeletingUserId(null);
+    }
   };
 
   return (
@@ -232,16 +266,49 @@ export const AdminUsers = () => {
                           </DialogContent>
                         </Dialog>
 
-                        {/* Excluir/Desativar Usuário */}
-                        <Button 
-                          onClick={showFeatureToast}
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-9 w-9 text-red-500 hover:bg-red-50 hover:text-red-700 rounded-xl" 
-                          title="Excluir Usuário"
-                        >
-                          <Ban className="w-4 h-4" />
-                        </Button>
+                        {/* Excluir Usuário */}
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-9 w-9 text-red-500 hover:bg-red-50 hover:text-red-700 rounded-xl" 
+                              title="Excluir Usuário"
+                              disabled={deletingUserId === user.id}
+                            >
+                              {deletingUserId === user.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-4 h-4" />
+                              )}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="rounded-3xl border-0 shadow-2xl">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="text-xl font-black text-slate-900 flex items-center gap-2">
+                                <Trash2 className="w-5 h-5 text-red-500" />
+                                Confirmar Exclusão
+                              </AlertDialogTitle>
+                              <AlertDialogDescription className="text-sm text-slate-600 leading-relaxed">
+                                Você está prestes a excluir permanentemente o usuário <strong className="text-slate-900">{user.name}</strong> ({user.type}).
+                                <br /><br />
+                                Esta ação é <strong className="text-red-600">irreversível</strong> e irá remover todos os dados associados: perfil, favoritos, eventos e pedidos de oração.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter className="gap-3 mt-2">
+                              <AlertDialogCancel className="rounded-xl font-bold border-slate-200">
+                                Cancelar
+                              </AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteUser(user.id, user.name)}
+                                className="rounded-xl font-bold bg-red-600 hover:bg-red-700 text-white shadow-md shadow-red-600/20"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Sim, Excluir Permanentemente
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
 
                       </div>
                     </TableCell>

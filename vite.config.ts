@@ -56,6 +56,9 @@ export default defineConfig(() => ({
             label: 'Segurança e agilidade no seu atendimento'
           }
         ]
+      },
+      devOptions: {
+        enabled: true
       }
     })
   ],
