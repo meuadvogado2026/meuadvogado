@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%; /* Cinza muito claro, quase branco, para respiros */
+    --background: 0 0% 50%; /* #7F7F7F - Cinza médio solicitado */
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
@@ -15,7 +15,7 @@
 
     /* Azul escuro profissional */
     --primary: 222 47% 20%; 
-    --primary-foreground: 210 40% 98%;
+    --primary-foreground: 0 0% 100%;
 
     /* Azul mais claro para ações secundárias */
     --secondary: 214 32% 91%;
@@ -90,4 +90,10 @@
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     @apply bg-slate-300;
   }
+}
+
+/* Floating mascot animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
 }

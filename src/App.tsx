@@ -22,11 +22,13 @@ import { LawyerProfileEdit } from "./pages/dashboards/LawyerProfileEdit";
 import { LawyerSettings } from "./pages/dashboards/LawyerSettings";
 import { LawyerBenefits } from "./pages/dashboards/LawyerBenefits";
 import { AdminDashboard } from "./pages/dashboards/AdminDashboard";
-import { AdminApprovals } from "./pages/dashboards/AdminApprovals";
+// AdminApprovals removido — advogados são geridos exclusivamente pelo admin via AdminUsers
 import { AdminUsers } from "./pages/dashboards/AdminUsers";
 import { AdminPrayers } from "./pages/dashboards/AdminPrayers";
 import { AdminUrgentCalls } from "./pages/dashboards/AdminUrgentCalls";
 import { AdminBenefits } from "./pages/dashboards/AdminBenefits";
+import { AdminCities } from "./pages/dashboards/AdminCities";
+import { AdminPartners } from "./pages/dashboards/AdminPartners";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfUse from "./pages/TermsOfUse";
 import NotFound from "./pages/NotFound";
@@ -74,10 +76,8 @@ const App = () => (
               </ProtectedRoute>
             }>
               <Route path="/painel/advogado" element={<LawyerDashboard />} />
-              <Route path="/painel/advogado/buscar" element={<Search />} />
               <Route path="/painel/advogado/beneficios" element={<LawyerBenefits />} />
               <Route path="/painel/advogado/advogado/:id" element={<LawyerProfile />} />
-              <Route path="/painel/advogado/perfil" element={<LawyerProfileEdit />} />
               <Route path="/painel/advogado/config" element={<LawyerSettings />} />
               <Route path="/painel/advogado/*" element={<LawyerDashboard />} />
             </Route>
@@ -90,10 +90,12 @@ const App = () => (
             }>
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/urgencias" element={<AdminUrgentCalls />} />
-              <Route path="/admin/aprovacoes" element={<AdminApprovals />} />
               <Route path="/admin/usuarios" element={<AdminUsers />} />
+              <Route path="/admin/usuarios/editar/:id" element={<LawyerProfileEdit />} />
               <Route path="/admin/oracoes" element={<AdminPrayers />} />
               <Route path="/admin/beneficios" element={<AdminBenefits />} />
+              <Route path="/admin/cidades" element={<AdminCities />} />
+              <Route path="/admin/parceiros" element={<AdminPartners />} />
               <Route path="/admin/*" element={<AdminDashboard />} />
             </Route>
 

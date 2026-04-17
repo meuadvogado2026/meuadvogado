@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Camera, MapPin, Briefcase, ShieldCheck, Save,
   Instagram, Linkedin, Facebook, Youtube, Globe,
-  Phone, Mail, MessageCircle, User, Star, Upload, Building2, Loader2, Check
+  Phone, Mail, MessageCircle, User, Star, Upload, Building2, Loader2, Check, ArrowLeft
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,32 +12,39 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { specialties } from "@/data/mock";
 import { estados } from "@/data/locations";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { applyCepMask, fetchCepData } from "@/utils/cep";
 
 export const LawyerProfileEdit = () => {
-  const { user } = useAuth();
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, role } = useAuth();
+  const { id: urlId } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+
+  // Determina se o admin está editando o perfil de outro usuário
+  const isAdminMode = role === 'admin' && !!urlId;
+  const isCreateMode = isAdminMode && urlId === 'novo';
+  const targetId = isCreateMode ? null : (isAdminMode ? urlId : user?.id);
+
+  const [isLoading, setIsLoading] = useState(!isCreateMode);
   const [isSaving, setIsSaving] = useState(false);
+  const [targetName, setTargetName] = useState("");
+
+  // Campos exclusivos do modo criação
+  const [newEmail, setNewEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
 
   const [profile, setProfile] = useState({
     name: "",
     title: "",
     oab: "",
     oabState: "",
-    cep: "",
     city: "",
     state: "",
-    street: "",
-    neighborhood: "",
-    addressNumber: "",
-    lat: null as number | null,
-    lng: null as number | null,
     attendanceType: "Híbrido (Online e Presencial)",
     experienceYears: "",
     mainSpecialty: "",
@@ -57,24 +65,55 @@ export const LawyerProfileEdit = () => {
     cover: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=1200&h=400"
   });
 
+  // Cities from DB
+  const [allCities, setAllCities] = useState<{ state: string; city: string }[]>([]);
+  const [availableStates, setAvailableStates] = useState<string[]>([]);
+  const [filteredCities, setFilteredCities] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchCities = async () => {
+      const { data } = await supabase
+        .from('cities')
+        .select('state, city')
+        .order('state')
+        .order('city');
+      if (data) {
+        setAllCities(data);
+        const states = [...new Set(data.map(c => c.state))].sort();
+        setAvailableStates(states);
+      }
+    };
+    fetchCities();
+  }, []);
+
+  useEffect(() => {
+    if (profile.state) {
+      const cities = allCities.filter(c => c.state === profile.state).map(c => c.city).sort();
+      setFilteredCities(cities);
+    } else {
+      setFilteredCities([]);
+    }
+  }, [profile.state, allCities]);
+
   useEffect(() => {
     const fetchProfileData = async () => {
-      if (!user) return;
+      if (!targetId || isCreateMode) return;
       
       try {
         const { data: pData, error: pError } = await supabase
           .from('profiles')
           .select('*')
-          .eq('id', user.id)
+          .eq('id', targetId)
           .single();
 
         const { data: lData, error: lError } = await supabase
           .from('lawyer_details')
           .select('*')
-          .eq('id', user.id)
+          .eq('id', targetId)
           .maybeSingle();
 
         if (pData) {
+          setTargetName(pData.name || "Advogado");
           setProfile(prev => ({
             ...prev,
             name: pData.name || "",
@@ -82,12 +121,6 @@ export const LawyerProfileEdit = () => {
             phone: pData.phone || "",
             city: pData.city || "",
             state: pData.state || "",
-            cep: pData.cep || "",
-            street: pData.street || "",
-            neighborhood: pData.neighborhood || "",
-            addressNumber: pData.address_number || "",
-            lat: pData.lat ? parseFloat(pData.lat) : null,
-            lng: pData.lng ? parseFloat(pData.lng) : null,
             avatar: pData.avatar_url || prev.avatar,
             cover: pData.cover_url || prev.cover,
             
@@ -112,45 +145,21 @@ export const LawyerProfileEdit = () => {
         }
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
-        toast.error("Erro ao carregar seu perfil.");
+        toast.error("Erro ao carregar perfil.");
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchProfileData();
-  }, [user]);
+  }, [targetId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setProfile(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const maskedCep = applyCepMask(e.target.value);
-    setProfile(prev => ({ ...prev, cep: maskedCep }));
 
-    if (maskedCep.length === 9) {
-      const data = await fetchCepData(maskedCep);
-      if (data) {
-        setProfile(prev => ({
-          ...prev,
-          state: data.state || prev.state,
-          city: data.city || prev.city,
-          street: data.street || prev.street,
-          neighborhood: data.neighborhood || prev.neighborhood,
-          lat: data.lat ?? prev.lat,
-          lng: data.lng ?? prev.lng
-        }));
-        
-        if (data.street) {
-          document.getElementById('edit-address-number')?.focus();
-        }
-        
-        toast.success("Endereço atualizado com sucesso!");
-      }
-    }
-  };
 
   const handleMainSpecialtyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newMain = e.target.value;
@@ -189,34 +198,65 @@ export const LawyerProfileEdit = () => {
   };
 
   const handleSave = async () => {
-    if (!user) return;
-    setIsSaving(true);
+    // Modo criação: criar novo advogado
+    if (isCreateMode) {
+      if (!newEmail || !newPassword) {
+        toast.error("Preencha o email e a senha do novo advogado.");
+        return;
+      }
+      if (newPassword.length < 6) {
+        toast.error("A senha deve ter pelo menos 6 caracteres.");
+        return;
+      }
+      if (!profile.name) {
+        toast.error("O nome do advogado é obrigatório.");
+        return;
+      }
 
-    try {
-      const { error: pError } = await supabase
-        .from('profiles')
-        .update({
+      setIsSaving(true);
+      try {
+        // Salvar sessão do admin
+        const { data: { session: adminSession } } = await supabase.auth.getSession();
+
+        // Criar usuário no Supabase Auth
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: newEmail,
+          password: newPassword,
+          options: {
+            data: { name: profile.name, role: 'lawyer', phone: profile.phone, city: profile.city, state: profile.state }
+          }
+        });
+
+        // Restaurar sessão do admin imediatamente
+        if (adminSession) {
+          await supabase.auth.setSession({
+            access_token: adminSession.access_token,
+            refresh_token: adminSession.refresh_token,
+          });
+        }
+
+        if (signUpError) throw signUpError;
+        if (!signUpData.user) throw new Error("Falha ao criar o usuário.");
+
+        const newUserId = signUpData.user.id;
+
+        // Aguardar o trigger criar o profile
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Atualizar profiles com dados completos
+        await supabase.from('profiles').update({
           name: profile.name,
           phone: profile.phone,
           city: profile.city,
           state: profile.state,
-          cep: profile.cep,
-          street: profile.street,
-          neighborhood: profile.neighborhood,
-          address_number: profile.addressNumber,
-          lat: profile.lat,
-          lng: profile.lng,
           avatar_url: profile.avatar,
-          cover_url: profile.cover
-        })
-        .eq('id', user.id);
+          cover_url: profile.cover,
+          role: 'lawyer',
+        }).eq('id', newUserId);
 
-      if (pError) throw pError;
-
-      const { error: lError } = await supabase
-        .from('lawyer_details')
-        .upsert({
-          id: user.id,
+        // Inserir lawyer_details
+        await supabase.from('lawyer_details').upsert({
+          id: newUserId,
           title: profile.title,
           oab: profile.oab,
           oab_state: profile.oabState,
@@ -234,13 +274,74 @@ export const LawyerProfileEdit = () => {
           youtube: profile.youtube,
           office_link: profile.officeLink,
           custom_link: profile.customLink,
+          status: 'approved',
+        });
+
+        toast.success("Advogado criado com sucesso!", {
+          description: `${profile.name} foi registrado e já está ativo na plataforma.`
+        });
+        navigate('/admin/usuarios');
+      } catch (error: any) {
+        console.error(error);
+        toast.error("Erro ao criar advogado", { description: error.message });
+      } finally {
+        setIsSaving(false);
+      }
+      return;
+    }
+
+    // Modo edição: atualizar advogado existente
+    if (!targetId) return;
+    setIsSaving(true);
+
+    try {
+      const { error: pError } = await supabase
+        .from('profiles')
+        .update({
+          name: profile.name,
+          phone: profile.phone,
+          city: profile.city,
+          state: profile.state,
+          avatar_url: profile.avatar,
+          cover_url: profile.cover
+        })
+        .eq('id', targetId);
+
+      if (pError) throw pError;
+
+      const { error: lError } = await supabase
+        .from('lawyer_details')
+        .upsert({
+          id: targetId,
+          title: profile.title,
+          oab: profile.oab,
+          oab_state: profile.oabState,
+          attendance_type: profile.attendanceType,
+          experience_years: parseInt(profile.experienceYears) || null,
+          main_specialty: profile.mainSpecialty,
+          secondary_specialties: profile.secondarySpecialties,
+          mini_bio: profile.miniBio,
+          full_bio: profile.fullBio,
+          whatsapp: profile.whatsapp,
+          website: profile.website,
+          instagram: profile.instagram,
+          linkedin: profile.linkedin,
+          facebook: profile.facebook,
+          youtube: profile.youtube,
+          office_link: profile.officeLink,
+          custom_link: profile.customLink,
+          status: 'approved',
         });
 
       if (lError) throw lError;
 
-      toast.success("Perfil atualizado com sucesso!", {
-        description: "Suas alterações e localização já estão salvas."
+      toast.success(isAdminMode ? `Perfil de ${targetName} atualizado!` : "Perfil atualizado com sucesso!", {
+        description: "As alterações e localização já estão salvas."
       });
+
+      if (isAdminMode) {
+        navigate('/admin/usuarios');
+      }
 
     } catch (error: any) {
       console.error(error);
@@ -263,8 +364,30 @@ export const LawyerProfileEdit = () => {
       
       <div className="sticky top-0 z-30 bg-slate-50/80 backdrop-blur-md py-4 border-b border-slate-200/60 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 -mx-4 px-4 md:-mx-8 md:px-8">
         <div>
-          <h1 className="text-2xl font-black text-slate-950">Editar Perfil</h1>
-          <p className="text-sm text-slate-500 font-medium">Personalize como os clientes veem você na plataforma.</p>
+          <div className="flex items-center gap-3">
+            {isAdminMode && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => navigate('/admin/usuarios')}
+                className="rounded-xl h-9 w-9 text-slate-500 hover:text-slate-900 hover:bg-slate-100"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            )}
+            <div>
+              <h1 className="text-2xl font-black text-slate-950">
+                {isCreateMode ? 'Novo Advogado' : (isAdminMode ? `Editar: ${targetName}` : 'Editar Perfil')}
+              </h1>
+              <p className="text-sm text-slate-500 font-medium">
+                {isCreateMode
+                  ? 'Cadastre um novo advogado na plataforma.'
+                  : isAdminMode 
+                    ? 'Editando perfil como administrador.' 
+                    : 'Personalize como os clientes veem você na plataforma.'}
+              </p>
+            </div>
+          </div>
         </div>
         <Button 
           onClick={handleSave} 
@@ -272,13 +395,54 @@ export const LawyerProfileEdit = () => {
           className="bg-primary text-white hover:bg-blue-900 shadow-lg shadow-primary/20 rounded-xl px-6 h-11 font-bold"
         >
           {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-          {isSaving ? "Salvando..." : "Salvar Alterações"}
+          {isSaving ? "Salvando..." : isCreateMode ? "Criar Advogado" : "Salvar Alterações"}
         </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
         <div className="lg:col-span-8 space-y-6">
+          
+          {/* Card de Credenciais (somente modo criação) */}
+          {isCreateMode && (
+            <Card className="border-blue-200/60 shadow-sm rounded-3xl bg-blue-50/30">
+              <CardHeader className="bg-blue-50/50 border-b border-blue-100 pb-4 rounded-t-3xl">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Mail className="w-5 h-5 text-blue-600" />
+                  Credenciais de Acesso
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 space-y-4">
+                <p className="text-sm text-slate-500 font-medium bg-white/60 p-3 rounded-xl border border-blue-100">
+                  Defina o email e a senha que o advogado usará para acessar o painel.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="font-bold text-slate-700">Email do Advogado</Label>
+                    <Input 
+                      type="email" 
+                      required 
+                      value={newEmail} 
+                      onChange={(e) => setNewEmail(e.target.value)} 
+                      placeholder="advogado@email.com" 
+                      className="h-11 rounded-xl bg-white border-blue-200 focus:border-blue-500" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-bold text-slate-700">Senha Temporária</Label>
+                    <Input 
+                      type="password" 
+                      required 
+                      value={newPassword} 
+                      onChange={(e) => setNewPassword(e.target.value)} 
+                      placeholder="Mínimo 6 caracteres" 
+                      className="h-11 rounded-xl bg-white border-blue-200 focus:border-blue-500" 
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
           
           <Card className="border-slate-200/60 shadow-sm rounded-3xl overflow-hidden">
             <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4">
@@ -367,11 +531,33 @@ export const LawyerProfileEdit = () => {
               <div className="w-full h-px bg-slate-100" />
 
               <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-                <div className="sm:col-span-2 relative">
-                  <Label className="text-slate-700 font-bold">CEP do Escritório</Label>
-                  <Input name="cep" value={profile.cep} onChange={handleCepChange} maxLength={9} className="h-11 rounded-xl bg-slate-50" />
+                <div className="sm:col-span-2">
+                  <Label className="text-slate-700 font-bold">Estado (UF)</Label>
+                  <Select value={profile.state} onValueChange={(val) => setProfile(prev => ({ ...prev, state: val, city: '' }))}>
+                    <SelectTrigger className="h-11 rounded-xl bg-slate-50 border-slate-200">
+                      <SelectValue placeholder="Selecione o estado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableStates.map(s => (
+                        <SelectItem key={s} value={s}>{s}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="sm:col-span-4">
+                  <Label className="text-slate-700 font-bold">Cidade de Atuação</Label>
+                  <Select value={profile.city} onValueChange={(val) => setProfile(prev => ({ ...prev, city: val }))} disabled={!profile.state}>
+                    <SelectTrigger className="h-11 rounded-xl bg-slate-50 border-slate-200">
+                      <SelectValue placeholder={profile.state ? 'Selecione a cidade' : 'Selecione o estado primeiro'} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredCities.map(c => (
+                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="sm:col-span-6">
                   <Label className="text-slate-700 font-bold">Formato de Atendimento</Label>
                   <select 
                     name="attendanceType" 
@@ -383,57 +569,6 @@ export const LawyerProfileEdit = () => {
                     <option value="Presencial">Apenas Presencial (Na minha região)</option>
                     <option value="Híbrido (Online e Presencial)">Híbrido (Online e Presencial)</option>
                   </select>
-                </div>
-                
-                <div className="sm:col-span-2">
-                  <Label className="text-slate-700 font-bold">Estado (UF)</Label>
-                  <Input 
-                    readOnly 
-                    value={profile.state} 
-                    placeholder="Auto" 
-                    className="h-11 rounded-xl bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed" 
-                  />
-                </div>
-                <div className="sm:col-span-4">
-                  <Label className="text-slate-700 font-bold">Cidade</Label>
-                  <Input 
-                    readOnly 
-                    value={profile.city} 
-                    placeholder="Auto" 
-                    className="h-11 rounded-xl bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed" 
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <Label className="text-slate-700 font-bold">Bairro</Label>
-                  <Input 
-                    readOnly={!!profile.neighborhood} 
-                    name="neighborhood" 
-                    value={profile.neighborhood} 
-                    onChange={handleChange} 
-                    className={`h-11 rounded-xl border-slate-200 ${profile.neighborhood ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`} 
-                  />
-                </div>
-                <div className="sm:col-span-3">
-                  <Label className="text-slate-700 font-bold">Rua / Logradouro</Label>
-                  <Input 
-                    readOnly={!!profile.street} 
-                    name="street" 
-                    value={profile.street} 
-                    onChange={handleChange} 
-                    className={`h-11 rounded-xl border-slate-200 ${profile.street ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`} 
-                  />
-                </div>
-                <div className="sm:col-span-1">
-                  <Label className="text-slate-700 font-bold">Num / Ap</Label>
-                  <Input 
-                    id="edit-address-number"
-                    name="addressNumber" 
-                    value={profile.addressNumber} 
-                    onChange={handleChange} 
-                    placeholder="Ex: 10" 
-                    className="h-11 rounded-xl bg-white border-slate-300 shadow-sm focus:border-primary" 
-                  />
                 </div>
               </div>
             </CardContent>
@@ -573,6 +708,17 @@ export const LawyerProfileEdit = () => {
 
             </CardContent>
           </Card>
+
+          <div className="flex justify-end pt-4">
+            <Button 
+              onClick={handleSave} 
+              disabled={isSaving}
+              className="bg-primary text-white hover:bg-blue-900 shadow-xl shadow-primary/20 rounded-xl px-12 h-14 font-black transition-all hover:scale-[1.02]"
+            >
+              {isSaving ? <Loader2 className="w-5 h-5 mr-3 animate-spin" /> : <Save className="w-5 h-5 mr-3" />}
+              {isSaving ? "Salvando..." : isCreateMode ? "Criar Advogado" : "Salvar Perfil"}
+            </Button>
+          </div>
         </div>
 
         <div className="lg:col-span-4 hidden lg:block">
@@ -610,13 +756,8 @@ export const LawyerProfileEdit = () => {
                       <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-slate-400" />
                       <div className="flex flex-col flex-1">
                         <span className="text-slate-700 font-bold">
-                          {profile.street ? `${profile.street}${profile.addressNumber ? `, ${profile.addressNumber}` : ''}` : (profile.city || "Cidade")}
+                          {profile.city || "Cidade"}{profile.state ? `, ${profile.state}` : ''}
                         </span>
-                        {profile.street && (
-                           <span className="text-[10px] text-slate-500 mt-0.5 leading-tight">
-                             {profile.neighborhood ? `${profile.neighborhood} - ` : ''}{profile.city}, {profile.state} <br/> CEP: {profile.cep}
-                           </span>
-                        )}
                       </div>
                     </div>
                   </div>

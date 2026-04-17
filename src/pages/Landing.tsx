@@ -16,11 +16,11 @@ export const Landing = () => {
     <div className="min-h-screen w-full overflow-x-hidden bg-[#000B21] text-white font-sans selection:bg-[#0066FF] selection:text-white">
       {/* BACKGROUND NOISE & GLOWS */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden mix-blend-screen">
-        <div 
+        <div
           className="absolute -top-[20%] -left-[10%] w-[70vw] h-[70vw] rounded-full bg-[#0066FF]/10 blur-[120px] will-change-transform"
           style={{ transform: `translateY(${scrollY * 0.1}px)` }}
         />
-        <div 
+        <div
           className="absolute top-[40%] -right-[20%] w-[50vw] h-[50vw] rounded-full bg-cyan-900/10 blur-[100px] will-change-transform"
           style={{ transform: `translateY(${scrollY * -0.05}px)` }}
         />
@@ -32,7 +32,7 @@ export const Landing = () => {
         <div className="flex items-center justify-between px-6 py-4 bg-[#000814]/80 backdrop-blur-xl border border-white/5 rounded-full shadow-[0_20px_40px_rgba(0,0,0,0.4)]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full overflow-hidden bg-[#0a1628] shadow-lg shadow-[#0066FF]/20">
-              <img src="/logo.png" alt="Advogado 2.0" className="w-full h-full object-cover scale-[1.3]" />
+              <img src="https://ik.imagekit.io/lflb43qwh/Meu%20advogado/Meu%20Advogado%20LOGO.jpeg" alt="Advogado 2.0" className="w-full h-full object-cover scale-[1.3]" />
             </div>
             <span className="text-xl font-black tracking-tighter text-white">Advogado 2.0</span>
           </div>
@@ -57,7 +57,7 @@ export const Landing = () => {
       {/* HERO SECTION - MASSIVE TYPOGRAPHY */}
       <section className="relative z-10 pt-48 pb-32 px-6 lg:px-8 max-w-7xl mx-auto flex flex-col items-center justify-center min-h-[90vh]">
         <div className="w-full max-w-5xl flex flex-col items-center text-center">
-          
+
           <div className="mb-10 inline-flex items-center gap-2 rounded-full border border-[#0066FF]/30 bg-[#0066FF]/10 px-5 py-2 text-xs sm:text-sm font-bold text-blue-300">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
@@ -75,7 +75,7 @@ export const Landing = () => {
           </h1>
 
           <p className="mt-10 max-w-2xl text-lg sm:text-xl font-medium leading-relaxed text-slate-400">
-            Conecte-se aos melhores profissionais do direito em uma experiência clara e sofisticada. Negocie direto pelo WhatsApp, 
+            Conecte-se aos melhores profissionais do direito em uma experiência clara e sofisticada. Negocie direto pelo WhatsApp,
             <strong className="text-white font-bold"> sem intermediários e sem taxas ocultas.</strong>
           </p>
 
@@ -86,12 +86,12 @@ export const Landing = () => {
               </Button>
             </Link>
           </div>
-          
+
           {/* Dashboard Abstract Preview (Scroll Reveal) */}
           <div className="mt-24 w-full relative perspective-1000 group hidden md:block">
             <div className="absolute inset-0 bg-gradient-to-t from-[#000B21] via-transparent to-transparent z-10 
                             translate-y-10 group-hover:translate-y-20 transition-transform duration-1000"></div>
-            <div 
+            <div
               className="relative rounded-t-[2.5rem] bg-[#00102A] p-3 border border-white/10 shadow-2xl overflow-hidden
                          transform-gpu rotate-x-12 scale-95 group-hover:rotate-x-0 group-hover:scale-100 transition-all duration-1000 ease-out"
               style={{ transform: `rotateX(${Math.max(0, 15 - scrollY * 0.05)}deg) scale(${Math.min(1, 0.95 + scrollY * 0.0002)})` }}
@@ -102,7 +102,7 @@ export const Landing = () => {
                 <div className="w-64 h-24 bg-[#000B21]/80 backdrop-blur-md rounded-2xl border border-white/10 p-4 shadow-2xl
                                 absolute -top-12 left-10 animate-float translate-y-20">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-green-500/20 text-green-400 flex justify-center items-center"><CheckCircle2 className="w-5 h-5"/></div>
+                    <div className="w-10 h-10 rounded-full bg-green-500/20 text-green-400 flex justify-center items-center"><CheckCircle2 className="w-5 h-5" /></div>
                     <div><p className="text-white font-bold text-sm">Match Encontrado</p><p className="text-slate-400 text-xs">A 0.8km de você</p></div>
                   </div>
                 </div>
@@ -116,7 +116,7 @@ export const Landing = () => {
       <section id="beneficios" className="relative z-20 py-24 bg-[#000814] border-y border-white/5">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="grid lg:grid-cols-12 gap-10 lg:gap-0 items-center">
-            
+
             <div className="lg:col-span-4 lg:pr-10">
               <h2 className="text-3xl font-black text-white leading-tight mb-4 tracking-tighter">A API Invisível da sua Justiça</h2>
               <p className="text-slate-400 font-medium">Nosso motor não lista milhares de nomes. Ele entrega o contato exato que você precisa com base no CEP.</p>
@@ -143,20 +143,20 @@ export const Landing = () => {
       {/* ADVOGADOS VIP - FRAGMENTED BLOCK */}
       <section id="advogados" className="relative z-10 py-32 overflow-hidden">
         <div className="absolute right-0 top-0 w-1/3 h-full bg-[#0066FF]/5 skew-x-12 transform origin-top-right -z-10 blur-3xl" />
-        
+
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-20 items-center">
-            
+
             {/* Left Narrative */}
             <div className="order-2 lg:order-1">
               <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-sm font-bold text-amber-500 mb-8">
                 <Briefcase className="h-4 w-4" /> Para Profissionais
               </div>
-              
+
               <h2 className="text-4xl lg:text-5xl font-black text-white tracking-tighter mb-8 leading-[1.1]">
-                Mais que um perfil. <br/> Um <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">Clube VIP</span>.
+                Mais que um perfil. <br /> Um <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">Clube VIP</span>.
               </h2>
-              
+
               <p className="text-lg leading-relaxed text-slate-400 font-medium mb-12 max-w-xl">
                 Ao se candidatar, você transcende a visibilidade comum. Você integra um ecossistema projetado para impulsionar a sua carreira dominando a sua região.
               </p>
@@ -177,20 +177,20 @@ export const Landing = () => {
                 ))}
               </div>
 
-              <Link to="/cadastro" className="inline-block">
+              <a href="https://wa.me/5561993574056?text=Ol%C3%A1%2C%20gostaria%20de%20ser%20parceiro%20do%20Advogado%202.0" target="_blank" rel="noopener noreferrer" className="inline-block">
                 <Button className="h-14 rounded-full bg-transparent border border-amber-500/50 hover:bg-amber-500/10 text-amber-500 hover:text-amber-400 font-bold px-8 transition-colors">
                   Quero ser Parceiro <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
-              </Link>
+              </a>
             </div>
 
             {/* Right Abstract Image Layout */}
             <div className="order-1 lg:order-2 relative perspective-1000 hidden md:block">
               <div className="absolute inset-0 bg-[#0066FF]/20 blur-[100px] rounded-full" />
               <div className="relative z-10 p-2 rounded-[2.5rem] bg-gradient-to-br from-white/10 to-white/0 border border-white/10 backdrop-blur-xl transform-gpu rotate-y-[-10deg]">
-                <img 
-                  src="https://ik.imagekit.io/lflb43qwh/Meu%20advogado/meu%20adv%2026.png" 
-                  alt="Interface VIP" 
+                <img
+                  src="https://ik.imagekit.io/lflb43qwh/Meu%20advogado/meu%20adv%2026.png"
+                  alt="Interface VIP"
                   className="rounded-[2rem] shadow-2xl w-full h-auto opacity-80 mix-blend-screen filter contrast-125"
                 />
               </div>
@@ -208,12 +208,12 @@ export const Landing = () => {
       <section id="proposito" className="relative z-20 py-32 bg-[#00040A] border-t border-white/5">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            
+
             <div className="relative perspective-1000 hidden md:block">
               <div className="bg-[#00102A] p-2 rounded-[2.5rem] border border-white/5 transform-gpu rotate-y-12 shadow-[20px_0_50px_rgba(0,102,255,0.1)]">
-                <img 
-                  src="https://ik.imagekit.io/lflb43qwh/Meu%20advogado/meu%20adv%202026.png" 
-                  alt="Apoio Humano" 
+                <img
+                  src="https://ik.imagekit.io/lflb43qwh/Meu%20advogado/meu%20adv%202026.png"
+                  alt="Apoio Humano"
                   className="rounded-[2rem] w-full h-auto opacity-70 mix-blend-screen hover:mix-blend-normal hover:opacity-100 transition-all duration-1000"
                 />
               </div>
@@ -223,12 +223,12 @@ export const Landing = () => {
               <div className="inline-flex items-center gap-2 rounded-full border border-rose-500/30 bg-rose-500/10 px-4 py-2 text-sm font-bold text-rose-400 mb-8">
                 <HeartHandshake className="w-4 h-4" /> O Lado Humano
               </div>
-              
+
               <h2 className="text-4xl lg:text-5xl font-black text-white tracking-tighter mb-6 leading-[1.1]">
-                Apoiamos a justiça humana. <br/>
+                Apoiamos a justiça humana. <br />
                 Confiamos na <span className="text-[#0066FF]">justiça divina.</span>
               </h2>
-              
+
               <p className="text-lg leading-relaxed text-slate-400 font-medium mb-10">
                 Lidar com processos judiciais exige resiliência. Oferecemos um braço amigo humanizado além da tecnologia.
               </p>
@@ -253,22 +253,22 @@ export const Landing = () => {
       <section className="relative z-10 py-32 overflow-hidden border-t border-white/5 bg-[#000B21]">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#00040A] z-0" />
         <div className="mx-auto max-w-5xl px-6 lg:px-8 relative z-10 text-center">
-          
+
           <div className="w-20 h-20 rounded-2xl overflow-hidden bg-[#0a1628] mx-auto mb-8 shadow-xl shadow-[#0066FF]/20 border-2 border-white/10">
-            <img src="/logo.png" alt="Advogado 2.0" className="w-full h-full object-cover scale-[1.2]" />
+            <img src="https://ik.imagekit.io/lflb43qwh/Meu%20advogado/Meu%20Advogado%20LOGO.jpeg" alt="Advogado 2.0" className="w-full h-full object-cover scale-[1.2]" />
           </div>
-          
+
           <h2 className="text-5xl md:text-7xl font-black text-white tracking-tighter mb-8 leading-[1.1]">
-            A Justiça <br/>
+            A Justiça <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-500">
               no seu Bolso.
             </span>
           </h2>
-          
+
           <p className="text-xl text-slate-400 max-w-2xl mx-auto mb-12">
             Moderno. Rápido. Cirúrgico. Feito para resolver. Integre-se ao futuro jurídico agora.
           </p>
-          
+
           <div className="flex flex-col sm:flex-row gap-5 justify-center">
             <Link to="/cadastro">
               <Button className="w-full sm:w-auto h-16 rounded-full bg-[#0066FF] hover:bg-blue-500 text-white px-12 text-lg font-bold shadow-[0_0_40px_rgba(0,102,255,0.4)] transition-all">
@@ -283,7 +283,7 @@ export const Landing = () => {
       <footer className="relative z-20 py-10 bg-[#00040A] border-t border-white/5 flex flex-col items-center">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-9 h-9 rounded-xl overflow-hidden bg-[#0a1628]">
-            <img src="/logo.png" alt="Advogado 2.0" className="w-full h-full object-cover scale-[1.2]" />
+            <img src="https://ik.imagekit.io/lflb43qwh/Meu%20advogado/Meu%20Advogado%20LOGO.jpeg" alt="Advogado 2.0" className="w-full h-full object-cover scale-[1.2]" />
           </div>
           <span className="text-xl font-black text-slate-400 tracking-tighter">Advogado 2.0</span>
         </div>

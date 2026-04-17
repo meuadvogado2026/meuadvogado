@@ -5,11 +5,12 @@ import {
   Settings,
   PieChart,
   Users,
-  ShieldCheck,
   AlertTriangle,
   HeartHandshake,
   Gift,
   Briefcase,
+  MapPin,
+  Building,
 } from "lucide-react";
 
 export interface NavLink {
@@ -28,25 +29,23 @@ export const getSidebarLinks = (role: 'client' | 'lawyer' | 'admin'): NavLink[] 
     case 'client':
       return [
         { icon: LayoutDashboard, label: 'Visão Geral', path: '/painel/cliente' },
-        { icon: Search, label: 'Buscar Advogados', path: '/painel/cliente/buscar' },
         { icon: User, label: 'Meu Perfil', path: '/painel/cliente/perfil' },
       ];
     case 'lawyer':
       return [
         { icon: LayoutDashboard, label: 'Meu Desempenho', path: '/painel/advogado' },
-        { icon: Search, label: 'Buscar Colegas', path: '/painel/advogado/buscar' },
         { icon: Gift, label: 'Benefícios', path: '/painel/advogado/beneficios' },
-        { icon: User, label: 'Editar Perfil', path: '/painel/advogado/perfil' },
         { icon: Settings, label: 'Configurações', path: '/painel/advogado/config' },
       ];
     case 'admin':
       return [
         { icon: PieChart, label: 'Métricas', path: '/admin' },
         { icon: AlertTriangle, label: 'Urgências', path: '/admin/urgencias' },
-        { icon: ShieldCheck, label: 'Aprovações', path: '/admin/aprovacoes' },
         { icon: Users, label: 'Usuários', path: '/admin/usuarios' },
         { icon: HeartHandshake, label: 'Orações', path: '/admin/oracoes' },
         { icon: Gift, label: 'Benefícios', path: '/admin/beneficios' },
+        { icon: MapPin, label: 'Cidades', path: '/admin/cidades' },
+        { icon: Building, label: 'Parceiros', path: '/admin/parceiros' },
       ];
   }
 };
@@ -59,7 +58,6 @@ export const getMobileLinks = (role: 'public' | 'client' | 'lawyer' | 'admin'): 
   switch (role) {
     case 'client':
       return [
-        { icon: Search, label: 'Buscar', path: '/painel/cliente/buscar' },
         { icon: LayoutDashboard, label: 'Painel', path: '/painel/cliente' },
         { icon: User, label: 'Perfil', path: '/painel/cliente/perfil' },
         { icon: HeartHandshake, label: 'Oração', path: '', action: 'prayer' },
@@ -67,17 +65,17 @@ export const getMobileLinks = (role: 'public' | 'client' | 'lawyer' | 'admin'): 
     case 'lawyer':
       return [
         { icon: LayoutDashboard, label: 'Painel', path: '/painel/advogado' },
-        { icon: Search, label: 'Colegas', path: '/painel/advogado/buscar' },
         { icon: Gift, label: 'Benefícios', path: '/painel/advogado/beneficios' },
-        { icon: User, label: 'Perfil', path: '/painel/advogado/perfil' },
+        { icon: Settings, label: 'Config', path: '/painel/advogado/config' },
         { icon: HeartHandshake, label: 'Oração', path: '', action: 'prayer' },
       ];
     case 'admin':
       return [
         { icon: PieChart, label: 'Métricas', path: '/admin' },
         { icon: AlertTriangle, label: 'Urgências', path: '/admin/urgencias' },
-        { icon: ShieldCheck, label: 'Aprovações', path: '/admin/aprovacoes' },
+        { icon: Users, label: 'Usuários', path: '/admin/usuarios' },
         { icon: Gift, label: 'Benefícios', path: '/admin/beneficios' },
+        { icon: Building, label: 'Parceiros', path: '/admin/parceiros' },
       ];
     default:
       return [

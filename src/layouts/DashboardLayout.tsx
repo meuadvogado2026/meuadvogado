@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { getSidebarLinks } from "@/config/navigation";
+import { PartnerFooter } from "@/components/PartnerFooter";
 import {
   Dialog,
   DialogContent,
@@ -114,14 +115,14 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
   const isFullWidthPage = location.pathname.includes('/advogado/advogado/') || location.pathname.includes('/cliente/advogado/') || location.pathname.includes('/buscar');
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans pb-20 md:pb-0">
+    <div className="min-h-screen bg-background flex flex-col md:flex-row font-sans pb-20 md:pb-0">
       
       <aside className="hidden md:flex flex-col w-[280px] bg-slate-950 border-r border-slate-800 min-h-screen relative z-20 shadow-2xl shadow-slate-900/20">
         
         <div className="h-20 flex items-center px-6 mb-2 mt-4">
           <Link to="/" className="flex items-center gap-3 transition-opacity hover:opacity-80">
             <div className="rounded-2xl overflow-hidden shadow-lg">
-              <img src="/logo.png" alt="Advogado 2.0" className="h-9 w-9 object-cover scale-[1.2]" />
+              <img src="https://ik.imagekit.io/lflb43qwh/Meu%20advogado/Meu%20Advogado%20LOGO.jpeg" alt="Advogado 2.0" className="h-9 w-9 object-cover scale-[1.2]" />
             </div>
             <span className="font-bold text-xl tracking-tight text-white">Advogado 2.0</span>
           </Link>
@@ -201,20 +202,47 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col min-h-screen overflow-hidden bg-slate-50/50">
-        
-        <header className="md:hidden h-16 bg-white/80 backdrop-blur-xl border-b border-slate-200 flex items-center px-4 justify-between sticky top-0 z-40 shadow-sm">
+      <div className={cn("flex-1 flex flex-col min-h-screen overflow-hidden", role === 'admin' ? "bg-slate-50" : "bg-background")}>
+        <header className={cn(
+          "hidden md:flex h-16 px-8 items-center justify-end sticky top-0 z-30 border-b",
+          (role === 'admin' || role === 'lawyer') ? "bg-[#0F172A] border-slate-800" : "bg-white border-slate-200"
+        )}>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={handleLogout} 
+            className={cn(
+              "font-bold transition-colors",
+              (role === 'admin' || role === 'lawyer') ? "text-red-400 hover:bg-red-500/10 hover:text-red-300" : "text-red-600 hover:bg-red-50 hover:text-red-700"
+            )}
+          >
+            <LogOut className="w-4 h-4 mr-2" /> Sair da Conta
+          </Button>
+        </header>
+
+        <header className={cn(
+          "md:hidden h-16 backdrop-blur-xl border-b flex items-center px-4 justify-between sticky top-0 z-40 shadow-sm",
+          (role === 'admin' || role === 'lawyer') ? "bg-[#0F172A]/90 border-slate-800" : "bg-white/80 border-slate-200"
+        )}>
           <div className="flex items-center gap-2.5">
             <div className="h-8 w-8 rounded-xl overflow-hidden bg-[#0a1628] shadow-sm">
-              <img src="/logo.png" alt="Advogado 2.0" className="w-full h-full object-cover scale-[1.2]" />
+              <img src="https://ik.imagekit.io/lflb43qwh/Meu%20advogado/Meu%20Advogado%20LOGO.jpeg" alt="Advogado 2.0" className="w-full h-full object-cover scale-[1.2]" />
             </div>
-            <span className="font-bold text-slate-900 tracking-tight">Advogado 2.0</span>
+            <span className={cn(
+              "font-bold tracking-tight",
+              (role === 'admin' || role === 'lawyer') ? "text-white" : "text-slate-900"
+            )}>Advogado 2.0</span>
           </div>
           <Button 
             variant="outline" 
             size="sm" 
             onClick={handleLogout} 
-            className="text-red-600 font-bold border-red-200 bg-red-50 hover:bg-red-600 hover:text-white transition-colors shadow-sm"
+            className={cn(
+              "font-bold transition-colors shadow-sm",
+              (role === 'admin' || role === 'lawyer') 
+                ? "text-red-400 border-red-500/20 bg-red-500/10 hover:bg-red-500 hover:text-white" 
+                : "text-red-600 border-red-200 bg-red-50 hover:bg-red-600 hover:text-white"
+            )}
           >
             <LogOut className="w-4 h-4 mr-2" /> Sair
           </Button>
@@ -223,6 +251,21 @@ export const DashboardLayout = ({ role }: { role: 'client' | 'lawyer' | 'admin' 
         <main className={cn("flex-1 overflow-y-auto", !isFullWidthPage && "p-4 md:p-8 lg:px-12")}>
           <Outlet />
         </main>
+
+        {/* Rodapé de Parceiros (Visível para advogados e clientes) */}
+        {(role === 'lawyer' || role === 'client') && <PartnerFooter />}
+
+        {/* Mascote flutuante — client + lawyer */}
+        {role !== 'admin' && (
+          <div className="fixed bottom-20 md:bottom-8 left-4 md:left-[300px] z-50 pointer-events-none select-none">
+            <img
+              src="/mascot.png"
+              alt="Mascote Advogado 2.0"
+              className="w-20 h-20 md:w-32 md:h-32 object-contain drop-shadow-2xl opacity-80 hover:opacity-100 pointer-events-auto transition-all duration-300 hover:scale-110 -scale-x-100"
+              style={{ animation: 'float 4s ease-in-out infinite' }}
+            />
+          </div>
+        )}
       </div>
 
       <MobileNav role={role} onOpenPrayer={() => setIsPrayerModalOpen(true)} />

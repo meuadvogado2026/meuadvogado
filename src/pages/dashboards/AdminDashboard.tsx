@@ -270,8 +270,8 @@ export const AdminDashboard = () => {
                 <Clock className="w-6 h-6" />
               </div>
             </div>
-            <Link to="/admin/aprovacoes" className="mt-4 flex items-center text-sm font-bold text-amber-600 hover:text-amber-800 cursor-pointer transition-colors">
-              Revisar agora <ChevronRight className="w-4 h-4 ml-1" />
+            <Link to="/admin/usuarios" className="mt-4 flex items-center text-sm font-bold text-amber-600 hover:text-amber-800 cursor-pointer transition-colors">
+              Ver usuários <ChevronRight className="w-4 h-4 ml-1" />
             </Link>
           </CardContent>
         </Card>

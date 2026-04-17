@@ -4,11 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Save, User, MapPin, Loader2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { applyCepMask, fetchCepData } from "@/utils/cep";
 import { specialties } from "@/data/mock";
 import { cn } from "@/lib/utils";
 
@@ -21,22 +21,51 @@ export const ClientProfile = () => {
     name: "",
     email: "",
     phone: "",
-    cep: "",
     city: "",
     state: "",
-    street: "",
-    neighborhood: "",
-    addressNumber: "",
-    lat: null as number | null,
-    lng: null as number | null,
     password: "",
+    currentPassword: "",
     preferred_specialties: [] as string[]
   });
+
+  // Cities from DB
+  const [allCities, setAllCities] = useState<{ state: string; city: string }[]>([]);
+  const [availableStates, setAvailableStates] = useState<string[]>([]);
+  const [filteredCities, setFilteredCities] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchCities = async () => {
+      const { data } = await supabase
+        .from('cities')
+        .select('state, city')
+        .order('state')
+        .order('city');
+
+      if (data) {
+        setAllCities(data);
+        const states = [...new Set(data.map(c => c.state))].sort();
+        setAvailableStates(states);
+      }
+    };
+    fetchCities();
+  }, []);
+
+  useEffect(() => {
+    if (profile.state) {
+      const cities = allCities
+        .filter(c => c.state === profile.state)
+        .map(c => c.city)
+        .sort();
+      setFilteredCities(cities);
+    } else {
+      setFilteredCities([]);
+    }
+  }, [profile.state, allCities]);
 
   useEffect(() => {
     const fetchProfile = async () => {
       if (!user) return;
-      
+
       try {
         const { data, error } = await supabase
           .from('profiles')
@@ -52,14 +81,8 @@ export const ClientProfile = () => {
             name: data.name || "",
             email: data.email || user.email || "",
             phone: data.phone || "",
-            cep: data.cep || "",
             city: data.city || "",
             state: data.state || "",
-            street: data.street || "",
-            neighborhood: data.neighborhood || "",
-            addressNumber: data.address_number || "",
-            lat: data.lat ? parseFloat(data.lat) : null,
-            lng: data.lng ? parseFloat(data.lng) : null,
             preferred_specialties: data.preferred_specialties || []
           }));
         }
@@ -82,36 +105,10 @@ export const ClientProfile = () => {
   const handleToggleSpecialty = (spec: string) => {
     setProfile(prev => ({
       ...prev,
-      preferred_specialties: prev.preferred_specialties.includes(spec) 
-        ? prev.preferred_specialties.filter(s => s !== spec) 
+      preferred_specialties: prev.preferred_specialties.includes(spec)
+        ? prev.preferred_specialties.filter(s => s !== spec)
         : [...prev.preferred_specialties, spec]
     }));
-  };
-
-  const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const maskedCep = applyCepMask(e.target.value);
-    setProfile(prev => ({ ...prev, cep: maskedCep }));
-
-    if (maskedCep.length === 9) {
-      const data = await fetchCepData(maskedCep);
-      if (data) {
-        setProfile(prev => ({
-          ...prev,
-          state: data.state || prev.state,
-          city: data.city || prev.city,
-          street: data.street || prev.street,
-          neighborhood: data.neighborhood || prev.neighborhood,
-          lat: data.lat ?? prev.lat,
-          lng: data.lng ?? prev.lng
-        }));
-        
-        if (data.street) {
-          document.getElementById('edit-address-number-client')?.focus();
-        }
-
-        toast.success("Endereço atualizado com sucesso!");
-      }
-    }
   };
 
   const handleSave = async () => {
@@ -124,14 +121,8 @@ export const ClientProfile = () => {
         .update({
           name: profile.name,
           phone: profile.phone,
-          cep: profile.cep,
           city: profile.city,
           state: profile.state,
-          street: profile.street,
-          neighborhood: profile.neighborhood,
-          address_number: profile.addressNumber,
-          lat: profile.lat,
-          lng: profile.lng,
           preferred_specialties: profile.preferred_specialties
         })
         .eq('id', user.id);
@@ -139,16 +130,34 @@ export const ClientProfile = () => {
       if (profileError) throw profileError;
 
       if (profile.password) {
+        if (!profile.currentPassword) {
+          toast.error("Senha atual obrigatória", { description: "Para alterar a senha, informe a senha atual." });
+          setIsSaving(false);
+          return;
+        }
+
+        // Verify current password by re-authenticating
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: profile.email,
+          password: profile.currentPassword
+        });
+
+        if (signInError) {
+          toast.error("Senha atual incorreta", { description: "A senha atual informada não confere." });
+          setIsSaving(false);
+          return;
+        }
+
         const { error: authError } = await supabase.auth.updateUser({
           password: profile.password
         });
-        
+
         if (authError) throw authError;
-        setProfile(prev => ({ ...prev, password: "" })); 
+        setProfile(prev => ({ ...prev, password: "", currentPassword: "" }));
       }
 
       toast.success("Dados atualizados com sucesso!", {
-        description: "Suas informações e localização foram salvas."
+        description: "Suas informações foram salvas."
       });
     } catch (error: any) {
       console.error(error);
@@ -170,13 +179,13 @@ export const ClientProfile = () => {
     <div className="max-w-3xl mx-auto space-y-8 pb-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 flex items-center gap-3">
-            <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+          <h1 className="text-3xl font-black text-white flex items-center gap-3">
+            <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl shadow-sm">
               <User className="w-6 h-6" />
             </div>
             Meus Dados
           </h1>
-          <p className="text-slate-500 mt-2 font-medium">Mantenha suas informações e localização atualizadas.</p>
+          <p className="text-slate-100 mt-2 font-medium">Mantenha suas informações atualizadas.</p>
         </div>
         <Button onClick={handleSave} disabled={isSaving} className="bg-primary text-white hover:bg-blue-900 shadow-lg shadow-primary/20 rounded-xl px-6 h-12 font-bold">
           {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
@@ -189,106 +198,72 @@ export const ClientProfile = () => {
           <CardTitle className="text-xl font-bold text-slate-900">Informações Pessoais</CardTitle>
         </CardHeader>
         <CardContent className="p-6 md:p-8 space-y-8">
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2 md:col-span-2">
               <Label className="font-bold text-slate-700">Nome Completo</Label>
-              <Input 
-                name="name" 
-                value={profile.name} 
-                onChange={handleChange} 
-                className="h-12 rounded-xl bg-slate-50 border-slate-200" 
+              <Input
+                name="name"
+                value={profile.name}
+                onChange={handleChange}
+                className="h-12 rounded-xl bg-slate-50 border-slate-200"
               />
             </div>
             <div className="space-y-2">
               <Label className="font-bold text-slate-700">E-mail</Label>
-              <Input 
-                type="email" 
-                name="email" 
-                value={profile.email} 
+              <Input
+                type="email"
+                name="email"
+                value={profile.email}
                 disabled
-                className="h-12 rounded-xl bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed" 
+                className="h-12 rounded-xl bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed"
               />
             </div>
             <div className="space-y-2">
               <Label className="font-bold text-slate-700">Telefone / WhatsApp</Label>
-              <Input 
-                type="tel" 
-                name="phone" 
-                value={profile.phone} 
-                onChange={handleChange} 
-                className="h-12 rounded-xl bg-slate-50 border-slate-200" 
+              <Input
+                type="tel"
+                name="phone"
+                value={profile.phone}
+                onChange={handleChange}
+                className="h-12 rounded-xl bg-slate-50 border-slate-200"
               />
             </div>
           </div>
 
           <div className="w-full h-px bg-slate-100" />
 
+          {/* Localização: Estado + Cidade */}
           <div>
             <h3 className="text-sm font-black uppercase tracking-wider text-slate-500 mb-4 flex items-center gap-2">
               <MapPin className="w-4 h-4 text-primary" /> Localização
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
-              <div className="sm:col-span-2">
-                <Label className="font-bold text-slate-700">CEP</Label>
-                <Input 
-                  name="cep" 
-                  value={profile.cep} 
-                  onChange={handleCepChange} 
-                  maxLength={9}
-                  className="h-12 rounded-xl bg-slate-50 border-slate-200" 
-                />
-              </div>
-              
-              <div className="sm:col-span-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
                 <Label className="font-bold text-slate-700">Estado</Label>
-                <Input 
-                  readOnly 
-                  value={profile.state} 
-                  placeholder="Auto" 
-                  className="h-12 rounded-xl bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed" 
-                />
+                <Select value={profile.state} onValueChange={(val) => setProfile(prev => ({ ...prev, state: val, city: "" }))}>
+                  <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-200">
+                    <SelectValue placeholder="Selecione o estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableStates.map(s => (
+                      <SelectItem key={s} value={s}>{s}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="sm:col-span-3">
+              <div className="space-y-2">
                 <Label className="font-bold text-slate-700">Cidade</Label>
-                <Input 
-                  readOnly 
-                  value={profile.city} 
-                  placeholder="Auto" 
-                  className="h-12 rounded-xl bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed" 
-                />
-              </div>
-
-              <div className="sm:col-span-2">
-                <Label className="font-bold text-slate-700">Bairro</Label>
-                <Input 
-                  readOnly={!!profile.neighborhood} 
-                  name="neighborhood" 
-                  value={profile.neighborhood} 
-                  onChange={handleChange} 
-                  className={`h-12 rounded-xl border-slate-200 ${profile.neighborhood ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`} 
-                />
-              </div>
-              <div className="sm:col-span-3">
-                <Label className="text-slate-700 font-bold">Rua / Logradouro</Label>
-                <Input 
-                  readOnly={!!profile.street} 
-                  name="street" 
-                  value={profile.street} 
-                  onChange={handleChange} 
-                  className={`h-12 rounded-xl border-slate-200 ${profile.street ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white'}`} 
-                />
-              </div>
-              <div className="sm:col-span-1">
-                <Label className="text-slate-700 font-bold">Num/Ap</Label>
-                <Input 
-                  id="edit-address-number-client"
-                  name="addressNumber" 
-                  value={profile.addressNumber} 
-                  onChange={handleChange} 
-                  placeholder="Ex: 10" 
-                  className="h-12 rounded-xl bg-white border-slate-300 shadow-sm focus:border-blue-500" 
-                />
+                <Select value={profile.city} onValueChange={(val) => setProfile(prev => ({ ...prev, city: val }))} disabled={!profile.state}>
+                  <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-200">
+                    <SelectValue placeholder={profile.state ? "Selecione a cidade" : "Selecione o estado primeiro"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredCities.map(c => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
@@ -310,8 +285,8 @@ export const ClientProfile = () => {
                     onClick={() => handleToggleSpecialty(spec)}
                     className={cn(
                       "px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 border",
-                      isSelected 
-                        ? "bg-blue-50 border-blue-300 text-blue-700 shadow-sm" 
+                      isSelected
+                        ? "bg-blue-50 border-blue-300 text-blue-700 shadow-sm"
                         : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300"
                     )}
                   >
@@ -328,18 +303,37 @@ export const ClientProfile = () => {
           <div className="w-full h-px bg-slate-100" />
 
           <div className="space-y-2 max-w-sm">
+            <Label className="font-bold text-slate-700">Senha Atual</Label>
+            <Input
+              type="password"
+              name="currentPassword"
+              value={profile.currentPassword}
+              onChange={handleChange}
+              placeholder="Digite sua senha atual"
+              className="h-12 rounded-xl bg-slate-50 border-slate-200"
+            />
+          </div>
+
+          <div className="space-y-2 max-w-sm">
             <Label className="font-bold text-slate-700">Nova Senha</Label>
-            <Input 
-              type="password" 
-              name="password" 
-              value={profile.password} 
-              onChange={handleChange} 
-              placeholder="Deixe em branco para não alterar" 
-              className="h-12 rounded-xl bg-slate-50 border-slate-200" 
+            <Input
+              type="password"
+              name="password"
+              value={profile.password}
+              onChange={handleChange}
+              placeholder="Deixe em branco para não alterar"
+              className="h-12 rounded-xl bg-slate-50 border-slate-200"
             />
           </div>
         </CardContent>
       </Card>
+
+      <div className="flex justify-end pt-4">
+        <Button onClick={handleSave} disabled={isSaving} className="bg-primary text-white hover:bg-blue-900 shadow-xl shadow-primary/20 rounded-xl px-12 h-14 font-black transition-all hover:scale-[1.02]">
+          {isSaving ? <Loader2 className="w-5 h-5 mr-3 animate-spin" /> : <Save className="w-5 h-5 mr-3" />}
+          {isSaving ? "Salvando..." : "Salvar Alterações"}
+        </Button>
+      </div>
     </div>
   );
 };

@@ -31,7 +31,8 @@ export const LawyerSettings = () => {
     whatsappNumber: "",
     whatsappMessage: "Olá! Encontrei seu perfil no Advogado 2.0 e gostaria de uma orientação inicial.",
     email: "",
-    password: ""
+    password: "",
+    currentPassword: ""
   });
   
   const [isLoading, setIsLoading] = useState(true);
@@ -52,14 +53,13 @@ export const LawyerSettings = () => {
         // Obter configurações do lawyer_details
         const { data: details } = await supabase
           .from('lawyer_details')
-          .select('is_profile_active, whatsapp, whatsapp_message')
+          .select('whatsapp, whatsapp_message')
           .eq('id', user.id)
           .maybeSingle();
 
         setSettings(prev => ({
           ...prev,
           email: profile?.email || prev.email,
-          isProfileActive: details?.is_profile_active ?? true,
           whatsappNumber: details?.whatsapp || prev.whatsappNumber,
           whatsappMessage: details?.whatsapp_message || prev.whatsappMessage,
         }));
@@ -91,16 +91,34 @@ export const LawyerSettings = () => {
     setIsSaving(true);
     
     try {
-      const { error } = await supabase
-        .from('lawyer_details')
-        .update({
-          is_profile_active: settings.isProfileActive,
-          whatsapp: settings.whatsappNumber,
-          whatsapp_message: settings.whatsappMessage
-        })
-        .eq('id', user.id);
+      // Password change with current password verification
+      if (settings.password) {
+        if (!settings.currentPassword) {
+          toast.error("Senha atual obrigatória", { description: "Para alterar a senha, informe a senha atual." });
+          setIsSaving(false);
+          return;
+        }
 
-      if (error) throw error;
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: settings.email,
+          password: settings.currentPassword
+        });
+
+        if (signInError) {
+          toast.error("Senha atual incorreta", { description: "A senha atual informada não confere." });
+          setIsSaving(false);
+          return;
+        }
+
+        const { error: authError } = await supabase.auth.updateUser({
+          password: settings.password
+        });
+
+        if (authError) throw authError;
+        setSettings(prev => ({ ...prev, password: "", currentPassword: "" }));
+      }
+
+
 
       toast.success("Configurações salvas!", {
         description: "Suas preferências foram atualizadas com sucesso."
@@ -199,37 +217,6 @@ export const LawyerSettings = () => {
           </CardContent>
         </Card>
 
-        {/* WhatsApp */}
-        <Card className="border-slate-200/60 shadow-sm rounded-3xl overflow-hidden">
-          <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <MessageCircle className="w-5 h-5 text-green-600" />
-              Configurações do WhatsApp
-            </CardTitle>
-            <CardDescription>Defina como os clientes entram em contato com você.</CardDescription>
-          </CardHeader>
-          <CardContent className="p-6 space-y-4">
-            <div className="space-y-2">
-              <Label>Número do WhatsApp</Label>
-              <Input 
-                name="whatsappNumber" 
-                value={settings.whatsappNumber} 
-                onChange={handleChange} 
-                className="h-11 rounded-xl bg-slate-50" 
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Mensagem Padrão Inicial</Label>
-              <Textarea 
-                name="whatsappMessage" 
-                value={settings.whatsappMessage} 
-                onChange={handleChange} 
-                className="rounded-xl bg-slate-50 resize-none h-24" 
-              />
-              <p className="text-xs text-slate-500">Esta é a mensagem que o cliente enviará ao clicar no seu botão do WhatsApp.</p>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Conta */}
         <Card className="border-slate-200/60 shadow-sm rounded-3xl overflow-hidden border-red-100">
@@ -246,7 +233,18 @@ export const LawyerSettings = () => {
                 type="email" 
                 name="email" 
                 value={settings.email} 
+                disabled
+                className="h-11 rounded-xl bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed" 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Senha Atual</Label>
+              <Input 
+                type="password" 
+                name="currentPassword" 
+                value={settings.currentPassword} 
                 onChange={handleChange} 
+                placeholder="Digite sua senha atual" 
                 className="h-11 rounded-xl bg-slate-50" 
               />
             </div>
@@ -260,6 +258,17 @@ export const LawyerSettings = () => {
                 placeholder="Deixe em branco para manter a atual" 
                 className="h-11 rounded-xl bg-slate-50" 
               />
+            </div>
+            
+            <div className="pt-4">
+              <Button 
+                onClick={handleSave} 
+                disabled={isSaving}
+                className="w-full h-11 bg-primary text-white hover:bg-blue-900 shadow-lg shadow-primary/20 rounded-xl font-bold transition-all"
+              >
+                {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                {isSaving ? "Salvando..." : "Salvar Configurações"}
+              </Button>
             </div>
 
             <div className="pt-6 border-t border-slate-100 mt-6">

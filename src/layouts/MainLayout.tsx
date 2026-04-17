@@ -19,7 +19,7 @@ export const MainLayout = () => {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5">
             <div className="h-9 w-9 rounded-2xl overflow-hidden bg-[#0a1628] shadow-sm">
-              <img src="/logo.png" alt="Advogado 2.0" className="w-full h-full object-cover scale-[1.2]" />
+              <img src="https://ik.imagekit.io/lflb43qwh/Meu%20advogado/Meu%20Advogado%20LOGO.jpeg" alt="Advogado 2.0" className="w-full h-full object-cover scale-[1.2]" />
             </div>
             <span className="font-bold text-xl tracking-tight text-slate-900">Advogado 2.0</span>
           </Link>
@@ -44,7 +44,7 @@ export const MainLayout = () => {
                 <SheetHeader className="text-left mb-6 mt-4">
                   <SheetTitle className="flex items-center gap-2.5 font-bold text-xl text-slate-900">
                     <div className="h-7 w-7 rounded-xl overflow-hidden bg-[#0a1628]">
-                      <img src="/logo.png" alt="Advogado 2.0" className="w-full h-full object-cover scale-[1.2]" />
+                      <img src="https://ik.imagekit.io/lflb43qwh/Meu%20advogado/Meu%20Advogado%20LOGO.jpeg" alt="Advogado 2.0" className="w-full h-full object-cover scale-[1.2]" />
                     </div>
                     Advogado 2.0
                   </SheetTitle>
@@ -81,7 +81,7 @@ export const MainLayout = () => {
           {/* Logo e Nome */}
           <Link to="/" className="flex items-center gap-2.5">
             <div className="p-0.5 rounded-xl overflow-hidden bg-[#0a1628]">
-              <img src="/logo.png" alt="Advogado 2.0" className="h-6 w-6 object-cover scale-[1.2]" />
+              <img src="https://ik.imagekit.io/lflb43qwh/Meu%20advogado/Meu%20Advogado%20LOGO.jpeg" alt="Advogado 2.0" className="h-6 w-6 object-cover scale-[1.2]" />
             </div>
             <span className="font-bold text-lg text-white">Advogado 2.0</span>
           </Link>

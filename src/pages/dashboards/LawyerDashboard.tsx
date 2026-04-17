@@ -300,7 +300,7 @@ export const LawyerDashboard = () => {
           </div>
           <Progress value={profileCompleteness} className="h-2 bg-slate-100" />
           <p className="text-xs text-slate-400">
-            {profileCompleteness === 100 ? "Seu perfil está perfeito e atraente!" : "Complete seu perfil em 'Editar Perfil' para chegar a 100%."}
+            {profileCompleteness === 100 ? "Seu perfil está perfeito e atraente!" : "Entre em contato com o administrador para completar seu perfil."}
           </p>
         </div>
       </div>
