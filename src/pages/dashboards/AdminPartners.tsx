@@ -10,7 +10,9 @@ import { Building, Plus, Pencil, Trash2, Eye, EyeOff, Loader2 } from "lucide-rea
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-  type Partner = { id: string; name: string; logo_url: string; is_active: boolean };
+type Partner = { id: string; name: string; logo_url: string; is_active: boolean };
+
+export const AdminPartners = () => {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -40,7 +42,7 @@ import { supabase } from "@/integrations/supabase/client";
     }
   };
 
-  const handleOpenModal = (partner: any = null) => {
+  const handleOpenModal = (partner: Partner | null = null) => {
     if (partner) {
       setFormData(partner);
     } else {
